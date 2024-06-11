@@ -40,6 +40,8 @@
     "tailwindcss": "^4.0.0",
     "typescript": "^5.7.2",
     "vite": "^6.2.2",
-    "vite-tsconfig-paths": "^5.1.4"
+    "vite-plugin-pwa": "^1.2.0",
+    "vite-tsconfig-paths": "^5.1.4",
+    "workbox-window": "^7.4.0"
   }
 }
