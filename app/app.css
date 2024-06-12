@@ -13,3 +13,192 @@ body {
     color-scheme: dark;
   }
 }
+
+/* ========================================
+   RESPONSIVE TEXT UTILITIES
+   ======================================== */
+
+/* Base responsive text sizes */
+.text-responsive {
+  font-size: 0.75rem; /* 12px */
+  line-height: 1rem;
+}
+
+@media (min-width: 1024px) {
+  .text-responsive {
+    font-size: 0.875rem; /* 14px */
+    line-height: 1.25rem;
+  }
+}
+
+.text-responsive-lg {
+  font-size: 0.875rem; /* 14px */
+  line-height: 1.25rem;
+}
+
+@media (min-width: 640px) {
+  .text-responsive-lg {
+    font-size: 1rem; /* 16px */
+    line-height: 1.5rem;
+  }
+}
+
+.text-responsive-xl {
+  font-size: 1rem; /* 16px */
+  line-height: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .text-responsive-xl {
+    font-size: 1.125rem; /* 18px */
+    line-height: 1.75rem;
+  }
+}
+
+/* Text style combinations */
+.text-body {
+  @apply text-xs lg:text-sm text-gray-900;
+}
+
+.text-body-secondary {
+  @apply text-xs lg:text-sm text-gray-500;
+}
+
+.text-label {
+  @apply text-xs lg:text-sm font-medium text-gray-700;
+}
+
+.text-heading {
+  @apply text-xs lg:text-sm font-semibold text-gray-900;
+}
+
+.text-section-title {
+  @apply text-xs font-semibold text-gray-600 uppercase tracking-wide;
+}
+
+.text-page-title {
+  @apply text-sm lg:text-base font-semibold text-gray-700;
+}
+
+
+/* ========================================
+   LAYOUT UTILITIES
+   ======================================== */
+
+/* Flex layouts */
+.flex-center {
+  @apply flex items-center gap-2;
+}
+
+.flex-start {
+  @apply flex items-start gap-3;
+}
+
+.flex-between {
+  @apply flex items-center justify-between;
+}
+
+
+/* ========================================
+   CARD & CONTAINER UTILITIES
+   ======================================== */
+
+.card {
+  @apply bg-white border border-gray-300 rounded-lg;
+}
+
+.card-padded {
+  @apply bg-white border border-gray-300 rounded-lg p-4 lg:p-6;
+}
+
+.info-box {
+  @apply bg-gray-50 rounded-lg p-4 border border-gray-200;
+}
+
+.info-box-hover {
+  @apply bg-gray-50 rounded-lg p-4 border border-gray-200 hover:border-gray-300 transition-colors;
+}
+
+
+/* ========================================
+   BUTTON UTILITIES
+   ======================================== */
+
+.btn-base {
+  @apply px-2.5 lg:px-3 py-1 lg:py-1.5 rounded text-xs lg:text-sm;
+}
+
+.btn-primary {
+  @apply px-2.5 lg:px-3 py-1 lg:py-1.5 rounded text-xs lg:text-sm bg-blue-600 text-white hover:bg-blue-700;
+}
+
+.btn-secondary {
+  @apply px-2.5 lg:px-3 py-1 lg:py-1.5 rounded text-xs lg:text-sm border text-gray-500 hover:bg-gray-50;
+}
+
+.btn-danger {
+  @apply px-2.5 lg:px-3 py-1 lg:py-1.5 rounded text-xs lg:text-sm bg-red-600 text-white hover:bg-red-700;
+}
+
+
+/* ========================================
+   ICON UTILITIES
+   ======================================== */
+
+.icon-sm {
+  @apply h-3 w-3 lg:h-3.5 lg:w-3.5;
+}
+
+.icon-md {
+  @apply h-3.5 w-3.5 lg:h-4 lg:w-4;
+}
+
+.icon-lg {
+  @apply h-4 w-4 lg:h-5 lg:w-5;
+}
+
+
+/* ========================================
+   SPACING UTILITIES
+   ======================================== */
+
+.space-y-responsive {
+  @apply space-y-3 lg:space-y-4;
+}
+
+.gap-responsive {
+  @apply gap-3 lg:gap-4;
+}
+
+
+/* ========================================
+   FORM UTILITIES
+   ======================================== */
+
+.form-input {
+  @apply mt-1 block w-full rounded-md border border-gray-300 px-2.5 py-1.5 lg:px-3 lg:py-2 text-xs lg:text-sm text-gray-900;
+}
+
+.form-label {
+  @apply block text-xs lg:text-sm font-medium text-gray-700;
+}
+
+.form-select {
+  @apply mt-1 block w-full rounded-md border border-gray-300 px-2.5 py-1.5 lg:px-3 lg:py-2 text-xs lg:text-sm text-gray-500 cursor-pointer;
+}
+
+
+/* ========================================
+   PRINT UTILITIES
+   ======================================== */
+
+@media print {
+  .screen-only {
+    display: none !important;
+  }
+
+  @page {
+    size: A4;
+    margin: 0.5cm;
+  }
+}
