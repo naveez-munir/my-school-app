@@ -50,7 +50,7 @@ export function FileInput({
 
   return (
     <div className="space-y-1">
-      <label className="block text-sm font-medium text-gray-700">
+      <label className="block text-xs sm:text-sm font-medium text-gray-700">
         {label}{required && '*'}
       </label>
       <div className="flex items-center space-x-2">
@@ -66,21 +66,21 @@ export function FileInput({
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          className="inline-flex items-center px-2.5 py-1.5 sm:px-3 sm:py-2 border border-gray-300 shadow-sm text-xs sm:text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
         >
-          <Upload className="h-4 w-4 mr-2" />
+          <Upload className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
           Upload
         </button>
-        
+
         {value && (
-          <div className="flex items-center space-x-2">
-            <span className="text-sm truncate max-w-[200px]">{value}</span>
+          <div className="flex items-center space-x-1.5 sm:space-x-2">
+            <span className="text-xs sm:text-sm truncate max-w-[150px] sm:max-w-[200px]">{value}</span>
             <button
               type="button"
               onClick={handleRemove}
               className="text-red-500 hover:text-red-700"
             >
-              <X className="h-5 w-5" />
+              <X className="h-4 w-4 sm:h-5 sm:w-5" />
             </button>
           </div>
         )}
