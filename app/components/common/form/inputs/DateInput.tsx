@@ -30,7 +30,7 @@ export const DateInput = ({
 
   return (
     <div className="space-y-1">
-      <label className="block text-sm font-medium text-gray-700">
+      <label className="block text-xs sm:text-sm font-medium text-gray-700">
         {label}{required && '*'}
       </label>
       <div className="relative" onClick={handleClick}>
@@ -40,16 +40,16 @@ export const DateInput = ({
           value={formatDateForInput(value)}
           onChange={(e) => onChange(e.target.value)}
           disabled={disabled}
-          className={`mt-1 block w-full rounded-md border shadow-sm pl-10 pr-3 py-2 cursor-pointer ${
+          className={`mt-1 block w-full rounded-md border shadow-sm pl-8 sm:pl-10 pr-2.5 sm:pr-3 py-1.5 sm:py-2 text-sm cursor-pointer ${
             error
               ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
               : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'
           } ${disabled ? 'bg-gray-100 cursor-not-allowed' : ''}`}
         />
-        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+        <Calendar className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400 pointer-events-none" />
       </div>
       {error && (
-        <p className="mt-1 text-sm text-red-600">{error}</p>
+        <p className="mt-1 text-xs sm:text-sm text-red-600">{error}</p>
       )}
     </div>
   );
