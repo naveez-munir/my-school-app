@@ -16,7 +16,7 @@ export const PasswordInput = ({
 
   return (
     <div className="space-y-1">
-      <label className="block text-sm font-medium text-gray-700">
+      <label className="block text-xs sm:text-sm font-medium text-gray-700">
         {label}{required && '*'}
       </label>
       <div className="relative">
@@ -26,9 +26,9 @@ export const PasswordInput = ({
           name={name}
           onChange={(e) => onChange(e.target.value)}
           disabled={disabled}
-          className={`mt-1 block w-full rounded-md shadow-sm p-2 pr-10 ${
-            error 
-              ? 'border-red-500 focus:border-red-500 focus:ring-red-500' 
+          className={`mt-1 block w-full rounded-md shadow-sm px-2.5 py-1.5 sm:px-3 sm:py-2 pr-8 sm:pr-10 text-sm ${
+            error
+              ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
               : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'
           }`}
           placeholder={placeholder}
@@ -36,17 +36,17 @@ export const PasswordInput = ({
         <button
           type="button"
           onClick={() => setShowPassword(!showPassword)}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
+          className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
           tabIndex={-1}
         >
-          {showPassword ? 
-            <EyeOffIcon className="h-5 w-5" /> : 
-            <EyeIcon className="h-5 w-5" />
+          {showPassword ?
+            <EyeOffIcon className="h-4 w-4 sm:h-5 sm:w-5" /> :
+            <EyeIcon className="h-4 w-4 sm:h-5 sm:w-5" />
           }
         </button>
       </div>
       {error && (
-        <p className="mt-1 text-sm text-red-600">{error}</p>
+        <p className="mt-1 text-xs sm:text-sm text-red-600">{error}</p>
       )}
     </div>
   );
