@@ -61,11 +61,11 @@ export function YearSelector({
   return (
     <div className={className}>
       {label && (
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-xs sm:text-sm lg:text-base font-medium text-gray-700 mb-1">
           {label}{required && <span className="text-red-500">*</span>}
         </label>
       )}
-      
+
       <GenericCombobox<YearOption>
         items={years}
         value={selectedYear}
