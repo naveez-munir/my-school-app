@@ -72,12 +72,12 @@ export function AcademicYearSelector({
     return (
       <div className={className}>
         {label && (
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-xs sm:text-sm lg:text-base font-medium text-gray-700 mb-1">
             {label}
             {required && <span className="text-red-500">*</span>}
           </label>
         )}
-        <div className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-400">
+        <div className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 sm:px-4 sm:py-2.5 lg:px-5 lg:py-3 text-xs sm:text-sm lg:text-base text-gray-400">
           Loading...
         </div>
       </div>
@@ -87,7 +87,7 @@ export function AcademicYearSelector({
   return (
     <div className={className}>
       {label && (
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
           {label}
           {required && <span className="text-red-500">*</span>}
         </label>
@@ -103,7 +103,7 @@ export function AcademicYearSelector({
       />
 
       {error && (
-        <p className="mt-1 text-sm text-red-500">{error}</p>
+        <p className="mt-1 text-xs sm:text-sm text-red-500">{error}</p>
       )}
     </div>
   );
