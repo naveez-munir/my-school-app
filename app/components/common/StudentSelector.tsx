@@ -52,19 +52,19 @@ export function StudentSelector({
   return (
     <div className={className}>
       {label && (
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
           {label}{required && <span className="text-red-500">*</span>}
         </label>
       )}
-      
+
       {loading ? (
-        <div className="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 h-10 animate-pulse"></div>
+        <div className="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 h-[34px] sm:h-[38px] animate-pulse"></div>
       ) : (
         <GenericCombobox<StudentResponse>
           items={filteredStudents}
           value={selectedStudent}
           onChange={handleStudentChange}
-          displayKey="name" 
+          displayKey="name"
           valueKey="id"
           placeholder={placeholder}
         />
