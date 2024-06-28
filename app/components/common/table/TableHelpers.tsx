@@ -11,11 +11,11 @@ export function SortableColumnHeader({
 }) {
   return (
     <div className="flex items-center cursor-pointer" onClick={() => column.toggleSorting()}>
-      <span>{title}</span>
+      <span className="text-xs sm:text-sm">{title}</span>
       {column.getIsSorted() === 'asc' ? (
-        <ChevronUp className="ml-1 h-4 w-4" />
+        <ChevronUp className="ml-1 h-3 w-3 sm:h-3.5 sm:w-3.5" />
       ) : column.getIsSorted() === 'desc' ? (
-        <ChevronDown className="ml-1 h-4 w-4" />
+        <ChevronDown className="ml-1 h-3 w-3 sm:h-3.5 sm:w-3.5" />
       ) : null}
     </div>
   );
@@ -30,14 +30,14 @@ export interface ActionButton<T> {
 
 export function createActionsColumn<T>(actions: ActionButton<T>[]) {
   return {
-    header: () => <div className="text-right">Actions</div>,
+    header: () => <div className="text-right text-xs sm:text-sm">Actions</div>,
     cell: (info: any) => {
       const meta = info.table.options.meta as TableMetaType<T>;
       const item = info.row.original;
       const id = info.getValue();
 
       return (
-        <div className="flex justify-end space-x-4">
+        <div className="flex justify-end space-x-2 sm:space-x-3">
           {actions.map((action, index) => {
             const colorClass =
               action.color === 'blue' ? 'text-blue-600 hover:text-blue-900' :
@@ -54,7 +54,7 @@ export function createActionsColumn<T>(actions: ActionButton<T>[]) {
                 className={`${colorClass} cursor-pointer`}
                 title={action.label}
               >
-                {Icon ? <Icon className="h-4 w-4" /> : action.label}
+                {Icon ? <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> : action.label}
               </button>
             );
           })}
