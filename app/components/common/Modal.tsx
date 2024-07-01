@@ -19,11 +19,12 @@ export function Modal({
   size = 'md',
   closeOnOutsideClick = true
 }: ModalProps) {
+  // Responsive size classes for 3 breakpoints
   const sizeClasses = {
-    sm: 'max-w-sm',
-    md: 'max-w-md',
-    lg: 'max-w-lg',
-    xl: 'max-w-xl'
+    sm: 'max-w-[90%] sm:max-w-sm lg:max-w-md',
+    md: 'max-w-[90%] sm:max-w-md lg:max-w-lg',
+    lg: 'max-w-[95%] sm:max-w-lg lg:max-w-xl',
+    xl: 'max-w-[95%] sm:max-w-xl lg:max-w-2xl'
   };
 
   return (
@@ -42,7 +43,7 @@ export function Modal({
         </TransitionChild>
 
         <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4 text-center">
+          <div className="flex min-h-full items-center justify-center p-3 sm:p-4 lg:p-6 text-center">
             <TransitionChild
               as={Fragment}
               enter="ease-out duration-300"
@@ -52,20 +53,20 @@ export function Modal({
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <DialogPanel className={`w-full ${sizeClasses[size]} transform overflow-hidden rounded-lg bg-white p-6 text-left align-middle shadow-xl transition-all`}>
-                <div className="flex justify-between items-start mb-4">
+              <DialogPanel className={`w-full ${sizeClasses[size]} transform overflow-hidden rounded-lg bg-white p-4 sm:p-5 lg:p-6 text-left align-middle shadow-xl transition-all`}>
+                <div className="flex justify-between items-start mb-3 sm:mb-4 lg:mb-5">
                   <DialogTitle
                     as="h3"
-                    className="text-lg font-semibold leading-6 text-gray-900"
+                    className="text-base sm:text-lg lg:text-xl font-semibold leading-6 text-gray-900"
                   >
                     {title}
                   </DialogTitle>
                   <button
                     type="button"
-                    className="text-gray-400 hover:text-gray-500"
+                    className="text-gray-400 hover:text-gray-500 transition-colors -mt-1 -mr-1 p-1"
                     onClick={onClose}
                   >
-                    <X className="h-5 w-5" />
+                    <X className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6" />
                   </button>
                 </div>
                 {children}
