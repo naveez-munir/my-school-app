@@ -73,65 +73,65 @@ export const MENU_ITEMS: MenuItem[] = [
     icon: 'briefcase',
     roles: AdminRoles
   },
-  { 
-    name: 'leaveSection', 
-    label: 'Leave Management', 
+  {
+    name: 'leaveSection',
+    label: 'Leave Management',
     path: '/dashboard/leave',
     icon: 'clock',
     roles: AdminRoles,
     children: [
-      { 
-        name: 'staff-leave', 
-        label: 'Staff Leave', 
+      {
+        name: 'staff-leave',
+        label: 'Staff Leave',
         path: '/dashboard/leave/staff',
         icon: 'userCheck',
         roles: AdminRoles
       },
-      { 
-        name: 'student-pending-leave', 
-        label: 'Student Pending Leaves', 
-        path: '/dashboard/leave/student/pending',
-        icon: 'users',
-        roles: AdminRoles
-      },
-      { 
-        name: 'student-leaves', 
-        label: 'Student Leaves', 
+      {
+        name: 'student-leaves',
+        label: 'Student Leaves',
         path: '/dashboard/leave/student',
         icon: 'users',
         roles: AdminRoles
       }
     ]
   },
-  { 
-    name: 'exams', 
-    label: 'Examination', 
+  {
+    name: 'exams',
+    label: 'Examination',
     path: '/dashboard/exams',
     icon: 'graduationCap',
     roles: AdminRoles,
     children: [
-      { 
-        name: 'exam-types', 
-        label: 'Exam Types', 
+      {
+        name: 'exam-types',
+        label: 'Exam Types',
         path: '/dashboard/exam-types',
         icon: 'award',
         roles: AdminRoles
       },
-      { 
-        name: 'exams-list', 
-        label: 'Exams', 
+      {
+        name: 'exams-list',
+        label: 'Exams',
         path: '/dashboard/exams',
         icon: 'graduationCap',
         roles: AdminRoles
       },
-      { 
-        name: 'results', 
-        label: 'Results', 
+      {
+        name: 'results',
+        label: 'Results',
         path: '/dashboard/exams/results',
         icon: 'fileText',
         roles: AdminRoles
       }
     ]
+  },
+  {
+    name: 'timetable',
+    label: 'Timetable',
+    path: '/dashboard/timetable',
+    icon: 'calendar',
+    roles: AdminRoles
   },
   { 
     name: 'feeSection', 
@@ -244,13 +244,13 @@ export const MENU_ITEMS: MenuItem[] = [
     icon: 'home',
     roles: staffRoles
   },
-  {
-    name: 'staffProfile',
-    label: 'Profile',
-    path: '/dashboard/profile',
-    icon: 'user',
-    roles: staffRoles
-  },
+  // {
+  //   name: 'staffProfile',
+  //   label: 'Profile',
+  //   path: '/dashboard/profile',
+  //   icon: 'user',
+  //   roles: staffRoles
+  // },
   {
     name: 'staffLeave',
     label: 'Leave Section',
@@ -274,13 +274,13 @@ export const MENU_ITEMS: MenuItem[] = [
     icon: 'home',
     roles: teacherRoles
   },
-  {
-    name: 'teacherProfile',
-    label: 'Profile',
-    path: '/dashboard/profile',
-    icon: 'user',
-    roles: teacherRoles
-  },
+  // {
+  //   name: 'teacherProfile',
+  //   label: 'Profile',
+  //   path: '/dashboard/profile',
+  //   icon: 'user',
+  //   roles: teacherRoles
+  // },
   {
     name: 'teacherLeave',
     label: 'Leave Section',
@@ -296,9 +296,9 @@ export const MENU_ITEMS: MenuItem[] = [
     roles: teacherRoles
   },
   {
-    name: 'teacherDairy',
-    label: 'Dairy Section',
-    path: '/dashboard/dairy',
+    name: 'teacherDiary',
+    label: 'Daily Diary',
+    path: '/dashboard/daily-diary',
     icon: 'book',
     roles: teacherRoles
   },
@@ -356,9 +356,9 @@ export const MENU_ITEMS: MenuItem[] = [
     roles: studentRoles
   },
   {
-    name: 'studentDairy',
-    label: 'Dairy Section',
-    path: '/dashboard/students/dairy',
+    name: 'studentDiary',
+    label: 'Daily Diary',
+    path: '/dashboard/students/daily-diary',
     icon: 'book',
     roles: studentRoles
   },
@@ -377,13 +377,13 @@ export const MENU_ITEMS: MenuItem[] = [
     icon: 'home',
     roles: parentRoles
   },
-  {
-    name: 'guardianProfile',
-    label: 'Profile',
-    path: '/dashboard/profile',
-    icon: 'user',
-    roles: parentRoles
-  },
+  // {
+  //   name: 'guardianProfile',
+  //   label: 'Profile',
+  //   path: '/dashboard/profile',
+  //   icon: 'user',
+  //   roles: parentRoles
+  // },
   {
     name: 'guardianChildren',
     label: 'My Children',
@@ -413,19 +413,28 @@ export const MENU_ITEMS: MenuItem[] = [
     roles: parentRoles
   },
   {
-    name: 'guardianDairy',
-    label: 'Dairy Section',
-    path: '/dashboard/guardian/dairy',
+    name: 'guardianDiary',
+    label: 'Daily Diary',
+    path: '/dashboard/guardian/daily-diary',
     icon: 'book',
     roles: parentRoles
   },
-  
-  // Settings available to all users
-  { 
-    name: 'settings', 
-    label: 'Settings', 
-    path: '/dashboard/guardian/settings',
+
+  // Settings - Only available to admin users (Profile & Settings hidden for non-admin until backend support is added)
+  {
+    name: 'settings',
+    label: 'Settings',
+    path: '/dashboard/settings',
     icon: 'settings',
-    roles: ['super_admin', 'tenant_admin', 'admin', 'principal', 'accountant', 'teacher', 'student', 'staff', 'guardian']
+    roles: ['super_admin', 'tenant_admin', 'admin', 'principal', 'accountant']
   }
+
+  // TODO: Uncomment when backend API for user profile/settings is ready
+  // {
+  //   name: 'settings',
+  //   label: 'Settings',
+  //   path: '/dashboard/settings',
+  //   icon: 'settings',
+  //   roles: ['teacher', 'student', 'staff', 'guardian']
+  // }
 ];
