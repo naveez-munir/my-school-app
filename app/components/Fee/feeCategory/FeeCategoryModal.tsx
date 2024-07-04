@@ -53,10 +53,10 @@ export function FeeCategoryModal({
   };
 
   const frequencyOptions = {
-    [FeeFrequency.ONE_TIME]: 'One Time',
-    [FeeFrequency.MONTHLY]: 'Monthly',
-    [FeeFrequency.QUARTERLY]: 'Quarterly',
-    [FeeFrequency.YEARLY]: 'Yearly'
+    [FeeFrequency.ONE_TIME]: 'ONE_TIME',
+    [FeeFrequency.MONTHLY]: 'MONTHLY',
+    [FeeFrequency.QUARTERLY]: 'QUARTERLY',
+    [FeeFrequency.YEARLY]: 'YEARLY'
   };
 
   return (
