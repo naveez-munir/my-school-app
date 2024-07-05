@@ -1,6 +1,7 @@
 import type { CreateFeePaymentInput } from "~/types/studentFee";
 import { FeePaymentForm } from "./FeePaymentForm";
 import { useCreateFeePayment } from "~/hooks/useFeePaymentQueries";
+import toast from "react-hot-toast";
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -22,9 +23,12 @@ export function PaymentModal({
   const handleSubmit = async (data: CreateFeePaymentInput) => {
     try {
       await createPaymentMutation.mutateAsync(data);
+      toast.success("Payment recorded successfully!");
       onClose();
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error creating payment:", err);
+      const errorMessage = err?.response?.data?.message || err?.message || "Failed to record payment";
+      toast.error(errorMessage);
     }
   };
 
