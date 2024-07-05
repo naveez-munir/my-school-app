@@ -2,6 +2,7 @@ import { useState } from "react";
 import { PaymentModal } from "./PaymentModal";
 import { BulkPaymentModal } from "./BulkPaymentModal";
 import { ReceiptView } from "./ReceiptView";
+import { PaymentReceiptPrint } from "./PaymentReceiptPrint";
 import { DailyPaymentsReport } from "./DailyPaymentsReport";
 import { DateRangePaymentsReport } from "./DateRangePaymentsReport";
 import { PaymentsDashboard } from "./PaymentsDashboard";
@@ -114,19 +115,23 @@ export function FeePaymentSection() {
       />
       
       {receiptData && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div
-            className="fixed inset-0 bg-black opacity-50"
-            onClick={() => setSelectedReceiptId(null)}
-          ></div>
-          
-          <div className="bg-white rounded-lg p-6 w-full max-w-4xl mx-4 z-10 relative max-h-[90vh] overflow-y-auto">
-            <ReceiptView
-              receipt={receiptData}
-              onClose={() => setSelectedReceiptId(null)}
-            />
+        <>
+          <PaymentReceiptPrint receipt={receiptData} />
+
+          <div className="fixed inset-0 z-50 flex items-center justify-center screen-only">
+            <div
+              className="fixed inset-0 bg-black opacity-50"
+              onClick={() => setSelectedReceiptId(null)}
+            ></div>
+
+            <div className="bg-white rounded-lg p-6 w-full max-w-4xl mx-4 z-10 relative max-h-[90vh] overflow-y-auto">
+              <ReceiptView
+                receipt={receiptData}
+                onClose={() => setSelectedReceiptId(null)}
+              />
+            </div>
           </div>
-        </div>
+        </>
       )}
     </div>
   );
