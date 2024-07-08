@@ -43,43 +43,43 @@ export function PaymentsDashboard({
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">Fee Payments Dashboard</h2>
-        
+        <h2 className="text-2xl font-semibold">Fee Payments Dashboard</h2>
+
         <div className="flex space-x-2">
           <button
             onClick={onNavigateToDailyReport}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            className="px-4 py-2.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm font-medium"
           >
             Daily Report
           </button>
           <button
             onClick={onNavigateToDateRangeReport}
-            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+            className="px-4 py-2.5 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm font-medium"
           >
             Date Range Report
           </button>
         </div>
       </div>
-      
-      <div className="bg-white p-4 rounded-lg shadow">
+
+      <div className="bg-white p-6 rounded-lg shadow">
         <AcademicYearSelector
           value={academicYear}
           onChange={setAcademicYear}
           label="Academic Year"
         />
       </div>
-      
+
       {isLoading ? (
         <div className="bg-white p-8 rounded-lg shadow flex items-center justify-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-          <p className="ml-3 text-gray-600">Loading payment statistics...</p>
+          <p className="ml-3 text-gray-600 text-sm">Loading payment statistics...</p>
         </div>
       ) : error ? (
-        <div className="bg-red-50 p-4 rounded-lg text-red-600">
+        <div className="bg-red-50 p-4 rounded-lg text-red-600 text-sm">
           <p>Error loading payment statistics. Please try again.</p>
         </div>
       ) : !data ? (
-        <div className="bg-yellow-50 p-4 rounded-lg text-yellow-700">
+        <div className="bg-yellow-50 p-4 rounded-lg text-yellow-700 text-sm">
           <p>No payment data available for the selected academic year.</p>
         </div>
       ) : (
@@ -92,7 +92,7 @@ export function PaymentsDashboard({
                 Collection Rate: {data.collectionRate.toFixed(1)}%
               </div>
             </div>
-            
+
             <div className="bg-white p-6 rounded-lg shadow">
               <h3 className="text-sm font-medium text-gray-500 mb-2">Pending Amount</h3>
               <p className="text-3xl font-bold text-yellow-500">{formatCurrency(data.pendingAmount)}</p>
