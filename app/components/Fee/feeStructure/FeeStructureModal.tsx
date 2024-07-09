@@ -28,6 +28,7 @@ export function FeeStructureModal({
   const [formData, setFormData] = useState<CreateFeeStructureInput>({
     academicYear: academicYear,
     classId: '',
+    description: '',
     feeComponents: []
   });
 
@@ -38,6 +39,7 @@ export function FeeStructureModal({
       setFormData({
         academicYear: initialData.academicYear || academicYear,
         classId: initialData.classId || '',
+        description: initialData.description || '',
         feeComponents: initialData.feeComponents || []
       });
 
@@ -49,6 +51,7 @@ export function FeeStructureModal({
       setFormData({
         academicYear: academicYear,
         classId: '',
+        description: '',
         feeComponents: []
       });
       setFeeComponents([]);
@@ -114,15 +117,26 @@ export function FeeStructureModal({
         
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <AcademicYearSelector 
+            <AcademicYearSelector
               value={formData.academicYear}
               onChange={(value) => setFormData(prev => ({ ...prev, academicYear: value }))}
             />
-            
+
             <ClassSelector
               label="Class"
               value={formData.classId}
               onChange={(classId) => setFormData(prev => ({ ...prev, classId }))}
+              required
+              disabled={isSubmitting}
+            />
+          </div>
+
+          <div className="mb-6">
+            <TextInput
+              label="Description"
+              value={formData.description}
+              onChange={(value) => setFormData(prev => ({ ...prev, description: value }))}
+              placeholder="e.g., Class 1 - Monthly Fees 2024-25"
               required
               disabled={isSubmitting}
             />
