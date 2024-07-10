@@ -1,10 +1,11 @@
 import { useState } from "react";
+import toast from "react-hot-toast";
 
 import type { FeeStructure, PopulatedFeeStructure, CreateFeeStructureInput, CloneFeeStructureInput } from "~/types/studentFee";
-import { 
-  useFeeStructures, 
-  useCreateFeeStructure, 
-  useUpdateFeeStructure, 
+import {
+  useFeeStructures,
+  useCreateFeeStructure,
+  useUpdateFeeStructure,
   useDeleteFeeStructure,
   useToggleFeeStructureStatus,
   useCloneFeeStructure
@@ -58,10 +59,23 @@ export const FeeStructureSection = () => {
   const cloneStructureMutation = useCloneFeeStructure();
 
   const handleCreate = async (data: CreateFeeStructureInput) => {
+    console.log('🔵 [FRONTEND] Submitting fee structure creation:', data);
     try {
-      await createStructureMutation.mutateAsync(data);
+      const result = await createStructureMutation.mutateAsync(data);
+      console.log('✅ [FRONTEND] Fee structure created successfully:', result);
+      toast.success("Fee structure created successfully!");
       setIsModalOpen(false);
-    } catch (err) {
+    } catch (err: any) {
+      console.log('❌ [FRONTEND] Error caught in handleCreate:', err);
+      console.log('❌ [FRONTEND] Error details:', {
+        response: err?.response,
+        responseData: err?.response?.data,
+        message: err?.message,
+        fullError: err
+      });
+      const errorMessage = err?.response?.data?.message || err?.message || "Failed to create fee structure";
+      console.log('❌ [FRONTEND] Showing toast error:', errorMessage);
+      toast.error(errorMessage);
       console.error("Error creating fee structure:", err);
     }
   };
@@ -69,13 +83,16 @@ export const FeeStructureSection = () => {
   const handleUpdate = async (data: CreateFeeStructureInput) => {
     if (editingStructure) {
       try {
-        await updateStructureMutation.mutateAsync({ 
-          id: editingStructure._id, 
-          data 
+        await updateStructureMutation.mutateAsync({
+          id: editingStructure._id,
+          data
         });
+        toast.success("Fee structure updated successfully!");
         setIsModalOpen(false);
         setEditingStructure(null);
-      } catch (err) {
+      } catch (err: any) {
+        const errorMessage = err?.response?.data?.message || err?.message || "Failed to update fee structure";
+        toast.error(errorMessage);
         console.error("Error updating fee structure:", err);
       }
     }
@@ -85,7 +102,10 @@ export const FeeStructureSection = () => {
     if (window.confirm('Are you sure you want to delete this fee structure?')) {
       try {
         await deleteStructureMutation.mutateAsync(id);
-      } catch (err) {
+        toast.success("Fee structure deleted successfully!");
+      } catch (err: any) {
+        const errorMessage = err?.response?.data?.message || err?.message || "Failed to delete fee structure";
+        toast.error(errorMessage);
         console.error("Error deleting fee structure:", err);
       }
     }
@@ -94,7 +114,10 @@ export const FeeStructureSection = () => {
   const handleToggleStatus = async (id: string) => {
     try {
       await toggleStatusMutation.mutateAsync(id);
-    } catch (err) {
+      toast.success("Fee structure status updated successfully!");
+    } catch (err: any) {
+      const errorMessage = err?.response?.data?.message || err?.message || "Failed to update status";
+      toast.error(errorMessage);
       console.error("Error toggling fee structure status:", err);
     }
   };
@@ -102,13 +125,16 @@ export const FeeStructureSection = () => {
   const handleClone = async (data: CloneFeeStructureInput) => {
     if (cloningStructure) {
       try {
-        await cloneStructureMutation.mutateAsync({ 
-          id: cloningStructure._id, 
-          data 
+        await cloneStructureMutation.mutateAsync({
+          id: cloningStructure._id,
+          data
         });
+        toast.success("Fee structure cloned successfully!");
         setIsCloneModalOpen(false);
         setCloningStructure(null);
-      } catch (err) {
+      } catch (err: any) {
+        const errorMessage = err?.response?.data?.message || err?.message || "Failed to clone fee structure";
+        toast.error(errorMessage);
         console.error("Error cloning fee structure:", err);
       }
     }
@@ -127,7 +153,7 @@ export const FeeStructureSection = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold text-gray-700">
+        <h2 className="text-xs sm:text-sm lg:text-base font-semibold text-gray-700">
           Fee Structure Management
         </h2>
         <button
@@ -135,7 +161,7 @@ export const FeeStructureSection = () => {
             setEditingStructure(null);
             setIsModalOpen(true);
           }}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+          className="bg-blue-600 text-white text-xs sm:text-sm px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg hover:bg-blue-700"
         >
           Add Fee Structure
         </button>
