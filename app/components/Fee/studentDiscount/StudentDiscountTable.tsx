@@ -1,18 +1,10 @@
-import { 
-  useReactTable, 
-  getCoreRowModel, 
-  getPaginationRowModel,
-  getFilteredRowModel,
-  getSortedRowModel,
-  flexRender,
-  createColumnHelper,
-  type FilterFn,
-  type SortingState,
-} from '@tanstack/react-table';
+import { createColumnHelper } from '@tanstack/react-table';
 import type { StudentDiscount } from '~/types/studentFee';
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { ChevronDown, ChevronUp, Edit, RefreshCw, ToggleLeft, ToggleRight, Trash2 } from 'lucide-react';
-import { TextInput } from '~/components/common/form/inputs/TextInput';
+import { formatCurrency } from '~/utils/currencyUtils';
+import { formatUserFriendlyDate } from '~/utils/dateUtils';
+import { GenericDataTable } from '~/components/common/table/GenericDataTable';
 
 interface TableMetaType {
   onEdit: (discount: StudentDiscount) => void;
@@ -29,33 +21,15 @@ interface StudentDiscountTableProps {
   onSync: (id: string) => void;
 }
 
-const fuzzyFilter: FilterFn<StudentDiscount> = (row, columnId, filterValue: string) => {
-  const value = row.getValue(columnId);
-  if (typeof value === 'string') {
-    return value.toLowerCase().includes(filterValue.toLowerCase());
-  }
-  if (value !== null && value !== undefined) {
-    return String(value).toLowerCase().includes(filterValue.toLowerCase());
-  }
-  return false;
-};
-
 const columnHelper = createColumnHelper<StudentDiscount>();
 
-export function StudentDiscountTable({ 
-  discounts, 
+export function StudentDiscountTable({
+  discounts,
   onEdit,
   onToggleStatus,
   onRemove,
   onSync,
 }: StudentDiscountTableProps) {
-  const [sorting, setSorting] = useState<SortingState>([{ id: 'startDate', desc: true }]);
-  const [globalFilter, setGlobalFilter] = useState('');
-  const [pagination, setPagination] = useState({
-    pageIndex: 0,
-    pageSize: 10,
-  });
-
   const columns = useMemo(() => [
     columnHelper.accessor('discountType', {
       header: ({ column }) => (
@@ -79,7 +53,7 @@ export function StudentDiscountTable({
       if (discountValueType === 'PERCENTAGE') {
         return `${discountValue}%`;
       } else {
-        return `${discountValue.toLocaleString()} PKR`;
+        return formatCurrency(discountValue);
       }
     }, {
       id: 'discountValue',
@@ -106,7 +80,7 @@ export function StudentDiscountTable({
           ) : null}
         </div>
       ),
-      cell: (info) => new Date(info.getValue()).toLocaleDateString(),
+      cell: (info) => formatUserFriendlyDate(info.getValue()),
     }),
     columnHelper.accessor('endDate', {
       header: ({ column }) => (
@@ -121,7 +95,7 @@ export function StudentDiscountTable({
       ),
       cell: (info) => {
         const value = info.getValue();
-        return value ? new Date(value as string).toLocaleDateString() : 'No End Date';
+        return value ? formatUserFriendlyDate(value as string) : 'No End Date';
       },
     }),
     columnHelper.accessor(row => {
@@ -222,136 +196,20 @@ export function StudentDiscountTable({
     }),
   ], []);
 
-  const tableData = useMemo(() => discounts, [discounts]);
-
-  const table = useReactTable({
-    data: tableData,
-    columns,
-    state: {
-      sorting,
-      globalFilter,
-      pagination,
-    },
-    onSortingChange: setSorting,
-    onPaginationChange: setPagination,
-    onGlobalFilterChange: setGlobalFilter,
-    globalFilterFn: fuzzyFilter,
-    getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    meta: {
-      onEdit,
-      onToggleStatus,
-      onRemove,
-      onSync,
-    } as TableMetaType,
-  });
-
   return (
-    <div className="space-y-4">
-      <div className="bg-white p-4 rounded-lg shadow">
-        <div className="grid gap-4 md:grid-cols-2">
-          <TextInput
-            label="Search"
-            value={globalFilter ?? ''}
-            onChange={(value) => setGlobalFilter(value)}
-            placeholder="Search by type, amount, etc."
-          />
-          <div className="flex items-end">
-            <select
-              value={pagination.pageSize}
-              onChange={e => {
-                table.setPageSize(Number(e.target.value));
-              }}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-500 cursor-pointer"
-            >
-              {[5, 10, 20, 50].map(pageSize => (
-                <option key={pageSize} value={pageSize}>
-                  Show {pageSize}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-lg shadow overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            {table.getHeaderGroups().map(headerGroup => (
-              <tr key={headerGroup.id}>
-                {headerGroup.headers.map(header => (
-                  <th 
-                    key={header.id}
-                    scope="col"
-                    className={`px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider
-                      ${header.id.includes('_id') ? 'text-right' : 'text-left'}`}
-                  >
-                    {flexRender(
-                      header.column.columnDef.header,
-                      header.getContext()
-                    )}
-                  </th>
-                ))}
-              </tr>
-            ))}
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {table.getRowModel().rows.map(row => (
-              <tr key={row.id} className="hover:bg-gray-50">
-                {row.getVisibleCells().map(cell => (
-                  <td 
-                    key={cell.id} 
-                    className={`px-6 py-4 whitespace-nowrap
-                      ${cell.column.id.includes('_id') ? 'text-right' : 'text-left'}`}
-                  >
-                    {flexRender(
-                      cell.column.columnDef.cell,
-                      cell.getContext()
-                    )}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        {table.getRowModel().rows.length === 0 && (
-          <div className="text-center py-8 text-gray-500">
-            No discounts found.
-          </div>
-        )}
-
-        {table.getRowModel().rows.length > 0 && (
-          <div className="px-6 py-3 flex items-center justify-between border-t">
-            <div className="flex-1 flex justify-between items-center">
-              <div>
-                <span className="text-sm text-gray-700">
-                  Page {table.getState().pagination.pageIndex + 1} of{' '}
-                  {table.getPageCount()} ({table.getFilteredRowModel().rows.length} total)
-                </span>
-              </div>
-              <div className="space-x-2">
-                <button
-                  onClick={() => table.previousPage()}
-                  disabled={!table.getCanPreviousPage()}
-                  className="px-3 py-1 border text-gray-500 rounded text-sm disabled:opacity-50 cursor-pointer"
-                >
-                  Previous
-                </button>
-                <button
-                  onClick={() => table.nextPage()}
-                  disabled={!table.getCanNextPage()}
-                  className="px-3 py-1 border text-gray-500 rounded text-sm disabled:opacity-50 cursor-pointer"
-                >
-                  Next
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
+    <GenericDataTable
+      data={discounts}
+      columns={columns}
+      initialPageSize={10}
+      pageSizeOptions={[5, 10, 20, 50]}
+      emptyStateMessage="No discounts found."
+      searchPlaceholder="Search by type, amount, etc."
+      meta={{
+        onEdit,
+        onToggleStatus,
+        onRemove,
+        onSync,
+      } as TableMetaType}
+    />
   );
 }
