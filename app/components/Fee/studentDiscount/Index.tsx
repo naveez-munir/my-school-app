@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { 
-  useStudentDiscountsByStudent, 
+import { useState, useMemo } from "react";
+import {
+  useStudentDiscountsByStudent,
   useCreateStudentDiscount,
   useUpdateStudentDiscount,
   useToggleDiscountStatus,
@@ -14,6 +14,9 @@ import { StudentDiscountTable } from "./StudentDiscountTable";
 import { CreateDiscountModal } from "./CreateDiscountModal";
 import { EditDiscountModal } from "./EditDiscountModal";
 import { ClassSelector } from "~/components/common/ClassSelector";
+import { Modal } from "~/components/common/Modal";
+import { Trash2 } from "lucide-react";
+import toast from "react-hot-toast";
 
 export const StudentDiscountSection = () => {
   const [selectedStudentId, setSelectedStudentId] = useState<string>("");
@@ -21,12 +24,16 @@ export const StudentDiscountSection = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedDiscount, setSelectedDiscount] = useState<StudentDiscount | null>(null);
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
+  const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; discountId?: string; discountType?: string }>({
+    isOpen: false
+  });
 
   const { data: students = [], isLoading: studentsLoading } = useStudents();
-  const { 
-    data: discounts = [], 
+  const {
+    data: discounts = [],
     isLoading: discountsLoading,
-    error 
+    error
   } = useStudentDiscountsByStudent(selectedStudentId);
 
   const createDiscountMutation = useCreateStudentDiscount();
@@ -37,6 +44,13 @@ export const StudentDiscountSection = () => {
 
   const isLoading = studentsLoading || discountsLoading;
 
+  const filteredDiscounts = useMemo(() => {
+    if (statusFilter === "all") return discounts;
+    if (statusFilter === "active") return discounts.filter(d => d.isActive);
+    if (statusFilter === "inactive") return discounts.filter(d => !d.isActive);
+    return discounts;
+  }, [discounts, statusFilter]);
+
   const handleCreateDiscount = async (data: CreateStudentDiscountInput) => {
     try {
       await createDiscountMutation.mutateAsync({
@@ -46,8 +60,11 @@ export const StudentDiscountSection = () => {
         },
         syncWithFees: true,
       });
+      toast.success("Discount created successfully!");
       setIsCreateModalOpen(false);
-    } catch (err) {
+    } catch (err: any) {
+      const errorMessage = err?.response?.data?.message?.message || err?.message || "Failed to create discount";
+      toast.error(errorMessage);
       console.error("Error creating discount:", err);
     }
   };
@@ -59,10 +76,14 @@ export const StudentDiscountSection = () => {
           id: selectedDiscount._id,
           data,
           syncWithFees: true,
+          studentId: selectedStudentId,
         });
+        toast.success("Discount updated successfully!");
         setIsEditModalOpen(false);
         setSelectedDiscount(null);
-      } catch (err) {
+      } catch (err: any) {
+        const errorMessage = err?.response?.data?.message?.message || err?.message || "Failed to update discount";
+        toast.error(errorMessage);
         console.error("Error updating discount:", err);
       }
     }
@@ -70,23 +91,42 @@ export const StudentDiscountSection = () => {
 
   const handleToggleStatus = async (id: string) => {
     try {
+      const discount = discounts.find(d => d._id === id);
       await toggleStatusMutation.mutateAsync({
         id,
         syncWithFees: true,
+        studentId: selectedStudentId,
       });
-    } catch (err) {
+      toast.success(discount?.isActive ? "Discount deactivated successfully!" : "Discount activated successfully!");
+    } catch (err: any) {
+      const errorMessage = err?.response?.data?.message?.message || err?.message || "Failed to toggle discount status";
+      toast.error(errorMessage);
       console.error("Error toggling discount status:", err);
     }
   };
 
-  const handleRemoveDiscount = async (id: string) => {
-    if (window.confirm("Are you sure you want to remove this discount? This action cannot be undone.")) {
+  const handleRemoveDiscount = (id: string) => {
+    const discount = discounts.find(d => d._id === id);
+    setDeleteModal({
+      isOpen: true,
+      discountId: id,
+      discountType: discount?.discountType
+    });
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (deleteModal.discountId) {
       try {
         await removeDiscountMutation.mutateAsync({
-          id,
+          id: deleteModal.discountId,
           syncWithFees: true,
+          studentId: selectedStudentId,
         });
-      } catch (err) {
+        toast.success("Discount deleted successfully!");
+        setDeleteModal({ isOpen: false });
+      } catch (err: any) {
+        const errorMessage = err?.response?.data?.message?.message || err?.message || "Failed to delete discount";
+        toast.error(errorMessage);
         console.error("Error removing discount:", err);
       }
     }
@@ -95,31 +135,32 @@ export const StudentDiscountSection = () => {
   const handleSyncDiscount = async (id: string) => {
     try {
       await syncDiscountMutation.mutateAsync(id);
-      alert("Discount synchronized with student fees successfully.");
-    } catch (err) {
+      toast.success("Discount synchronized with student fees successfully!");
+    } catch (err: any) {
+      const errorMessage = err?.response?.data?.message?.message || err?.message || "Failed to synchronize discount";
+      toast.error(errorMessage);
       console.error("Error syncing discount:", err);
-      alert("Failed to synchronize discount with student fees.");
     }
   };
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold text-gray-700">
+        <h2 className="text-2xl font-semibold text-gray-700">
           Student Discount Management
         </h2>
         <button
           onClick={() => setIsCreateModalOpen(true)}
           disabled={!selectedStudentId}
-          className={`${!selectedStudentId 
-            ? "bg-gray-400 cursor-not-allowed" 
-            : "bg-blue-600 hover:bg-blue-700"} text-white px-4 py-2 rounded-lg`}
+          className={`${!selectedStudentId
+            ? "bg-gray-400 cursor-not-allowed"
+            : "bg-blue-600 hover:bg-blue-700"} text-white px-4 py-2.5 rounded-lg text-sm font-medium`}
         >
           Add Discount
         </button>
       </div>
 
-      <div className="bg-white p-4 rounded-lg shadow">
+      <div className="bg-white p-6 rounded-lg shadow">
         <div className="grid grid-cols-2 md:grid-cols-2 gap-4">
           <ClassSelector
             value={selectedClassId}
@@ -137,6 +178,46 @@ export const StudentDiscountSection = () => {
         </div>
       </div>
 
+      {selectedStudentId && (
+        <div className="bg-white p-6 rounded-lg shadow">
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-medium text-gray-700">Status Filter:</span>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setStatusFilter("all")}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  statusFilter === "all"
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                }`}
+              >
+                All ({discounts.length})
+              </button>
+              <button
+                onClick={() => setStatusFilter("active")}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  statusFilter === "active"
+                    ? "bg-green-600 text-white"
+                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                }`}
+              >
+                Active ({discounts.filter(d => d.isActive).length})
+              </button>
+              <button
+                onClick={() => setStatusFilter("inactive")}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  statusFilter === "inactive"
+                    ? "bg-red-600 text-white"
+                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                }`}
+              >
+                Inactive ({discounts.filter(d => !d.isActive).length})
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {isLoading ? (
         <div className="bg-white rounded-lg shadow p-6">
           <div className="animate-pulse space-y-4">
@@ -146,24 +227,28 @@ export const StudentDiscountSection = () => {
           </div>
         </div>
       ) : error ? (
-        <div className="bg-red-50 text-red-700 p-4 rounded-lg">{(error as Error).message}</div>
+        <div className="bg-red-50 text-red-700 p-4 rounded-lg text-sm">{(error as Error).message}</div>
       ) : !selectedStudentId ? (
-        <div className="bg-yellow-50 text-yellow-700 p-4 rounded-lg">
+        <div className="bg-yellow-50 text-yellow-700 p-4 rounded-lg text-sm">
           Please select a student to view their discounts.
         </div>
       ) : discounts.length === 0 ? (
         <div className="bg-white rounded-lg shadow p-6 text-center">
-          <p className="text-gray-500">No discounts found for this student.</p>
+          <p className="text-gray-500 text-sm">No discounts found for this student.</p>
           <button
             onClick={() => setIsCreateModalOpen(true)}
-            className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+            className="mt-4 bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700 text-sm font-medium"
           >
             Add First Discount
           </button>
         </div>
+      ) : filteredDiscounts.length === 0 ? (
+        <div className="bg-white rounded-lg shadow p-6 text-center">
+          <p className="text-gray-500 text-sm">No {statusFilter} discounts found for this student.</p>
+        </div>
       ) : (
         <StudentDiscountTable
-          discounts={discounts}
+          discounts={filteredDiscounts}
           onEdit={(discount) => {
             setSelectedDiscount(discount);
             setIsEditModalOpen(true);
@@ -192,6 +277,44 @@ export const StudentDiscountSection = () => {
         discount={selectedDiscount}
         isSubmitting={updateDiscountMutation.isPending}
       />
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal({ isOpen: false })}
+        title="Delete Discount"
+        size="sm"
+      >
+        <div className="space-y-4">
+          <div className="flex items-center gap-3 p-3 bg-red-50 rounded-lg">
+            <Trash2 className="h-5 w-5 text-red-600" />
+            <p className="text-sm text-red-800">
+              This action cannot be undone. This will permanently delete the discount.
+            </p>
+          </div>
+
+          <p className="text-sm text-gray-600">
+            Are you sure you want to delete the <strong>{deleteModal.discountType?.replace(/_/g, ' ')}</strong> discount?
+            This will also remove the discount from all applicable student fees.
+          </p>
+
+          <div className="flex justify-end gap-3 pt-4">
+            <button
+              onClick={() => setDeleteModal({ isOpen: false })}
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleDeleteConfirm}
+              disabled={removeDiscountMutation.isPending}
+              className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50"
+            >
+              {removeDiscountMutation.isPending ? 'Deleting...' : 'Delete Discount'}
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };
