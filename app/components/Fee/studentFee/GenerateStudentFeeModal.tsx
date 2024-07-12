@@ -100,7 +100,7 @@ export function GenerateStudentFeeModal({
   const billTypeOptions = {
     MONTHLY: "Monthly",
     QUARTERLY: "Quarterly",
-    ONE_TIME: "One Time",
+    ONE_TIME: "ONE_TIME",
   };
 
   return (
@@ -150,7 +150,7 @@ export function GenerateStudentFeeModal({
                   <option value="">Select Fee Structure</option>
                   {feeStructures.map((structure) => (
                     <option key={structure._id} value={structure._id}>
-                      {structure.academicYear} - {"Fee Structure"}
+                      {structure.academicYear} - {structure.description || "Fee Structure"}
                     </option>
                   ))}
                 </select>
