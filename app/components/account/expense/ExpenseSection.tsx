@@ -3,11 +3,13 @@ import { ExpenseTable } from './ExpenseTable';
 import { ExpenseFormModal } from './ExpenseFormModal';
 import { ApproveExpenseModal } from './ApproveExpenseModal';
 import { PaymentProcessModal } from './PaymentProcessModal';
+import { Modal } from '~/components/common/Modal';
+import { Trash2 } from 'lucide-react';
 import { ExpenseStatus, ExpenseType, PaymentMethod, type Expense, type CreateExpenseDto, type SearchExpenseParams } from '~/types/expense.types';
-import { 
-  useExpenses, 
-  useCreateExpense, 
-  useUpdateExpense, 
+import {
+  useExpenses,
+  useCreateExpense,
+  useUpdateExpense,
   useDeleteExpense,
   useApproveExpense,
   useProcessPayment
@@ -18,7 +20,10 @@ export const ExpenseSection = () => {
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
-  
+  const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; expenseId?: string; description?: string }>({
+    isOpen: false
+  });
+
   // State for selected expense and filters
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
   const [filters, setFilters] = useState<SearchExpenseParams>({});
@@ -38,20 +43,16 @@ export const ExpenseSection = () => {
 
   // Create or update expense handler
   const handleSaveExpense = async (data: CreateExpenseDto) => {
-    try {
-      if (selectedExpense?.id) {
-        await updateExpenseMutation.mutateAsync({ 
-          id: selectedExpense.id, 
-          data 
-        });
-      } else {
-        await createExpenseMutation.mutateAsync(data);
-      }
-      setIsFormModalOpen(false);
-      setSelectedExpense(null);
-    } catch (err) {
-      console.error("Error saving expense:", err);
+    if (selectedExpense?.id) {
+      await updateExpenseMutation.mutateAsync({
+        id: selectedExpense.id,
+        data
+      });
+    } else {
+      await createExpenseMutation.mutateAsync(data);
     }
+    setIsFormModalOpen(false);
+    setSelectedExpense(null);
   };
 
   // Handle editing an expense
@@ -61,13 +62,19 @@ export const ExpenseSection = () => {
   };
 
   // Handle deleting an expense
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this expense?')) {
-      try {
-        await deleteExpenseMutation.mutateAsync(id);
-      } catch (err) {
-        console.error("Error deleting expense:", err);
-      }
+  const handleDelete = (id: string) => {
+    const expense = expenses.find(e => e.id === id);
+    setDeleteModal({
+      isOpen: true,
+      expenseId: id,
+      description: expense?.description
+    });
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (deleteModal.expenseId) {
+      await deleteExpenseMutation.mutateAsync(deleteModal.expenseId);
+      setDeleteModal({ isOpen: false });
     }
   };
 
@@ -79,13 +86,9 @@ export const ExpenseSection = () => {
 
   // Handle approval or rejection submission
   const handleApproveSubmit = async (id: string, data: any) => {
-    try {
-      await approveExpenseMutation.mutateAsync({ id, data });
-      setIsApproveModalOpen(false);
-      setSelectedExpense(null);
-    } catch (err) {
-      console.error("Error approving expense:", err);
-    }
+    await approveExpenseMutation.mutateAsync({ id, data });
+    setIsApproveModalOpen(false);
+    setSelectedExpense(null);
   };
 
   // Handle opening payment modal
@@ -96,13 +99,9 @@ export const ExpenseSection = () => {
 
   // Handle payment processing submission
   const handlePaymentSubmit = async (id: string, data: any) => {
-    try {
-      await processPaymentMutation.mutateAsync({ id, data });
-      setIsPaymentModalOpen(false);
-      setSelectedExpense(null);
-    } catch (err) {
-      console.error("Error processing payment:", err);
-    }
+    await processPaymentMutation.mutateAsync({ id, data });
+    setIsPaymentModalOpen(false);
+    setSelectedExpense(null);
   };
 
   // Handler for filter changes
@@ -119,7 +118,7 @@ export const ExpenseSection = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold text-gray-700">
+        <h2 className="text-xs sm:text-sm lg:text-base font-semibold text-gray-700">
           Expense Management
         </h2>
         <button
@@ -127,13 +126,13 @@ export const ExpenseSection = () => {
             setSelectedExpense(null);
             setIsFormModalOpen(true);
           }}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+          className="bg-blue-600 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg hover:bg-blue-700 text-xs sm:text-sm"
         >
           Add New Expense
         </button>
       </div>
 
-      <div className="bg-white p-4 rounded-lg shadow">
+      <div className="bg-white p-6 rounded-lg shadow">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -142,7 +141,7 @@ export const ExpenseSection = () => {
             <select
               value={filters.expenseType || ''}
               onChange={(e) => handleFilterChange('expenseType', e.target.value || undefined)}
-              className="block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-700"
+              className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-700"
             >
               <option value="">All Types</option>
               <option value={ExpenseType.INFRASTRUCTURE}>Infrastructure</option>
@@ -248,6 +247,47 @@ export const ExpenseSection = () => {
         expense={selectedExpense}
         isSubmitting={processPaymentMutation.isPending}
       />
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal({ isOpen: false })}
+        title="Delete Expense"
+        size="sm"
+      >
+        <div className="space-y-4">
+          <div className="flex items-start space-x-3">
+            <div className="flex-shrink-0">
+              <Trash2 className="h-6 w-6 text-red-600" />
+            </div>
+            <p className="text-sm text-gray-600">
+              This action cannot be undone. This will permanently delete the expense.
+            </p>
+          </div>
+
+          <p className="text-sm text-gray-600">
+            Are you sure you want to delete the expense: <strong>{deleteModal.description}</strong>?
+          </p>
+
+          <div className="flex justify-end gap-3 pt-4">
+            <button
+              type="button"
+              onClick={() => setDeleteModal({ isOpen: false })}
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleDeleteConfirm}
+              disabled={deleteExpenseMutation.isPending}
+              className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50"
+            >
+              {deleteExpenseMutation.isPending ? 'Deleting...' : 'Delete'}
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };
