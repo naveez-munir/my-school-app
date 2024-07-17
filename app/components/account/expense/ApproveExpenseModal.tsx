@@ -1,14 +1,13 @@
 import { useState } from 'react';
 import { Modal } from '~/components/common/Modal';
 import { TextInput } from '~/components/common/form/inputs/TextInput';
-import { 
-  type ApproveExpenseDto, 
-  EmployeeType, 
-  EmployeeTypeLabels, 
-  type Expense, 
-  ExpenseStatus, 
-  ExpenseTypeLabels 
+import {
+  type ApproveExpenseDto,
+  type Expense,
+  ExpenseStatus,
+  ExpenseTypeLabels
 } from '~/types/expense.types';
+import { formatCurrency } from '~/utils/currencyUtils';
 
 interface ApproveExpenseModalProps {
   isOpen: boolean;
@@ -26,8 +25,6 @@ export function ApproveExpenseModal({
   isSubmitting
 }: ApproveExpenseModalProps) {
   const [formData, setFormData] = useState<ApproveExpenseDto>({
-    approvedBy: '',
-    approverType: EmployeeType.STAFF,
     status: ExpenseStatus.APPROVED,
     comments: ''
   });
@@ -51,15 +48,11 @@ export function ApproveExpenseModal({
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-    
-    if (!formData.approvedBy.trim()) {
-      newErrors.approvedBy = 'Approver ID is required';
-    }
-    
+
     if (formData.status === ExpenseStatus.REJECTED && !formData.comments?.trim()) {
       newErrors.comments = 'Please provide a reason for rejection';
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -74,13 +67,7 @@ export function ApproveExpenseModal({
     await onSubmit(expense.id, formData);
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-IN', { 
-      style: 'currency', 
-      currency: 'INR',
-      maximumFractionDigits: 0
-    }).format(amount);
-  };
+
 
   if (!expense) return null;
 
@@ -123,33 +110,6 @@ export function ApproveExpenseModal({
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <TextInput
-            label="Approver ID"
-            value={formData.approvedBy}
-            onChange={(value) => handleChange('approvedBy', value)}
-            error={errors.approvedBy}
-            required
-          />
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Approver Type
-            </label>
-            <select
-              value={formData.approverType}
-              onChange={(e) => handleChange('approverType', e.target.value)}
-              className="block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-700"
-            >
-              {Object.entries(EmployeeTypeLabels).map(([type, label]) => (
-                <option key={type} value={type}>
-                  {label}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Decision
