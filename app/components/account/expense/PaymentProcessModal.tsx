@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { Modal } from '~/components/common/Modal';
 import { TextInput } from '~/components/common/form/inputs/TextInput';
-import { 
-  type Expense, 
-  ExpenseTypeLabels, 
-  PaymentMethod, 
+import {
+  type Expense,
+  ExpenseTypeLabels,
+  PaymentMethod,
   PaymentMethodLabels,
   type ProcessExpensePaymentDto
 } from '~/types/expense.types';
+import { formatCurrency } from '~/utils/currencyUtils';
 
 interface PaymentProcessModalProps {
   isOpen: boolean;
@@ -78,13 +79,7 @@ export function PaymentProcessModal({
     await onSubmit(expense.id, formData);
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-IN', { 
-      style: 'currency', 
-      currency: 'INR',
-      maximumFractionDigits: 0
-    }).format(amount);
-  };
+
 
   if (!expense) return null;
 
