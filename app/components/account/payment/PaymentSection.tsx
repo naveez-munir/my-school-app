@@ -1,105 +1,47 @@
 import { useState } from 'react';
 import { PaymentsTable } from './PaymentsTable';
-import { PaymentFormModal } from './PaymentFormModal';
 import { PaymentDetailModal } from './PaymentDetailModal';
-import { 
-  type Payment, 
-  PaymentStatus, 
-  PaymentType, 
-  PaymentMode, 
+import { PaymentDashboard } from './PaymentDashboard';
+import {
+  type Payment,
+  PaymentStatus,
+  PaymentType,
+  PaymentMode,
   PaymentFor,
-  type SearchPaymentParams, 
-  type CreatePaymentDto
+  type SearchPaymentParams
 } from '~/types/payment.types';
-import { 
-  usePayments, 
-  useCreatePayment, 
-  useUpdatePayment, 
-  useDeletePayment,
-  useUpdatePaymentStatus
+import {
+  usePayments,
 } from '~/hooks/usePayment';
+import { BarChart3, List } from 'lucide-react';
+import { PaymentTypeSelector } from '~/components/common/PaymentTypeSelector';
+import { PaymentStatusSelector } from '~/components/common/PaymentStatusSelector';
+import { PaymentModeSelector } from '~/components/common/PaymentModeSelector';
+
+type TabType = 'dashboard' | 'history';
 
 export const PaymentSection = () => {
+  // State for tabs
+  const [activeTab, setActiveTab] = useState<TabType>('dashboard');
+
   // State for modals
-  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  
+
   // State for selected payment and filters
   const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
   const [filters, setFilters] = useState<SearchPaymentParams>({});
-  
-  // React Query hooks
-  const { 
-    data: payments = [], 
-    isLoading, 
-    error 
-  } = usePayments(filters);
-  
-  const createPaymentMutation = useCreatePayment();
-  const updatePaymentMutation = useUpdatePayment();
-  const deletePaymentMutation = useDeletePayment();
-  const updateStatusMutation = useUpdatePaymentStatus();
 
-  // Create or update payment handler
-  const handleSavePayment = async (data: CreatePaymentDto) => {
-    try {
-      if (selectedPayment?.id) {
-        await updatePaymentMutation.mutateAsync({ 
-          id: selectedPayment.id, 
-          data 
-        });
-      } else {
-        await createPaymentMutation.mutateAsync(data);
-      }
-      setIsFormModalOpen(false);
-      setSelectedPayment(null);
-    } catch (err) {
-      console.error("Error saving payment:", err);
-    }
-  };
+  // React Query hooks
+  const {
+    data: payments = [],
+    isLoading,
+    error
+  } = usePayments(filters);
 
   // Handle viewing a payment
   const handleView = (payment: Payment) => {
     setSelectedPayment(payment);
     setIsDetailModalOpen(true);
-  };
-
-  // Handle editing a payment
-  const handleEdit = (payment: Payment) => {
-    setSelectedPayment(payment);
-    setIsFormModalOpen(true);
-  };
-
-  // Handle deleting a payment
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this payment?')) {
-      try {
-        await deletePaymentMutation.mutateAsync(id);
-      } catch (err) {
-        console.error("Error deleting payment:", err);
-      }
-    }
-  };
-
-  // Handle updating payment status
-  const handleUpdateStatus = async (payment: Payment, status: PaymentStatus) => {
-    try {
-      let confirmMessage = 'Are you sure you want to';
-      
-      if (status === PaymentStatus.REFUNDED) {
-        confirmMessage += ' mark this payment as refunded?';
-      } else if (status === PaymentStatus.FAILED) {
-        confirmMessage += ' mark this payment as failed?';
-      } else {
-        confirmMessage += ` change status to ${status}?`;
-      }
-      
-      if (window.confirm(confirmMessage)) {
-        await updateStatusMutation.mutateAsync({ id: payment.id as string, status });
-      }
-    } catch (err) {
-      console.error("Error updating payment status:", err);
-    }
   };
 
   // Handler for filter changes
@@ -115,74 +57,92 @@ export const PaymentSection = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold text-gray-700">
-          Payment Management
-        </h2>
-        <button
-          onClick={() => {
-            setSelectedPayment(null);
-            setIsFormModalOpen(true);
-          }}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-        >
-          Add New Payment
-        </button>
+      {/* Enhanced Header */}
+      <div className="rounded-lg p-6 border border-gray-200">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold mb-2 text-gray-800">Payment Management</h1>
+            <p className="text-gray-600 text-sm">
+              Comprehensive payment tracking and analytics dashboard
+            </p>
+          </div>
+          <div className="hidden md:flex items-center space-x-4">
+            <div className="text-center border border-gray-300 rounded-lg px-4 py-2">
+              <div className="text-xs text-gray-500">Total Modules</div>
+              <div className="text-2xl font-bold text-gray-800">3</div>
+              <div className="text-xs text-gray-600">Fee • Salary • Expense</div>
+            </div>
+          </div>
+        </div>
+        <div className="mt-4 flex items-center text-sm text-gray-600">
+          <svg className="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          View payment statistics and transaction history. Payments are created from their respective modules.
+        </div>
       </div>
 
-      <div className="bg-white p-4 rounded-lg shadow">
+      {/* Tab Navigation */}
+      <div className="bg-white rounded-lg shadow">
+        <div className="border-b border-gray-200">
+          <nav className="flex -mb-px">
+            <button
+              onClick={() => setActiveTab('dashboard')}
+              className={`flex items-center px-6 py-3 text-sm font-medium border-b-2 ${
+                activeTab === 'dashboard'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <BarChart3 className="h-5 w-5 mr-2" />
+              Dashboard
+            </button>
+            <button
+              onClick={() => setActiveTab('history')}
+              className={`flex items-center px-6 py-3 text-sm font-medium border-b-2 ${
+                activeTab === 'history'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <List className="h-5 w-5 mr-2" />
+              Transaction History
+            </button>
+          </nav>
+        </div>
+      </div>
+
+      {/* Tab Content */}
+      {activeTab === 'dashboard' ? (
+        <PaymentDashboard />
+      ) : (
+        <>
+          <div className="bg-white p-4 rounded-lg shadow">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Filter by Type
-            </label>
-            <select
-              value={filters.paymentType || ''}
-              onChange={(e) => handleFilterChange('paymentType', e.target.value || undefined)}
-              className="block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-700"
-            >
-              <option value="">All Types</option>
-              <option value={PaymentType.STUDENT_FEE}>Student Fee</option>
-              <option value={PaymentType.SALARY}>Salary</option>
-              <option value={PaymentType.EXPENSE}>Expense</option>
-              <option value={PaymentType.OTHER_INCOME}>Other Income</option>
-            </select>
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Filter by Status
-            </label>
-            <select
-              value={filters.status || ''}
-              onChange={(e) => handleFilterChange('status', e.target.value || undefined)}
-              className="block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-700"
-            >
-              <option value="">All Statuses</option>
-              <option value={PaymentStatus.PENDING}>Pending</option>
-              <option value={PaymentStatus.COMPLETED}>Completed</option>
-              <option value={PaymentStatus.FAILED}>Failed</option>
-              <option value={PaymentStatus.REFUNDED}>Refunded</option>
-            </select>
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Filter by Payment Mode
-            </label>
-            <select
-              value={filters.paymentMode || ''}
-              onChange={(e) => handleFilterChange('paymentMode', e.target.value || undefined)}
-              className="block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-700"
-            >
-              <option value="">All Modes</option>
-              <option value={PaymentMode.CASH}>Cash</option>
-              <option value={PaymentMode.CHEQUE}>Cheque</option>
-              <option value={PaymentMode.BANK_TRANSFER}>Bank Transfer</option>
-              <option value={PaymentMode.ONLINE}>Online Payment</option>
-            </select>
-          </div>
-          
+          <PaymentTypeSelector
+            value={filters.paymentType as any}
+            onChange={(value) => handleFilterChange('paymentType', value === 'all' ? undefined : value)}
+            label="Filter by Type"
+            placeholder="All Types"
+            includeAll={true}
+          />
+
+          <PaymentStatusSelector
+            value={filters.status as any}
+            onChange={(value) => handleFilterChange('status', value === 'all' ? undefined : value)}
+            label="Filter by Status"
+            placeholder="All Statuses"
+            includeAll={true}
+          />
+
+          <PaymentModeSelector
+            value={filters.paymentMode as any}
+            onChange={(value) => handleFilterChange('paymentMode', value === 'all' ? undefined : value)}
+            label="Filter by Payment Mode"
+            placeholder="All Modes"
+            includeAll={true}
+          />
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -195,7 +155,7 @@ export const PaymentSection = () => {
                 className="block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-700"
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 To Date
@@ -208,23 +168,7 @@ export const PaymentSection = () => {
               />
             </div>
           </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Filter by Payment For
-            </label>
-            <select
-              value={filters.paymentFor || ''}
-              onChange={(e) => handleFilterChange('paymentFor', e.target.value || undefined)}
-              className="block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-700"
-            >
-              <option value="">All References</option>
-              <option value={PaymentFor.EXPENSE}>Expense</option>
-              <option value={PaymentFor.SALARY}>Salary</option>
-              <option value={PaymentFor.STUDENT_FEE}>Student Fee</option>
-            </select>
-          </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Reference ID
@@ -240,42 +184,30 @@ export const PaymentSection = () => {
         </div>
       </div>
 
-      {isLoading ? (
-        <div className="text-center py-8">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-          <p className="mt-2 text-gray-500">Loading payments...</p>
-        </div>
-      ) : error ? (
-        <div className="bg-red-50 text-red-700 p-4 rounded-lg">{(error as Error).message}</div>
-      ) : (
-        <PaymentsTable
-          data={payments}
-          onView={handleView}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          onUpdateStatus={handleUpdateStatus}
-        />
+          {isLoading ? (
+            <div className="text-center py-8">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+              <p className="mt-2 text-gray-500">Loading payments...</p>
+            </div>
+          ) : error ? (
+            <div className="bg-red-50 text-red-700 p-4 rounded-lg">{(error as Error).message}</div>
+          ) : (
+            <PaymentsTable
+              data={payments}
+              onView={handleView}
+            />
+          )}
+
+          <PaymentDetailModal
+            isOpen={isDetailModalOpen}
+            onClose={() => {
+              setIsDetailModalOpen(false);
+              setSelectedPayment(null);
+            }}
+            payment={selectedPayment}
+          />
+        </>
       )}
-
-      <PaymentFormModal
-        isOpen={isFormModalOpen}
-        onClose={() => {
-          setIsFormModalOpen(false);
-          setSelectedPayment(null);
-        }}
-        onSubmit={handleSavePayment}
-        initialData={selectedPayment || undefined}
-        isSubmitting={createPaymentMutation.isPending || updatePaymentMutation.isPending}
-      />
-
-      <PaymentDetailModal
-        isOpen={isDetailModalOpen}
-        onClose={() => {
-          setIsDetailModalOpen(false);
-          setSelectedPayment(null);
-        }}
-        payment={selectedPayment}
-      />
     </div>
   );
 };
