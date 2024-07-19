@@ -1,5 +1,7 @@
 import { type Payment, PaymentStatusLabels, PaymentTypeLabels, PaymentModeLabels, PaymentForLabels } from '~/types/payment.types';
 import { Modal } from '~/components/common/Modal';
+import { formatCurrency } from '~/utils/currencyUtils';
+import { formatUserFriendlyDate } from '~/utils/dateUtils';
 
 interface PaymentDetailModalProps {
   isOpen: boolean;
@@ -13,19 +15,6 @@ export function PaymentDetailModal({
   payment
 }: PaymentDetailModalProps) {
   if (!payment) return null;
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-IN', { 
-      style: 'currency', 
-      currency: 'INR',
-      maximumFractionDigits: 0
-    }).format(amount);
-  };
-
-  const formatDate = (dateString?: Date | string) => {
-    if (!dateString) return '-';
-    return new Date(dateString).toLocaleDateString();
-  };
 
   return (
     <Modal
@@ -54,24 +43,24 @@ export function PaymentDetailModal({
             </div>
           </div>
 
-          <div>
+          <div className="col-span-2">
             <p className="text-sm text-gray-500">Payment For</p>
-            <p className="text-sm font-medium text-gray-900">{PaymentForLabels[payment.paymentFor]}</p>
+            <p className="text-base font-semibold text-gray-900">
+              {payment.displayName || PaymentForLabels[payment.paymentFor]}
+            </p>
+            {payment.displaySubtext && (
+              <p className="text-sm text-gray-600 mt-0.5">{payment.displaySubtext}</p>
+            )}
           </div>
-          
+
           <div>
             <p className="text-sm text-gray-500">Payment Date</p>
-            <p className="text-sm font-medium text-gray-900">{formatDate(payment.paymentDate)}</p>
+            <p className="text-sm font-medium text-gray-900">{formatUserFriendlyDate(payment.paymentDate)}</p>
           </div>
 
           <div>
             <p className="text-sm text-gray-500">Payment Mode</p>
             <p className="text-sm font-medium text-gray-900">{PaymentModeLabels[payment.paymentMode]}</p>
-          </div>
-
-          <div>
-            <p className="text-sm text-gray-500">Reference ID</p>
-            <p className="text-sm font-medium text-gray-900">{payment.referenceId}</p>
           </div>
 
           {payment.paymentMode === 'CHEQUE' && payment.chequeNumber && (
@@ -117,56 +106,100 @@ export function PaymentDetailModal({
                   <>
                     <div className="grid grid-cols-2 gap-2 mb-2">
                       <div>
-                        <p className="text-xs text-gray-500">Expense Type</p>
+                        <p className="text-xs text-gray-500">Description</p>
                         <p className="text-sm font-medium text-gray-900">
-                          {payment.referenceDetails.expenseType}
+                          {payment.referenceDetails.description || '-'}
                         </p>
                       </div>
                       <div>
-                        <p className="text-xs text-gray-500">Description</p>
+                        <p className="text-xs text-gray-500">Expense Type</p>
                         <p className="text-sm font-medium text-gray-900">
-                          {payment.referenceDetails.description}
+                          {payment.referenceDetails.expenseType || '-'}
                         </p>
                       </div>
                     </div>
+                    {payment.referenceDetails.billNumber && (
+                      <div className="mt-2">
+                        <p className="text-xs text-gray-500">Bill Number</p>
+                        <p className="text-sm font-medium text-gray-900">
+                          {payment.referenceDetails.billNumber}
+                        </p>
+                      </div>
+                    )}
+                    {payment.referenceDetails.vendorDetails && (
+                      <div className="mt-2">
+                        <p className="text-xs text-gray-500">Vendor</p>
+                        <p className="text-sm font-medium text-gray-900">
+                          {payment.referenceDetails.vendorDetails}
+                        </p>
+                      </div>
+                    )}
                   </>
                 )}
-                
+
                 {payment.paymentFor === 'Salary' && (
                   <>
                     <div className="grid grid-cols-2 gap-2 mb-2">
                       <div>
                         <p className="text-xs text-gray-500">Employee</p>
                         <p className="text-sm font-medium text-gray-900">
-                          {payment.referenceDetails.employeeName}
+                          {payment.referenceDetails.employeeId?.firstName && payment.referenceDetails.employeeId?.lastName
+                            ? `${payment.referenceDetails.employeeId.firstName} ${payment.referenceDetails.employeeId.lastName}`
+                            : payment.referenceDetails.employeeName || '-'}
                         </p>
                       </div>
                       <div>
                         <p className="text-xs text-gray-500">Period</p>
                         <p className="text-sm font-medium text-gray-900">
-                          {payment.referenceDetails.month}/{payment.referenceDetails.year}
+                          {payment.referenceDetails.month && payment.referenceDetails.year
+                            ? `${payment.referenceDetails.month}/${payment.referenceDetails.year}`
+                            : '-'}
                         </p>
                       </div>
                     </div>
+                    {payment.referenceDetails.netSalary && (
+                      <div className="mt-2">
+                        <p className="text-xs text-gray-500">Net Salary</p>
+                        <p className="text-sm font-medium text-gray-900">
+                          {formatCurrency(payment.referenceDetails.netSalary)}
+                        </p>
+                      </div>
+                    )}
                   </>
                 )}
-                
+
                 {payment.paymentFor === 'StudentFee' && (
                   <>
                     <div className="grid grid-cols-2 gap-2 mb-2">
                       <div>
                         <p className="text-xs text-gray-500">Student</p>
                         <p className="text-sm font-medium text-gray-900">
-                          {payment.referenceDetails.studentName}
+                          {payment.referenceDetails.studentId?.firstName && payment.referenceDetails.studentId?.lastName
+                            ? `${payment.referenceDetails.studentId.firstName} ${payment.referenceDetails.studentId.lastName}`
+                            : '-'}
                         </p>
+                        {payment.referenceDetails.studentId?.rollNumber && (
+                          <p className="text-xs text-gray-500 mt-0.5">
+                            Roll #: {payment.referenceDetails.studentId.rollNumber}
+                          </p>
+                        )}
                       </div>
                       <div>
-                        <p className="text-xs text-gray-500">Fee Type</p>
+                        <p className="text-xs text-gray-500">Class</p>
                         <p className="text-sm font-medium text-gray-900">
-                          {payment.referenceDetails.feeType}
+                          {payment.referenceDetails.studentId?.class?.className ||
+                           payment.referenceDetails.studentId?.class || '-'}
                         </p>
                       </div>
                     </div>
+                    {payment.referenceDetails.amount && (
+                      <div className="mt-2">
+                        <p className="text-xs text-gray-500">Payment Amount</p>
+                        <p className="text-sm font-medium text-gray-900">
+                          {formatCurrency(payment.referenceDetails.amount)}
+                        </p>
+                      </div>
+                    )}
                   </>
                 )}
               </div>
@@ -176,12 +209,12 @@ export function PaymentDetailModal({
           <div className="col-span-2 border-t pt-3 mt-2">
             <div className="flex justify-between text-sm text-gray-500">
               <span>Created At:</span>
-              <span>{formatDate(payment.createdAt)}</span>
+              <span>{formatUserFriendlyDate(payment.createdAt)}</span>
             </div>
             {payment.updatedAt && payment.updatedAt !== payment.createdAt && (
               <div className="flex justify-between text-sm text-gray-500">
                 <span>Last Updated:</span>
-                <span>{formatDate(payment.updatedAt)}</span>
+                <span>{formatUserFriendlyDate(payment.updatedAt)}</span>
               </div>
             )}
           </div>
