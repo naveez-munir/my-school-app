@@ -220,7 +220,7 @@ export function SalaryStructureModal({
       <div className="fixed inset-0 bg-black opacity-50" onClick={onClose}></div>
       
       <div className="bg-white rounded-lg p-6 w-full max-w-5xl max-h-[90vh] overflow-y-auto border-1 border-gray-200 z-10 relative">
-        <h3 className="text-lg font-medium mb-4">
+        <h3 className="text-base sm:text-lg font-medium mb-4">
           {initialData?.id ? 'Edit Salary Structure' : 'Add New Salary Structure'}
         </h3>
         
@@ -309,11 +309,11 @@ export function SalaryStructureModal({
           {/* Allowances Section */}
           <div className="mb-6">
             <div className="flex justify-between items-center mb-4">
-              <h4 className="text-md font-medium">Allowances</h4>
+              <h4 className="text-sm sm:text-base font-medium">Allowances</h4>
               <button
                 type="button"
                 onClick={handleAddAllowance}
-                className="flex items-center bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
+                className="flex items-center bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-xs sm:text-sm"
               >
                 <Plus className="h-4 w-4 mr-1" /> Add Allowance
               </button>
@@ -370,7 +370,7 @@ export function SalaryStructureModal({
                       disabled={isSubmitting}
                       className="h-4 w-4 text-blue-600 border-gray-300 rounded"
                     />
-                    <label htmlFor={`isFixed-${index}`} className="ml-2 block text-sm text-gray-700">
+                    <label htmlFor={`isFixed-${index}`} className="ml-2 block text-xs sm:text-sm text-gray-700">
                       Fixed Amount (uncheck for percentage based)
                     </label>
                   </div>
@@ -401,11 +401,11 @@ export function SalaryStructureModal({
           {/* Deductions Section */}
           <div className="mb-6">
             <div className="flex justify-between items-center mb-4">
-              <h4 className="text-md font-medium">Deductions</h4>
+              <h4 className="text-sm sm:text-base font-medium">Deductions</h4>
               <button
                 type="button"
                 onClick={handleAddDeduction}
-                className="flex items-center bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
+                className="flex items-center bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-xs sm:text-sm"
               >
                 <Plus className="h-4 w-4 mr-1" /> Add Deduction
               </button>
@@ -463,7 +463,7 @@ export function SalaryStructureModal({
                       disabled={isSubmitting}
                       className="h-4 w-4 text-blue-600 border-gray-300 rounded"
                     />
-                    <label htmlFor={`deduction-isFixed-${index}`} className="ml-2 block text-sm text-gray-700">
+                    <label htmlFor={`deduction-isFixed-${index}`} className="ml-2 block text-xs sm:text-sm text-gray-700">
                       Fixed Amount (uncheck for percentage based)
                     </label>
                   </div>
@@ -514,11 +514,11 @@ export function SalaryStructureModal({
           {/* Pay Rates Section */}
           <div className="mb-6">
             <div className="flex justify-between items-center mb-4">
-              <h4 className="text-md font-medium">Pay Rates</h4>
+              <h4 className="text-sm sm:text-base font-medium">Pay Rates</h4>
               <button
                 type="button"
                 onClick={handleAddPayRate}
-                className="flex items-center bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
+                className="flex items-center bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-xs sm:text-sm"
               >
                 <Plus className="h-4 w-4 mr-1" /> Add Pay Rate
               </button>
