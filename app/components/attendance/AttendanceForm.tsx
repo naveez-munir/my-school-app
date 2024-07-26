@@ -9,6 +9,7 @@ import {
 import { ClassSelector } from '../common/ClassSelector';
 import { TeacherSelector } from '../common/TeacherSelector';
 import { StudentSelector } from '../common/StudentSelector';
+import { StaffSelector } from '../common/StaffSelector';
 import { TextArea } from '../common/form/inputs/TextArea';
 import { DateInput } from '../common/form/inputs/DateInput';
 import { SelectInput } from '../common/form/inputs/SelectInput';
@@ -58,7 +59,7 @@ export function AttendanceForm({
       setFormData(prev => ({
         ...prev,
         userId: '',
-        classId: value === AttendanceType.TEACHER ? '' : prev.classId
+        classId: (value === AttendanceType.TEACHER || value === AttendanceType.STAFF) ? '' : prev.classId
       }));
     }
 
@@ -72,11 +73,25 @@ export function AttendanceForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+
+    // Prepare submission data, excluding classId for Teacher/Staff
+    const submissionData: CreateAttendanceInput | UpdateAttendanceInput = {
+      userType: formData.userType,
+      userId: formData.userId,
+      date: formData.date,
+      status: formData.status,
+      ...(formData.reason && { reason: formData.reason }),
+      ...(formData.userType === AttendanceType.STUDENT && formData.classId && { classId: formData.classId }),
+      ...(formData.checkInTime && { checkInTime: formData.checkInTime }),
+      ...(formData.checkOutTime && { checkOutTime: formData.checkOutTime })
+    };
+
+    onSubmit(submissionData);
   };
 
   const isStudent = formData.userType === AttendanceType.STUDENT;
   const isTeacher = formData.userType === AttendanceType.TEACHER;
+  const isStaff = formData.userType === AttendanceType.STAFF;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -116,6 +131,14 @@ export function AttendanceForm({
             />
           )}
 
+          {isStaff && (
+            <StaffSelector
+              value={formData.userId}
+              onChange={(value) => handleChange('userId', value)}
+              required
+            />
+          )}
+
           <DateInput 
             label='Date'
             value={formData.date || ''}
@@ -132,7 +155,7 @@ export function AttendanceForm({
             required
           />
 
-          {(formData.status === AttendanceStatus.ABSENT || formData.status === AttendanceStatus.LATE) && (
+          {(formData.status === AttendanceStatus.ABSENT || formData.status === AttendanceStatus.LATE || formData.status === AttendanceStatus.LEAVE) && (
             <div className="md:col-span-2">
               <TextArea 
                 label='Reason'
