@@ -3,8 +3,10 @@ import { useAttendanceRecord, useUpdateAttendance } from '~/hooks/useAttendanceQ
 import { AttendanceForm } from './AttendanceForm';
 import {
   type CreateAttendanceInput,
-  type UpdateAttendanceInput 
+  type UpdateAttendanceInput
 } from '~/types/attendance';
+import toast from 'react-hot-toast';
+import { getErrorMessage } from '~/utils/error';
 
 export function EditAttendance() {
   const { id } = useParams<{ id: string }>();
@@ -15,15 +17,17 @@ export function EditAttendance() {
 
   const handleSubmit = (data: CreateAttendanceInput | UpdateAttendanceInput) => {
     if (!id) return;
-    
-    updateAttendanceMutation.mutate({ 
-      id, 
-      data: data as UpdateAttendanceInput 
+
+    updateAttendanceMutation.mutate({
+      id,
+      data: data as UpdateAttendanceInput
     }, {
       onSuccess: () => {
+        toast.success('Attendance record updated successfully');
         navigate('/dashboard/attendance');
       },
       onError: (error) => {
+        toast.error(getErrorMessage(error));
         console.error('Failed to update attendance record:', error);
       }
     });
