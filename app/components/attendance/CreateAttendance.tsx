@@ -2,6 +2,8 @@ import { useNavigate } from 'react-router';
 import { useCreateAttendance } from '~/hooks/useAttendanceQueries';
 import { AttendanceForm } from './AttendanceForm';
 import { type CreateAttendanceInput, type UpdateAttendanceInput } from '~/types/attendance';
+import toast from 'react-hot-toast';
+import { getErrorMessage } from '~/utils/error';
 
 export function CreateAttendance() {
   const navigate = useNavigate();
@@ -10,9 +12,11 @@ export function CreateAttendance() {
   const handleSubmit = (data: CreateAttendanceInput | UpdateAttendanceInput) => {
     createAttendanceMutation.mutate(data as CreateAttendanceInput, {
       onSuccess: () => {
+        toast.success('Attendance record created successfully');
         navigate('/dashboard/attendance');
       },
       onError: (error) => {
+        toast.error(getErrorMessage(error));
         console.error('Failed to create attendance record:', error);
       }
     });
