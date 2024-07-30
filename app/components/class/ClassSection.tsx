@@ -61,17 +61,17 @@ function AdminClassManagement() {
   };
 
   return (
-    <div className="space-y-6 p-4 sm:p-6 md:p-8">
+    <div className="space-y-6 p-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-700">Classes</h1>
-          <p className="text-sm text-gray-500">
+          <h1 className="text-xs sm:text-sm lg:text-base font-bold tracking-tight text-gray-700">Classes</h1>
+          <p className="text-xs lg:text-sm text-gray-500">
             Manage class assignments, sections, and teacher allocations
           </p>
         </div>
         <button
           onClick={() => {navigate('/dashboard/classes/new')}}
-          className="w-full sm:w-auto bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
+          className="w-full sm:w-auto bg-blue-600 text-white text-xs sm:text-sm px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
         >
           Add New Class
         </button>
@@ -81,7 +81,7 @@ function AdminClassManagement() {
         {isLoading ? (
           <ClassesSkeleton />
         ) : error ? (
-          <div className="p-4 bg-red-50 text-red-700 rounded-lg">
+          <div className="p-4 bg-red-50 text-red-700 rounded-lg text-sm">
             {(error as Error).message}
           </div>
         ) : (
