@@ -1,11 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { format } from 'date-fns';
-import { 
-  AttendanceStatus, 
-  AttendanceType, 
-  type BatchAttendanceInput, 
-  type BatchAttendanceRecord 
+import {
+  AttendanceStatus,
+  AttendanceType,
+  type BatchAttendanceInput,
+  type BatchAttendanceRecord
 } from '~/types/attendance';
+import { useCheckApprovedLeaves, getDefaultAttendanceStatus } from '~/hooks/useLeaveIntegration';
 
 interface User {
   id: string;
@@ -13,6 +14,8 @@ interface User {
   type: AttendanceType;
   rollNumber?: string;
   employeeId?: string;
+  photoUrl?: string;
+  classId?: string;
 }
 
 interface Class {
@@ -27,6 +30,10 @@ interface BatchAttendanceFormProps {
   users: User[];
   classes: Class[];
   isLoading?: boolean;
+  initialUserType?: AttendanceType;
+  initialClassId?: string;
+  hideUserTypeSelector?: boolean;
+  hideClassSelector?: boolean;
 }
 
 export function BatchAttendanceForm({
@@ -34,90 +41,113 @@ export function BatchAttendanceForm({
   onCancel,
   users,
   classes,
-  isLoading = false
+  isLoading = false,
+  initialUserType = AttendanceType.STUDENT,
+  initialClassId = '',
+  hideUserTypeSelector = false,
+  hideClassSelector = false
 }: BatchAttendanceFormProps) {
-  const [userType, setUserType] = useState<AttendanceType>(AttendanceType.STUDENT);
-  const [classId, setClassId] = useState<string>('');
+  const [userType, setUserType] = useState<AttendanceType>(initialUserType);
+  const [classId, setClassId] = useState<string>(initialClassId);
   const [date, setDate] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
-  const [records, setRecords] = useState<BatchAttendanceRecord[]>([]);
+  const [recordOverrides, setRecordOverrides] = useState<Record<string, { status?: AttendanceStatus; reason?: string }>>({});
   const [defaultStatus, setDefaultStatus] = useState<AttendanceStatus>(AttendanceStatus.PRESENT);
 
-  // Filter users based on selected user type
-  const filteredUsers = users.filter(user => user.type === userType);
+  const allStudents = useMemo(() => {
+    return users.filter(user => user.type === AttendanceType.STUDENT);
+  }, [users]);
 
-  // Handle class selection to initialize records
+  const allStudentIds = useMemo(() => {
+    return allStudents.map(user => user.id);
+  }, [allStudents]);
+
+  const { data: leaveStatuses = [] } = useCheckApprovedLeaves(AttendanceType.STUDENT, date, allStudentIds);
+
+  const filteredUsers = useMemo(() => {
+    let filtered = users.filter(user => user.type === userType);
+
+    if (userType === AttendanceType.STUDENT && classId) {
+      filtered = filtered.filter(user => user.classId === classId);
+    }
+
+    return filtered;
+  }, [users, userType, classId]);
+
+  const records = useMemo(() => {
+    if (userType === AttendanceType.STUDENT && !classId) {
+      return [];
+    }
+
+    return filteredUsers.map(user => {
+      const leaveStatus = leaveStatuses.find(ls => ls.userId === user.id);
+      const defaultStatus = getDefaultAttendanceStatus(leaveStatus?.hasApprovedLeave || false);
+      const defaultReason = leaveStatus?.hasApprovedLeave ? `Approved ${leaveStatus.leaveType} leave` : '';
+
+      const override = recordOverrides[user.id];
+
+      return {
+        userId: user.id,
+        status: override?.status ?? defaultStatus,
+        reason: override?.reason ?? defaultReason
+      };
+    });
+  }, [filteredUsers, leaveStatuses, recordOverrides, userType, classId]);
+
   const handleClassChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedClassId = e.target.value;
     setClassId(selectedClassId);
-    
-    // Initialize records for all users of the selected type
-    if (selectedClassId) {
-      const newRecords = filteredUsers.map(user => ({
-        userId: user.id,
-        status: defaultStatus,
-        reason: ''
-      }));
-      setRecords(newRecords);
-    } else {
-      setRecords([]);
-    }
+    setRecordOverrides({});
   };
 
-  // Handle user type change
+
+
   const handleUserTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newUserType = e.target.value as AttendanceType;
     setUserType(newUserType);
-    setRecords([]);
+    setClassId('');
+    setRecordOverrides({});
   };
 
-  // Update status for a specific user
   const updateStatus = (userId: string, status: AttendanceStatus) => {
-    setRecords(prev => 
-      prev.map(record => 
-        record.userId === userId 
-          ? { ...record, status } 
-          : record
-      )
-    );
+    setRecordOverrides(prev => ({
+      ...prev,
+      [userId]: { ...prev[userId], status }
+    }));
   };
 
-  // Update reason for a specific user
   const updateReason = (userId: string, reason: string) => {
-    setRecords(prev => 
-      prev.map(record => 
-        record.userId === userId 
-          ? { ...record, reason } 
-          : record
-      )
-    );
+    setRecordOverrides(prev => ({
+      ...prev,
+      [userId]: { ...prev[userId], reason }
+    }));
   };
 
-  // Handle "Mark All" functionality
   const markAllAs = (status: AttendanceStatus) => {
-    setRecords(prev => 
-      prev.map(record => ({
-        ...record,
-        status
-      }))
-    );
+    const newOverrides: Record<string, { status?: AttendanceStatus; reason?: string }> = {};
+    filteredUsers.forEach(user => {
+      newOverrides[user.id] = { ...recordOverrides[user.id], status };
+    });
+    setRecordOverrides(prev => ({ ...prev, ...newOverrides }));
   };
 
   // Handle form submission
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const batchData: BatchAttendanceInput = {
       userType,
-      classId,
+      ...(userType === AttendanceType.STUDENT && classId && { classId }),
       date,
       records
     };
-    
+
     onSubmit(batchData);
   };
 
   // Determine if form can be submitted
-  const canSubmit = classId && date && records.length > 0;
+  const canSubmit = date && records.length > 0 && (
+    userType !== AttendanceType.STUDENT || classId
+  );
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -126,40 +156,45 @@ export function BatchAttendanceForm({
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           {/* User Type */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              User Type
-            </label>
-            <select
-              value={userType}
-              onChange={handleUserTypeChange}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:ring-indigo-500"
-              required
-            >
-              <option value={AttendanceType.STUDENT}>Student</option>
-              <option value={AttendanceType.TEACHER}>Teacher</option>
-            </select>
-          </div>
+          {!hideUserTypeSelector && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                User Type
+              </label>
+              <select
+                value={userType}
+                onChange={handleUserTypeChange}
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:ring-indigo-500"
+                required
+              >
+                <option value={AttendanceType.STUDENT}>Student</option>
+                <option value={AttendanceType.TEACHER}>Teacher</option>
+                <option value={AttendanceType.STAFF}>Staff</option>
+              </select>
+            </div>
+          )}
 
-          {/* Class Selection */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Class
-            </label>
-            <select
-              value={classId}
-              onChange={handleClassChange}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:ring-indigo-500"
-              required
-            >
-              <option value="">Select a class</option>
-              {classes.map(cls => (
-                <option key={cls.id} value={cls.id}>
-                  {cls.className} - {cls.section}
-                </option>
-              ))}
-            </select>
-          </div>
+          {/* Class Selection - Only for students */}
+          {userType === AttendanceType.STUDENT && !hideClassSelector && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Class
+              </label>
+              <select
+                value={classId}
+                onChange={handleClassChange}
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:ring-indigo-500"
+                required
+              >
+                <option value="">Select a class</option>
+                {classes.map(cls => (
+                  <option key={cls.id} value={cls.id}>
+                    {cls.className} - {cls.section}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {/* Date */}
           <div>
@@ -201,6 +236,13 @@ export function BatchAttendanceForm({
             >
               Late
             </button>
+            <button
+              type="button"
+              onClick={() => markAllAs(AttendanceStatus.LEAVE)}
+              className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
+            >
+              Leave
+            </button>
           </div>
         )}
 
@@ -218,9 +260,9 @@ export function BatchAttendanceForm({
                       Roll Number
                     </th>
                   )}
-                  {userType === AttendanceType.TEACHER && (
+                  {userType === AttendanceType.STAFF && (
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Employee ID
+                      Role
                     </th>
                   )}
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -234,21 +276,51 @@ export function BatchAttendanceForm({
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredUsers.map(user => {
                   const record = records.find(r => r.userId === user.id);
+                  const leaveStatus = leaveStatuses.find(ls => ls.userId === user.id);
                   if (!record) return null;
-                  
+
                   return (
-                    <tr key={user.id}>
+                    <tr key={user.id} className={leaveStatus?.hasApprovedLeave ? 'bg-blue-50' : ''}>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {user.name}
+                        <div className="flex items-center gap-3">
+                          <div className="h-8 w-8 rounded-full overflow-hidden flex-shrink-0">
+                            {user.photoUrl ? (
+                              <img
+                                src={user.photoUrl}
+                                alt={user.name}
+                                className="h-8 w-8 rounded-full object-cover"
+                                onError={(e) => {
+                                  e.currentTarget.style.display = 'none';
+                                  e.currentTarget.nextElementSibling.style.display = 'flex';
+                                }}
+                              />
+                            ) : null}
+                            <div
+                              className={`h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-medium text-gray-600 ${user.photoUrl ? 'hidden' : 'flex'}`}
+                            >
+                              {user.name.charAt(0).toUpperCase()}
+                            </div>
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="font-medium">{user.name}</span>
+                            {leaveStatus?.hasApprovedLeave && (
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mt-1">
+                                Approved Leave
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       </td>
                       {userType === AttendanceType.STUDENT && (
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {user.rollNumber || '—'}
                         </td>
                       )}
-                      {userType === AttendanceType.TEACHER && (
+                      {userType === AttendanceType.STAFF && (
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {user.employeeId || '—'}
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                            {user.employeeId || 'Staff'}
+                          </span>
                         </td>
                       )}
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -260,10 +332,11 @@ export function BatchAttendanceForm({
                           <option value={AttendanceStatus.PRESENT}>Present</option>
                           <option value={AttendanceStatus.ABSENT}>Absent</option>
                           <option value={AttendanceStatus.LATE}>Late</option>
+                          <option value={AttendanceStatus.LEAVE}>Leave</option>
                         </select>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        {(record.status === AttendanceStatus.ABSENT || record.status === AttendanceStatus.LATE) && (
+                        {(record.status === AttendanceStatus.ABSENT || record.status === AttendanceStatus.LATE || record.status === AttendanceStatus.LEAVE) && (
                           <input
                             type="text"
                             value={record.reason || ''}
