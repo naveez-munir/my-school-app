@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { toast } from 'react-hot-toast'
 import { TeacherAssignmentCard } from './TeacherAssignmentCard'
-import type { TeacherResponse, Teacher } from '~/types/teacher'
+import type { TeacherResponse } from '~/types/teacher'
 import type { Class } from '~/types/class'
 import { 
   useAssignTeacher, 
@@ -12,21 +12,21 @@ import {
 import { TeacherSelector } from '../common/TeacherSelector';
 import { useQueryClient } from '@tanstack/react-query'
 import { getErrorMessage } from '~/utils/error'
+import { isAdmin } from '~/utils/auth'
 
 interface TeacherAssignmentSectionProps {
   classData: Class
-  teachers: TeacherResponse[]
   isLoading?: boolean
   onRefresh?: () => void
 }
 
 export function TeacherAssignmentSection({
   classData,
-  teachers,
   isLoading = false,
   onRefresh
 }: TeacherAssignmentSectionProps) {
   const queryClient = useQueryClient();
+  const userIsAdmin = isAdmin();
   const [mainTeacherLoading, setMainTeacherLoading] = useState(false)
   const [tempTeacherLoading, setTempTeacherLoading] = useState(false)
   const [selectedMainTeacherId, setSelectedMainTeacherId] = useState('')
@@ -110,11 +110,11 @@ export function TeacherAssignmentSection({
         {classData.classTeacher ? (
           <TeacherAssignmentCard
             teacher={classData.classTeacher}
-            onRemove={() => handleTeacherAction('remove', 'main')}
+            onRemove={userIsAdmin ? () => handleTeacherAction('remove', 'main') : undefined}
             isLoading={mainTeacherLoading || isLoading || removeTeacherMutation.isPending}
             variant="main"
           />
-        ) : (
+        ) : userIsAdmin ? (
           <div className="p-4 bg-gray-50 rounded-lg border border-dashed border-gray-300">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
               <div className="md:col-span-2">
@@ -123,6 +123,7 @@ export function TeacherAssignmentSection({
                   onChange={setSelectedMainTeacherId}
                   placeholder="Select a main teacher for this class"
                   className="w-full"
+                  showOnlyAvailable={true}
                 />
               </div>
               <div>
@@ -145,6 +146,12 @@ export function TeacherAssignmentSection({
               </p>
             )}
           </div>
+        ) : (
+          <div className="p-4 bg-gray-100 rounded-lg">
+            <p className="text-sm text-gray-600 text-center">
+              No main teacher assigned to this class
+            </p>
+          </div>
         )}
       </div>
 
@@ -164,11 +171,11 @@ export function TeacherAssignmentSection({
         {classData.classTempTeacher ? (
           <TeacherAssignmentCard
             teacher={classData.classTempTeacher}
-            onRemove={() => handleTeacherAction('remove', 'temp')}
+            onRemove={userIsAdmin ? () => handleTeacherAction('remove', 'temp') : undefined}
             isLoading={tempTeacherLoading || isLoading || removeTempTeacherMutation.isPending}
             variant="temporary"
           />
-        ) : (
+        ) : userIsAdmin ? (
           <div className="p-4 bg-gray-50 rounded-lg border border-dashed border-gray-300">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
               <div className="md:col-span-2">
@@ -177,6 +184,7 @@ export function TeacherAssignmentSection({
                   onChange={setSelectedTempTeacherId}
                   placeholder="Select a temporary substitute teacher"
                   className="w-full"
+                  showOnlyAvailable={true}
                 />
               </div>
               <div>
@@ -198,6 +206,12 @@ export function TeacherAssignmentSection({
                 Assign a temporary teacher who will substitute when the main teacher is unavailable.
               </p>
             )}
+          </div>
+        ) : (
+          <div className="p-4 bg-gray-100 rounded-lg">
+            <p className="text-sm text-gray-600 text-center">
+              No temporary teacher assigned to this class
+            </p>
           </div>
         )}
       </div>
