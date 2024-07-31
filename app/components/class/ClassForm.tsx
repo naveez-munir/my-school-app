@@ -1,11 +1,14 @@
-import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { X } from 'lucide-react';
 import type { Subject } from '~/types/subject';
 import type { Class, CreateClassDto } from '~/types/class';
 import GenericCombobox from '../common/form/inputs/Select';
 import { TextInput } from '../common/form/inputs/TextInput';
 import { FormActions } from '../common/form/FormActions';
+import { FormField } from '../common/form/FormField';
 import { GradeSelector } from '../common/GradeSelector';
+import { createClassSchema, type CreateClassFormData } from '~/utils/validation/classValidation';
 
 interface ClassFormProps {
   initialData?: Class;
@@ -22,84 +25,101 @@ export function ClassForm({
   isLoading,
   mode
 }: ClassFormProps) {
-  const [formData, setFormData] = useState<CreateClassDto>({
-    className: initialData?.className || '',
-    classSection: initialData?.classSection || '',
-    classGradeLevel: initialData?.classGradeLevel || '',
-    classSubjects: initialData?.classSubjects?.map(subject => subject._id) || []
+  const { control, handleSubmit: handleFormSubmit, formState: { errors }, watch, setValue } = useForm<CreateClassFormData>({
+    resolver: zodResolver(createClassSchema),
+    defaultValues: {
+      className: initialData?.className || '',
+      classSection: initialData?.classSection || '',
+      classGradeLevel: initialData?.classGradeLevel || '',
+      classSubjects: initialData?.classSubjects?.map(subject => subject._id) || [],
+      classTeacher: initialData?.classTeacher?._id || undefined,
+      classTempTeacher: initialData?.classTempTeacher?._id || undefined,
+    }
   });
 
-  const [errors, setErrors] = useState<Partial<Record<keyof CreateClassDto, string>>>({});
+  const formData = watch();
 
   // Get selected subjects details for tags
-  const selectedSubjectsDetails = subjects.filter(subject => 
+  const selectedSubjectsDetails = subjects.filter(subject =>
     formData.classSubjects?.includes(subject._id)
   );
 
   // Get available subjects (not selected)
-  const availableSubjects = subjects.filter(subject => 
+  const availableSubjects = subjects.filter(subject =>
     !formData.classSubjects?.includes(subject._id)
   );
 
-  const handleChange = (field: keyof CreateClassDto, value: string | string[]) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
-    }
-  };
-
   const handleRemoveSubject = (subjectId: string) => {
     const updatedSubjects = formData.classSubjects?.filter(id => id !== subjectId) || [];
-    handleChange('classSubjects', updatedSubjects);
+    setValue('classSubjects', updatedSubjects, { shouldValidate: true });
   };
 
   const handleAddSubject = (subject: Subject | null) => {
-    if (subject) { // Check if subject is not null
+    if (subject) {
       const updatedSubjects = [...(formData.classSubjects || []), subject._id];
-      handleChange('classSubjects', updatedSubjects);
+      setValue('classSubjects', updatedSubjects, { shouldValidate: true });
     }
   };
 
-  const validateForm = () => {
-    const newErrors: Partial<Record<keyof CreateClassDto, string>> = {};
-    if (!formData.className.trim()) {
-      newErrors.className = 'Class name is required';
-    }
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+  const onFormSubmit = (data: CreateClassFormData) => {
+    console.log('Form validation passed, submitting data:', data);
+    onSubmit(data);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (validateForm()) {
-      onSubmit(formData);
-    }
+  const onFormError = (errors: any) => {
+    console.log('Form validation failed, errors:', errors);
   };
+
+  const handleFormSubmitWithValidation = handleFormSubmit(onFormSubmit, onFormError);
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleFormSubmitWithValidation} className="space-y-6">
       {/* Basic Information */}
       <div className="space-y-4">
-        <TextInput
-          label="Class Name"
-          value={formData.className}
-          onChange={(value) => handleChange('className', value)}
-          error={errors.className}
-          required
-          placeholder="Enter class name"
+        <FormField
+          name="className"
+          control={control}
+          errors={errors}
+          render={(field) => (
+            <TextInput
+              label="Class Name"
+              value={field.value}
+              onChange={field.onChange}
+              required
+              placeholder="Enter class name (e.g., Grade 1, Class A)"
+              disabled={isLoading}
+            />
+          )}
         />
-        <TextInput
-          label="Section"
-          value={formData.classSection || ''}
-          onChange={(value) => handleChange('classSection', value)}
-          error={errors.className}
-          placeholder="A, B, C"
+
+        <FormField
+          name="classSection"
+          control={control}
+          errors={errors}
+          render={(field) => (
+            <TextInput
+              label="Section"
+              value={field.value || ''}
+              onChange={field.onChange}
+              placeholder="A, B, C"
+              disabled={isLoading}
+            />
+          )}
         />
-        <GradeSelector
-          value={formData.classGradeLevel || ''}
-          onChange={(value) => handleChange('classGradeLevel', value)}
-          label="Grade Level"
-          required
+
+        <FormField
+          name="classGradeLevel"
+          control={control}
+          errors={errors}
+          render={(field) => (
+            <GradeSelector
+              value={field.value || ''}
+              onChange={field.onChange}
+              label="Grade Level"
+              required
+              disabled={isLoading}
+            />
+          )}
         />
       </div>
 
