@@ -1,5 +1,5 @@
 import { createColumnHelper, type ColumnDef } from '@tanstack/react-table';
-import { Calendar, FileText } from 'lucide-react';
+import { Calendar, FileText, Eye, Edit, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import type { DailyDiaryResponse } from '~/types/dailyDiary';
 import { GenericDataTable } from '~/components/common/table/GenericDataTable';
@@ -10,15 +10,17 @@ interface DailyDiaryTableProps {
   globalFilter: string;
   onView: (diary: DailyDiaryResponse) => void;
   onEdit?: (diary: DailyDiaryResponse) => void;
-  onDelete: (id: string) => void;
+  onDelete?: (id: string) => void;
+  readOnly?: boolean;
 }
 
-export function DailyDiaryTable({ 
-  data, 
+export function DailyDiaryTable({
+  data,
   globalFilter,
   onView,
   onEdit,
-  onDelete
+  onDelete,
+  readOnly = false
 }: DailyDiaryTableProps) {
   const columnHelper = createColumnHelper<DailyDiaryResponse>();
 
@@ -83,23 +85,28 @@ export function DailyDiaryTable({
             <button
               onClick={() => onView(info.row.original)}
               className="text-gray-600 hover:text-gray-900 cursor-pointer"
+              title="View"
             >
-              View
+              <Eye className="h-4 w-4" />
             </button>
-            {onEdit && (
+            {!readOnly && onEdit && (
               <button
                 onClick={() => onEdit(info.row.original)}
                 className="text-blue-600 hover:text-blue-900 cursor-pointer"
+                title="Edit"
               >
-                Edit
+                <Edit className="h-4 w-4" />
               </button>
             )}
-            <button
-              onClick={() => onDelete(info.row.original.id)}
-              className="text-red-600 hover:text-red-900 cursor-pointer"
-            >
-              Delete
-            </button>
+            {!readOnly && onDelete && (
+              <button
+                onClick={() => onDelete((info.row.original as any)._id || info.row.original.id)}
+                className="text-red-600 hover:text-red-900 cursor-pointer"
+                title="Delete"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            )}
           </div>
         );
       },
