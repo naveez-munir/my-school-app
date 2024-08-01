@@ -1,10 +1,18 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
+import toast from 'react-hot-toast';
 import { DailyDiaryTable } from './DailyDiaryTable';
 import { ClassSelector } from '~/components/common/ClassSelector';
+import { TextInput } from '~/components/common/form/inputs/TextInput';
+import { DateInput } from '~/components/common/form/inputs/DateInput';
 import { useDiaryEntries, useDeleteDiaryEntry } from '~/hooks/useDailyDiaryQueries';
+import { useTeacherProfile } from '~/hooks/useTeacherQueries';
+import { getUserRole } from '~/utils/auth';
+import { UserRoleEnum } from '~/types/user';
 import type { DailyDiaryResponse, DiaryQueryParams } from '~/types/dailyDiary';
 import { DailyDiaryListSkeleton } from './DailyDiaryListSkeleton';
+import DeletePrompt from '~/components/common/DeletePrompt';
+import { Info } from 'lucide-react';
 
 export function DailyDiaryDashboard() {
   const navigate = useNavigate();
@@ -14,27 +22,47 @@ export function DailyDiaryDashboard() {
     endDate: ''
   });
   const [globalFilter, setGlobalFilter] = useState('');
-  
-  // Query parameters for fetching data
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [diaryToDelete, setDiaryToDelete] = useState<string | null>(null);
+
   const queryParams: DiaryQueryParams = {
     ...(selectedClassId && { classId: selectedClassId }),
     ...(dateRange.startDate && { startDate: dateRange.startDate }),
     ...(dateRange.endDate && { endDate: dateRange.endDate }),
   };
-  
-  // React Query hooks
-  const { 
-    data: diaryEntries = [], 
-    isLoading, 
-    error 
+
+  const {
+    data: diaryEntries = [],
+    isLoading,
+    error
   } = useDiaryEntries(queryParams);
-  
+
+  const userRole = getUserRole();
+  const isTeacherRole = userRole?.role === UserRoleEnum.TEACHER;
+  const { data: currentTeacher } = useTeacherProfile(isTeacherRole);
   const deleteDiaryMutation = useDeleteDiaryEntry();
 
-  // Event handlers
+  const isClassTeacher = !!currentTeacher?.classTeacherOf;
+
   const handleDelete = (id: string) => {
-    if (window.confirm('Are you sure you want to delete this diary entry?')) {
-      deleteDiaryMutation.mutate(id);
+    setDiaryToDelete(id);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (diaryToDelete) {
+      deleteDiaryMutation.mutate(diaryToDelete, {
+        onSuccess: () => {
+          toast.success('Diary entry deleted successfully');
+          setIsDeleteModalOpen(false);
+          setDiaryToDelete(null);
+        },
+        onError: (error: any) => {
+          toast.error(error?.message || 'Failed to delete diary entry');
+          setIsDeleteModalOpen(false);
+          setDiaryToDelete(null);
+        }
+      });
     }
   };
 
@@ -47,42 +75,59 @@ export function DailyDiaryDashboard() {
   };
 
   const handleCreateNew = () => {
-    navigate('/dashboard/daily-diary/new');
+    navigate('/dashboard/daily-diary/new', {
+      state: {
+        classId: selectedClassId || currentTeacher?.classTeacherOf?._id,
+        isClassTeacher: isClassTeacher
+      }
+    });
   };
 
   return (
-    <div className="space-y-6 p-4 sm:p-6 md:p-8">
+    <div className="space-y-4 sm:space-y-5 lg:space-y-6">
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-700">Daily Diary</h1>
-          <p className="text-sm text-gray-500">
+          <h1 className="text-responsive-xl font-bold tracking-tight text-gray-700">Daily Diary</h1>
+          <p className="text-xs lg:text-sm text-gray-500">
             Manage class diary entries, assignments, and activities
           </p>
         </div>
-        <button
-          onClick={handleCreateNew}
-          className="w-full sm:w-auto bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
-        >
-          Add New Entry
-        </button>
+        {isClassTeacher ? (
+          <button
+            onClick={handleCreateNew}
+            className="w-full sm:w-auto bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
+          >
+            Add New Entry
+          </button>
+        ) : (
+          <div className="text-sm text-gray-500 italic">
+            Only class teachers can create diary entries
+          </div>
+        )}
       </div>
 
-      {/* Filters Section */}
-      <div className="bg-white p-4 rounded-lg shadow">
-        <div className="grid gap-4 md:grid-cols-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Search</label>
-            <input
-              type="text"
-              value={globalFilter}
-              onChange={(e) => setGlobalFilter(e.target.value)}
-              placeholder="Search entries..."
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-500"
-            />
+      {!isClassTeacher && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start space-x-3">
+          <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+          <div className="text-sm text-blue-800">
+            <strong>Note:</strong> As a subject teacher, you can add homework and tasks to existing diary entries by viewing any diary and clicking "Add Task".
           </div>
-          
-          <div>
+        </div>
+      )}
+
+      {/* Filters Section */}
+      <div className="bg-white p-2 sm:p-3 lg:p-4 rounded-lg shadow">
+        <div className="space-y-3 sm:space-y-4">
+          {/* Row 1: Search and Class Filter */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            <TextInput
+              label="Search"
+              value={globalFilter}
+              onChange={setGlobalFilter}
+              placeholder="Search entries..."
+            />
+
             <ClassSelector
               label="Filter by Class"
               value={selectedClassId}
@@ -90,24 +135,19 @@ export function DailyDiaryDashboard() {
               placeholder="All Classes"
             />
           </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Start Date</label>
-            <input
-              type="date"
-              value={dateRange.startDate}
-              onChange={(e) => setDateRange(prev => ({ ...prev, startDate: e.target.value }))}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-500"
+
+          {/* Row 2: Date Filters */}
+          <div className="grid grid-cols-2 gap-3 sm:gap-4">
+            <DateInput
+              label="Start Date"
+              value={dateRange.startDate || ''}
+              onChange={(value) => setDateRange(prev => ({ ...prev, startDate: value }))}
             />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700">End Date</label>
-            <input
-              type="date"
-              value={dateRange.endDate}
-              onChange={(e) => setDateRange(prev => ({ ...prev, endDate: e.target.value }))}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-500"
+
+            <DateInput
+              label="End Date"
+              value={dateRange.endDate || ''}
+              onChange={(value) => setDateRange(prev => ({ ...prev, endDate: value }))}
             />
           </div>
         </div>
@@ -131,6 +171,16 @@ export function DailyDiaryDashboard() {
           />
         )}
       </div>
+
+      <DeletePrompt
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setDiaryToDelete(null);
+        }}
+        onConfirm={confirmDelete}
+        itemName="diary entry"
+      />
     </div>
   );
 }
