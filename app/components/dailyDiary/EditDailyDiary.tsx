@@ -1,4 +1,5 @@
 import { useNavigate, useParams } from 'react-router';
+import toast from 'react-hot-toast';
 import { useDiaryEntry, useUpdateDiaryEntry } from '~/hooks/useDailyDiaryQueries';
 import { DailyDiaryForm } from './DailyDiaryForm';
 import type { UpdateDailyDiaryRequest } from '~/types/dailyDiary';
@@ -14,11 +15,12 @@ export function EditDailyDiary() {
     try {
       if (id) {
         await updateDiaryMutation.mutateAsync({ id, data });
+        toast.success('Diary entry updated successfully');
         navigate('/dashboard/daily-diary');
       }
-    } catch (error) {
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to update diary entry');
       console.error('Failed to update diary entry:', error);
-      // Optional: Add error handling UI
     }
   };
 
