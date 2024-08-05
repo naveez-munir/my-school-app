@@ -1,12 +1,11 @@
 import { useState } from "react";
 import { ChevronLeft } from "lucide-react";
 import { BasicInfoForm } from "./form/BasicInfoForm";
-import { SubjectTasksForm } from "./form/SubjectTasksForm";
 import { AttachmentsForm } from "./form/AttachmentsForm";
-import type { 
-  CreateDailyDiaryRequest, 
+import { SubjectTasksForm } from "./form/SubjectTasksForm";
+import type {
+  CreateDailyDiaryRequest,
   DailyDiaryResponse,
-  SubjectTaskRequest,
   AttachmentRequest
 } from "~/types/dailyDiary";
 
@@ -14,8 +13,8 @@ import type {
 interface SubjectTaskState {
   subject: string;
   task: string;
-  dueDate: string | undefined;
-  additionalNotes: string | undefined;
+  dueDate?: string;
+  additionalNotes?: string;
 }
 
 interface DailyDiaryFormData {
@@ -28,22 +27,26 @@ interface DailyDiaryFormData {
 
 interface DailyDiaryFormProps {
   initialData?: DailyDiaryResponse;
+  defaultClassId?: string;
+  showSubjectTasks?: boolean;
   onSubmit: (data: CreateDailyDiaryRequest) => void;
   isLoading: boolean;
 }
 
-export function DailyDiaryForm({ 
-  initialData, 
-  onSubmit, 
-  isLoading 
+export function DailyDiaryForm({
+  initialData,
+  defaultClassId,
+  showSubjectTasks = false,
+  onSubmit,
+  isLoading
 }: DailyDiaryFormProps) {
   // Form state with explicit typing
   console.log('>>>>>query Data', initialData?.classId)
   const [formData, setFormData] = useState<DailyDiaryFormData>({
-    classId: initialData?.classId.id || '',
-    date: initialData 
-      ? (typeof initialData.date === 'string' 
-          ? initialData.date.split('T')[0] 
+    classId: initialData?.classId.id || defaultClassId || '',
+    date: initialData
+      ? (typeof initialData.date === 'string'
+          ? initialData.date.split('T')[0]
           : new Date(initialData.date).toISOString().split('T')[0])
       : new Date().toISOString().split('T')[0],
     title: initialData?.title || '',
@@ -51,8 +54,8 @@ export function DailyDiaryForm({
     subjectTasks: initialData?.subjectTasks.map(task => ({
       subject: task.subject.id,
       task: task.task,
-      dueDate: task.dueDate || undefined,
-      additionalNotes: task.additionalNotes || undefined
+      dueDate: task.dueDate,
+      additionalNotes: task.additionalNotes
     })) || []
   });
   
@@ -89,16 +92,8 @@ export function DailyDiaryForm({
     setFormData(prev => ({ ...prev, ...basicInfo }));
   };
 
-  const updateSubjectTasks = (tasks: SubjectTaskRequest[]) => {
-    setFormData(prev => ({
-      ...prev, 
-      subjectTasks: tasks.map(task => ({
-        subject: task.subject,
-        task: task.task,
-        dueDate: task.dueDate || undefined,
-        additionalNotes: task.additionalNotes || undefined
-      }))
-    }));
+  const updateSubjectTasks = (tasks: SubjectTaskState[]) => {
+    setFormData(prev => ({ ...prev, subjectTasks: tasks }));
   };
 
   const handleCancel = () => {
@@ -114,22 +109,34 @@ export function DailyDiaryForm({
       )}
 
       {/* Basic Info Section */}
-      <BasicInfoForm 
-        data={formData} 
-        onChange={updateBasicInfo} 
+      <BasicInfoForm
+        data={formData}
+        onChange={updateBasicInfo}
+        disabled={!!defaultClassId}
       />
-      
-      {/* Subject Tasks Section */}
-      <SubjectTasksForm 
-        tasks={formData.subjectTasks} 
-        onChange={updateSubjectTasks} 
-      />
-      
+
+      {/* Subject Tasks Section - Only for Class Teachers */}
+      {showSubjectTasks && (
+        <SubjectTasksForm
+          tasks={formData.subjectTasks}
+          onChange={updateSubjectTasks}
+          classId={formData.classId}
+        />
+      )}
+
       {/* Attachments Section */}
       <AttachmentsForm
-        attachments={attachments} 
-        onChange={setAttachments} 
+        attachments={attachments}
+        onChange={setAttachments}
       />
+
+      {!showSubjectTasks && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <p className="text-sm text-blue-800">
+            <strong>Note:</strong> Subject tasks can be added after creating the diary entry. Any teacher can add tasks for their subjects.
+          </p>
+        </div>
+      )}
       
       {/* Form Actions */}
       <div className="flex justify-end space-x-4">
