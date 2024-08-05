@@ -1,29 +1,132 @@
+import { useState, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router';
-import { useDiaryEntry, useDeleteDiaryEntry } from '~/hooks/useDailyDiaryQueries';
+import toast from 'react-hot-toast';
+import { useDiaryEntry, useDeleteDiaryEntry, useAddSubjectTask, useUpdateSubjectTask, useDeleteSubjectTask } from '~/hooks/useDailyDiaryQueries';
+import { useDailyDiaryPermissions } from '~/hooks/useDailyDiaryPermissions';
+import { getUserRole } from '~/utils/auth';
+import { UserRoleEnum } from '~/types/user';
 import { format } from 'date-fns';
-import { Calendar, FileText, ChevronLeft, Edit2, Trash2, ExternalLink, Book } from 'lucide-react';
-import type { SubjectResponse, ClassResponse, DailyDiaryResponse } from '~/types/dailyDiary';
+import { Calendar, FileText, ChevronLeft, Edit2, Trash2, ExternalLink, Plus } from 'lucide-react';
+import { AddSubjectTaskModal } from './AddSubjectTaskModal';
+import { EditSubjectTaskModal } from './EditSubjectTaskModal';
+import { SubjectTaskCard } from './SubjectTaskCard';
+import DeletePrompt from '~/components/common/DeletePrompt';
+import type { DailyDiaryResponse, SubjectTaskResponse, AddSubjectTaskRequest, UpdateSubjectTaskRequest } from '~/types/dailyDiary';
 
-export function DailyDiaryDetail() {
+interface DailyDiaryDetailProps {
+  readOnly?: boolean;
+  backUrl?: string;
+}
+
+export function DailyDiaryDetail({ readOnly: propReadOnly, backUrl }: DailyDiaryDetailProps = {}) {
   const { id } = useParams();
   const navigate = useNavigate();
+
+  const userRole = getUserRole();
+  const isGuardianOrStudent = useMemo(() => {
+    return userRole?.role === UserRoleEnum.GUARDIAN ||
+           userRole?.role === UserRoleEnum.PARENT ||
+           userRole?.role === UserRoleEnum.STUDENT;
+  }, [userRole]);
+
+  const readOnly = propReadOnly || isGuardianOrStudent;
   const { data: diary, isLoading, error } = useDiaryEntry(id || '');
   const deleteDiaryMutation = useDeleteDiaryEntry();
+  const addTaskMutation = useAddSubjectTask();
+  const updateTaskMutation = useUpdateSubjectTask();
+  const deleteTaskMutation = useDeleteSubjectTask();
+
+  const permissions = useDailyDiaryPermissions(diary);
+
+  const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false);
+  const [isEditTaskModalOpen, setIsEditTaskModalOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<SubjectTaskResponse | null>(null);
+  const [isDeleteDiaryModalOpen, setIsDeleteDiaryModalOpen] = useState(false);
+  const [isDeleteTaskModalOpen, setIsDeleteTaskModalOpen] = useState(false);
+  const [taskToDelete, setTaskToDelete] = useState<SubjectTaskResponse | null>(null);
 
   const handleEdit = () => {
     navigate(`/dashboard/daily-diary/${id}/edit`);
   };
 
   const handleDelete = () => {
-    if (window.confirm('Are you sure you want to delete this diary entry?')) {
-      deleteDiaryMutation.mutateAsync(id as string).then(() => {
+    setIsDeleteDiaryModalOpen(true);
+  };
+
+  const confirmDeleteDiary = () => {
+    if (!id) return;
+    deleteDiaryMutation.mutate(id, {
+      onSuccess: () => {
+        toast.success('Diary entry deleted successfully');
         navigate('/dashboard/daily-diary');
-      });
-    }
+      },
+      onError: (error: any) => {
+        toast.error(error?.message || 'Failed to delete diary entry');
+        setIsDeleteDiaryModalOpen(false);
+      }
+    });
   };
 
   const handleBack = () => {
-    navigate('/dashboard/daily-diary');
+    if (backUrl) {
+      navigate(backUrl);
+    } else if (isGuardianOrStudent) {
+      navigate(-1);
+    } else {
+      navigate('/dashboard/daily-diary');
+    }
+  };
+
+  const handleAddTask = async (taskData: AddSubjectTaskRequest) => {
+    if (!id) return;
+    try {
+      await addTaskMutation.mutateAsync({ diaryId: id, taskData });
+      toast.success('Task added successfully');
+      setIsAddTaskModalOpen(false);
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to add task');
+    }
+  };
+
+  const handleEditTask = (task: SubjectTaskResponse) => {
+    setSelectedTask(task);
+    setIsEditTaskModalOpen(true);
+  };
+
+  const handleUpdateTask = async (taskId: string, updateData: UpdateSubjectTaskRequest) => {
+    if (!id) return;
+    try {
+      await updateTaskMutation.mutateAsync({ diaryId: id, taskId, updateData });
+      toast.success('Task updated successfully');
+      setIsEditTaskModalOpen(false);
+      setSelectedTask(null);
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to update task');
+    }
+  };
+
+  const handleDeleteTask = (task: SubjectTaskResponse) => {
+    setTaskToDelete(task);
+    setIsDeleteTaskModalOpen(true);
+  };
+
+  const confirmDeleteTask = () => {
+    if (!id || !taskToDelete) return;
+    deleteTaskMutation.mutate(
+      { diaryId: id, taskId: taskToDelete.id },
+      {
+        onSuccess: () => {
+          toast.success('Task deleted successfully');
+          setIsDeleteTaskModalOpen(false);
+          setTaskToDelete(null);
+        },
+        onError: (error: any) => {
+          toast.error(error?.message || 'Failed to delete task');
+          setIsDeleteTaskModalOpen(false);
+          setTaskToDelete(null);
+        }
+      }
+    );
   };
 
   if (isLoading) {
@@ -36,11 +139,11 @@ export function DailyDiaryDetail() {
 
   if (error || !diary) {
     return (
-      <div className="max-w-4xl mx-auto py-8 px-4">
+      <div className="py-6 px-4 sm:px-6 lg:px-8">
         <div className="bg-red-50 text-red-700 p-4 rounded-lg">
           {(error as Error)?.message || "Diary entry not found"}
         </div>
-        <button 
+        <button
           onClick={handleBack}
           className="mt-4 flex items-center text-blue-600 hover:text-blue-800"
         >
@@ -52,7 +155,7 @@ export function DailyDiaryDetail() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto py-8 px-4">
+    <div className="py-6 px-4 sm:px-6 lg:px-8">
       {/* Header with actions */}
       <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
         <div>
@@ -66,22 +169,28 @@ export function DailyDiaryDetail() {
           <h1 className="text-2xl font-bold text-gray-900">{diary.title}</h1>
         </div>
         
-        <div className="flex space-x-3">
-          <button
-            onClick={handleEdit}
-            className="inline-flex items-center px-4 py-2 border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50"
-          >
-            <Edit2 className="h-4 w-4 mr-2" />
-            Edit
-          </button>
-          <button
-            onClick={handleDelete}
-            className="inline-flex items-center px-4 py-2 border border-red-600 text-red-600 rounded-md hover:bg-red-50"
-          >
-            <Trash2 className="h-4 w-4 mr-2" />
-            Delete
-          </button>
-        </div>
+        {!readOnly && (
+          <div className="flex space-x-3">
+            {permissions.canEditDiary && (
+              <button
+                onClick={handleEdit}
+                className="inline-flex items-center px-4 py-2 border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50"
+              >
+                <Edit2 className="h-4 w-4 mr-2" />
+                Edit
+              </button>
+            )}
+            {permissions.canDeleteDiary && (
+              <button
+                onClick={handleDelete}
+                className="inline-flex items-center px-4 py-2 border border-red-600 text-red-600 rounded-md hover:bg-red-50"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Main content */}
@@ -106,41 +215,34 @@ export function DailyDiaryDetail() {
 
         {/* Subject tasks */}
         <div className="p-6 border-b">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">Subject Tasks</h2>
-          
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-medium text-gray-900">Subject Tasks</h2>
+            {!readOnly && permissions.canAddSubjectTask && (
+              <button
+                onClick={() => setIsAddTaskModalOpen(true)}
+                className="inline-flex items-center px-3 py-1.5 rounded-md bg-blue-600 text-white text-sm hover:bg-blue-700"
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                Add Task
+              </button>
+            )}
+          </div>
+
           {diary.subjectTasks.length === 0 ? (
             <div className="text-center py-4 text-gray-500 bg-gray-50 rounded-lg">
               No subject tasks added for this diary entry.
             </div>
           ) : (
             <div className="space-y-4">
-              {diary.subjectTasks.map((task, index) => (
-                <div key={index} className="bg-gray-50 p-4 rounded-lg">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center">
-                      <Book className="h-5 w-5 text-blue-600 mr-2" />
-                      <h3 className="font-medium text-gray-900">
-                        {task.subject.subjectName}
-                      </h3>
-                    </div>
-                    {task.dueDate && (
-                      <div className="text-sm text-gray-500">
-                        Due: {format(new Date(task.dueDate), 'MMM d, yyyy')}
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="mt-2">
-                    <p className="text-gray-700">{task.task}</p>
-                  </div>
-                  
-                  {task.additionalNotes && (
-                    <div className="mt-2 text-sm text-gray-600">
-                      <div className="font-medium">Additional Notes:</div>
-                      <p>{task.additionalNotes}</p>
-                    </div>
-                  )}
-                </div>
+              {diary.subjectTasks.map((task) => (
+                <SubjectTaskCard
+                  key={task.id}
+                  task={task}
+                  canEdit={!readOnly && permissions.canEditTask(task)}
+                  canDelete={!readOnly && permissions.canDeleteTask(task)}
+                  onEdit={() => handleEditTask(task)}
+                  onDelete={() => handleDeleteTask(task)}
+                />
               ))}
             </div>
           )}
@@ -175,6 +277,42 @@ export function DailyDiaryDetail() {
           </div>
         )}
       </div>
+
+      <AddSubjectTaskModal
+        isOpen={isAddTaskModalOpen}
+        onClose={() => setIsAddTaskModalOpen(false)}
+        onSubmit={handleAddTask}
+        isLoading={addTaskMutation.isPending}
+        classId={diary.classId.id}
+      />
+
+      <EditSubjectTaskModal
+        isOpen={isEditTaskModalOpen}
+        onClose={() => {
+          setIsEditTaskModalOpen(false);
+          setSelectedTask(null);
+        }}
+        task={selectedTask}
+        onSubmit={handleUpdateTask}
+        isLoading={updateTaskMutation.isPending}
+      />
+
+      <DeletePrompt
+        isOpen={isDeleteDiaryModalOpen}
+        onClose={() => setIsDeleteDiaryModalOpen(false)}
+        onConfirm={confirmDeleteDiary}
+        itemName="diary entry"
+      />
+
+      <DeletePrompt
+        isOpen={isDeleteTaskModalOpen}
+        onClose={() => {
+          setIsDeleteTaskModalOpen(false);
+          setTaskToDelete(null);
+        }}
+        onConfirm={confirmDeleteTask}
+        itemName="task"
+      />
     </div>
   );
 }
