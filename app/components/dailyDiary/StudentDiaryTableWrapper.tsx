@@ -6,21 +6,17 @@ interface StudentDiaryTableWrapperProps {
   globalFilter: string;
   onView: (diary: DailyDiaryResponse) => void;
 }
-export function StudentDiaryTableWrapper({ 
-  data, 
-  globalFilter, 
-  onView 
+export function StudentDiaryTableWrapper({
+  data,
+  globalFilter,
+  onView
 }: StudentDiaryTableWrapperProps) {
-  const handleDelete = () => {
-    console.warn('Delete operation not allowed for students');
-  };
-
   return (
     <DailyDiaryTable
       data={data}
       globalFilter={globalFilter}
       onView={onView}
-      onDelete={handleDelete}
+      readOnly={true}
     />
   );
 }
