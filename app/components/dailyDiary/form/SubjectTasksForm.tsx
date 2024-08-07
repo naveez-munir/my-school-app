@@ -7,9 +7,10 @@ import { DateInput } from "~/components/common/form/inputs/DateInput";
 interface SubjectTasksFormProps {
   tasks: SubjectTaskRequest[];
   onChange: (tasks: SubjectTaskRequest[]) => void;
+  classId?: string;
 }
 
-export function SubjectTasksForm({ tasks, onChange }: SubjectTasksFormProps) {
+export function SubjectTasksForm({ tasks, onChange, classId }: SubjectTasksFormProps) {
   const addSubjectTask = () => {
     onChange([
       ...tasks,
@@ -48,12 +49,13 @@ export function SubjectTasksForm({ tasks, onChange }: SubjectTasksFormProps) {
       )}
       
       {tasks.map((task, index) => (
-        <SubjectTaskItem 
+        <SubjectTaskItem
           key={index}
           task={task}
           index={index}
           onUpdate={updateSubjectTask}
           onRemove={removeSubjectTask}
+          classId={classId}
         />
       ))}
     </div>
@@ -65,9 +67,10 @@ interface SubjectTaskItemProps {
   index: number;
   onUpdate: (index: number, field: keyof SubjectTaskRequest, value: any) => void;
   onRemove: (index: number) => void;
+  classId?: string;
 }
 
-function SubjectTaskItem({ task, index, onUpdate, onRemove }: SubjectTaskItemProps) {
+function SubjectTaskItem({ task, index, onUpdate, onRemove, classId }: SubjectTaskItemProps) {
   return (
     <div className="bg-gray-50 p-4 rounded-lg">
       <div className="flex justify-between items-start">
@@ -86,6 +89,7 @@ function SubjectTaskItem({ task, index, onUpdate, onRemove }: SubjectTaskItemPro
           value={task.subject}
           onChange={(value) => onUpdate(index, 'subject', value)}
           required
+          classId={classId}
         />
         <TextInput 
          label={'Task'}
