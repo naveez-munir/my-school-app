@@ -17,9 +17,10 @@ export interface BasicInfoFormProps {
     title: string;
     description: string;
   }>) => void;
+  disabled?: boolean;
 }
 
-export function BasicInfoForm({ data, onChange }: BasicInfoFormProps) {
+export function BasicInfoForm({ data, onChange, disabled }: BasicInfoFormProps) {
 
   const handleClassChange = (classId: string) => {
     onChange({ classId });
@@ -35,6 +36,7 @@ export function BasicInfoForm({ data, onChange }: BasicInfoFormProps) {
           value={data.classId}
           onChange={handleClassChange}
           required
+          disabled={disabled}
         />
         
         <div>
