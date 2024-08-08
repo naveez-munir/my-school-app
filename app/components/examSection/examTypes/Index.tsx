@@ -101,13 +101,13 @@ const ExamTypeDashboard: React.FC = () => {
   return (
     <div className="container mx-auto py-6 px-4">
       <div className="mb-6 flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-800">Exam Types</h1>
+        <h1 className="text-xs sm:text-sm lg:text-base font-bold text-gray-800">Exam Types</h1>
         <div className="flex space-x-4">
           <button
             onClick={toggleActiveFilter}
-            className={`py-2 px-4 rounded-md ${
-              activeOnly 
-                ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' 
+            className={`text-xs sm:text-sm py-1.5 sm:py-2 px-3 sm:px-4 rounded-md ${
+              activeOnly
+                ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
@@ -115,7 +115,7 @@ const ExamTypeDashboard: React.FC = () => {
           </button>
           <button
             onClick={handleAddNew}
-            className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md"
+            className="bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm py-1.5 sm:py-2 px-3 sm:px-4 rounded-md"
           >
             Add New Exam Type
           </button>
