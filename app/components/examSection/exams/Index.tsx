@@ -3,19 +3,24 @@ import { useNavigate } from 'react-router';
 import type { ExamResponse } from '~/types/exam';
 import ExamsTable from './ExamsTable';
 import { useExams, useDeleteExam, useUpdateExamStatus } from '~/hooks/useExamQueries';
+import { getUserRole, isAdminRole } from '~/utils/auth';
 
 const ExamDashboard: React.FC = () => {
   const navigate = useNavigate();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [examToDelete, setExamToDelete] = useState<string | null>(null);
-  
+
+  // Role-based access control
+  const userRole = getUserRole();
+  const isAdmin = isAdminRole(userRole?.role);
+
   // React Query hooks
-  const { 
-    data: exams = [], 
-    isLoading, 
-    error 
+  const {
+    data: exams = [],
+    isLoading,
+    error
   } = useExams();
-  
+
   const deleteExamMutation = useDeleteExam();
   const updateStatusMutation = useUpdateExamStatus();
 
@@ -64,13 +69,15 @@ const ExamDashboard: React.FC = () => {
   return (
     <div className="container mx-auto py-6 px-4">
       <div className="mb-6 flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-800">Exam Management</h1>
-        <button
-          onClick={handleCreate}
-          className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md"
-        >
-          Create New Exam
-        </button>
+        <h1 className="text-xs sm:text-sm lg:text-base font-bold text-gray-800">Exam Management</h1>
+        {isAdmin && (
+          <button
+            onClick={handleCreate}
+            className="bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm py-1.5 sm:py-2 px-3 sm:px-4 rounded-md"
+          >
+            Create New Exam
+          </button>
+        )}
       </div>
 
       {isLoading ? (
@@ -84,6 +91,7 @@ const ExamDashboard: React.FC = () => {
           onDelete={handleDeleteClick}
           onViewDetails={handleView}
           onStatusChange={handleStatusChange}
+          isAdmin={isAdmin}
         />
       )}
 
