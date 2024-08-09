@@ -1,18 +1,9 @@
-import { 
-  useReactTable, 
-  getCoreRowModel, 
-  getPaginationRowModel,
-  getFilteredRowModel,
-  getSortedRowModel,
-  flexRender,
-  createColumnHelper,
-  type FilterFn,
-  type SortingState,
-} from '@tanstack/react-table';
+import { createColumnHelper } from '@tanstack/react-table';
 import type { ExamResponse } from '~/types/exam';
-import { useState, useMemo } from 'react';
-import { ChevronDown, ChevronUp } from 'lucide-react';
-import { TextInput } from '~/components/common/form/inputs/TextInput';
+import { useMemo } from 'react';
+import { ChevronDown, ChevronUp, Eye, Edit, Trash2 } from 'lucide-react';
+import { formatUserFriendlyDate } from '~/utils/dateUtils';
+import { GenericDataTable } from '~/components/common/table/GenericDataTable';
 
 interface ExamsTableProps {
   data: ExamResponse[];
@@ -20,6 +11,7 @@ interface ExamsTableProps {
   onDelete: (id: string) => void;
   onViewDetails: (exam: ExamResponse) => void;
   onStatusChange?: (id: string, status: 'Scheduled' | 'Ongoing' | 'Completed' | 'ResultDeclared') => void;
+  isAdmin?: boolean;
 }
 
 interface TableMetaType {
@@ -29,29 +21,17 @@ interface TableMetaType {
   onStatusChange?: (id: string, status: 'Scheduled' | 'Ongoing' | 'Completed' | 'ResultDeclared') => void;
 }
 
-const fuzzyFilter: FilterFn<ExamResponse> = (row, columnId, filterValue: string) => {
-  const value = row.getValue(columnId) as string;
-  if (!value) return false;
-  return value.toLowerCase().includes(filterValue.toLowerCase());
-};
-
 const columnHelper = createColumnHelper<ExamResponse>();
 
-const ExamsTable: React.FC<ExamsTableProps> = ({ 
-  data, 
+const ExamsTable: React.FC<ExamsTableProps> = ({
+  data,
   onEdit,
   onDelete,
   onViewDetails,
-  onStatusChange
+  onStatusChange,
+  isAdmin = false
 }) => {
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [globalFilter, setGlobalFilter] = useState('');
-  const [pagination, setPagination] = useState({
-    pageIndex: 0,
-    pageSize: 20,
-  });
-
-  const columns = [
+  const columns = useMemo(() => [
     columnHelper.accessor(row => row.examType.name, {
       id: 'examType',
       header: ({ column }) => (
@@ -119,8 +99,8 @@ const ExamsTable: React.FC<ExamsTableProps> = ({
       ),
       cell: (info) => {
         const row = info.row.original;
-        const startDate = new Date(row.startDate).toLocaleDateString();
-        const endDate = new Date(row.endDate).toLocaleDateString();
+        const startDate = formatUserFriendlyDate(row.startDate);
+        const endDate = formatUserFriendlyDate(row.endDate);
         return (
           <div className="text-sm text-gray-500">
             {startDate} to {endDate}
@@ -172,35 +152,37 @@ const ExamsTable: React.FC<ExamsTableProps> = ({
           <div className="flex justify-end space-x-3">
             <button
               onClick={() => (info.table.options.meta as TableMetaType).onViewDetails(exam)}
-              className="text-green-600 hover:text-green-900 cursor-pointer text-sm"
+              className="text-green-600 hover:text-green-900 cursor-pointer"
+              title="View Details"
             >
-              View
+              <Eye className="h-4 w-4" />
             </button>
-            
-            {exam.status === 'Scheduled' && (
+
+            {isAdmin && exam.status === 'Scheduled' && (
               <button
                 onClick={() => (info.table.options.meta as TableMetaType).onEdit(exam)}
-                className="text-blue-600 hover:text-blue-900 cursor-pointer text-sm"
+                className="text-blue-600 hover:text-blue-900 cursor-pointer"
+                title="Edit"
               >
-                Edit
+                <Edit className="h-4 w-4" />
               </button>
             )}
-            
-            {exam.status === 'Scheduled' && (
+
+            {isAdmin && exam.status === 'Scheduled' && (
               <button
                 onClick={() => (info.table.options.meta as TableMetaType).onDelete(info.getValue())}
-                className="text-red-600 hover:text-red-900 cursor-pointer text-sm"
+                className="text-red-600 hover:text-red-900 cursor-pointer"
+                title="Delete"
               >
-                Delete
+                <Trash2 className="h-4 w-4" />
               </button>
             )}
-            
-            {showStatusDropdown && allowedTransitions[exam.status as keyof typeof allowedTransitions]?.length > 0 && (
+
+            {isAdmin && showStatusDropdown && allowedTransitions[exam.status as keyof typeof allowedTransitions]?.length > 0 && (
               <select
                 className="text-sm border border-gray-300 rounded px-2 py-1 cursor-pointer"
                 onChange={(e) => onStatusChange(exam.id, e.target.value as any)}
                 value=""
-                defaultValue=""
               >
                 <option value="" disabled>Change Status</option>
                 {allowedTransitions[exam.status as keyof typeof allowedTransitions]?.map(status => (
@@ -214,139 +196,22 @@ const ExamsTable: React.FC<ExamsTableProps> = ({
         );
       },
     }),
-  ];
-
-  const tableData = useMemo(() => data, [data]);
-
-  const table = useReactTable({
-    data: tableData,
-    columns,
-    state: {
-      sorting,
-      globalFilter,
-      pagination,
-    },
-    onSortingChange: setSorting,
-    onPaginationChange: setPagination,
-    onGlobalFilterChange: setGlobalFilter,
-    globalFilterFn: fuzzyFilter,
-    getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    meta: {
-      onEdit,
-      onDelete,
-      onViewDetails,
-      onStatusChange
-    } as TableMetaType,
-  });
+  ], [isAdmin, onStatusChange]);
 
   return (
-    <div className="space-y-4">
-      <div className="bg-white p-4 rounded-lg shadow">
-        <div className="grid gap-4 md:grid-cols-2">
-          <TextInput
-            label="Search"
-            value={globalFilter ?? ''}
-            onChange={(value) => setGlobalFilter(value)}
-            placeholder="Search all columns..."
-          />
-          <div className="flex items-end">
-            <select
-              value={pagination.pageSize}
-              onChange={e => {
-                table.setPageSize(Number(e.target.value));
-              }}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-500 cursor-pointer"
-            >
-              {[5, 10, 20, 30, 40, 50].map(pageSize => (
-                <option key={pageSize} value={pageSize}>
-                  Show {pageSize}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-lg shadow overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            {table.getHeaderGroups().map(headerGroup => (
-              <tr key={headerGroup.id}>
-                {headerGroup.headers.map(header => (
-                  <th 
-                    key={header.id}
-                    scope="col"
-                    className={`px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider
-                      ${header.id.includes('id') ? 'text-right' : 'text-left'}`}
-                  >
-                    {flexRender(
-                      header.column.columnDef.header,
-                      header.getContext()
-                    )}
-                  </th>
-                ))}
-              </tr>
-            ))}
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {table.getRowModel().rows.map(row => (
-              <tr key={row.id} className="hover:bg-gray-50">
-                {row.getVisibleCells().map(cell => (
-                  <td 
-                    key={cell.id} 
-                    className={`px-6 py-4 whitespace-nowrap
-                      ${cell.column.id.includes('id') ? 'text-right' : 'text-left'}`}
-                  >
-                    {flexRender(
-                      cell.column.columnDef.cell,
-                      cell.getContext()
-                    )}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        {table.getRowModel().rows.length === 0 && (
-          <div className="text-center py-8 text-gray-500">
-            No exams found.
-          </div>
-        )}
-
-        {table.getRowModel().rows.length > 0 && (
-          <div className="px-6 py-3 flex items-center justify-between border-t">
-            <div className="flex-1 flex justify-between items-center">
-              <div>
-                <span className="text-sm text-gray-700">
-                  Page {table.getState().pagination.pageIndex + 1} of{' '}
-                  {table.getPageCount()} ({table.getFilteredRowModel().rows.length} total)
-                </span>
-              </div>
-              <div className="space-x-2">
-                <button
-                  onClick={() => table.previousPage()}
-                  disabled={!table.getCanPreviousPage()}
-                  className="px-3 py-1 border text-gray-500 rounded text-sm disabled:opacity-50 cursor-pointer"
-                >
-                  Previous
-                </button>
-                <button
-                  onClick={() => table.nextPage()}
-                  disabled={!table.getCanNextPage()}
-                  className="px-3 py-1 border text-gray-500 rounded text-sm disabled:opacity-50 cursor-pointer"
-                >
-                  Next
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
+    <GenericDataTable
+      data={data}
+      columns={columns}
+      initialPageSize={20}
+      emptyStateMessage="No exams found."
+      searchPlaceholder="Search all columns..."
+      meta={{
+        onEdit,
+        onDelete,
+        onViewDetails,
+        onStatusChange,
+      } as TableMetaType}
+    />
   );
 };
 
