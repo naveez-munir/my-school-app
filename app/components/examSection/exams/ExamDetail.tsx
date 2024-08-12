@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { useExam, useUpdateExamStatus } from '~/hooks/useExamQueries';
+import { formatUserFriendlyDate } from '~/utils/dateUtils';
 
 const ExamDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -59,11 +60,11 @@ const ExamDetail: React.FC = () => {
   };
 
   const handleBackClick = () => {
-    navigate('/exams');
+    navigate('/dashboard/exams');
   };
 
   const handleEditClick = () => {
-    navigate(`/exams/edit/${id}`);
+    navigate(`/dashboard/exams/${id}/edit`);
   };
 
   return (
@@ -96,7 +97,6 @@ const ExamDetail: React.FC = () => {
                 className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md appearance-none"
                 onChange={(e) => handleStatusChange(e.target.value as any)}
                 value=""
-                defaultValue=""
               >
                 <option value="" disabled>Change Status</option>
                 {allowedTransitions[currentExam.status as keyof typeof allowedTransitions]?.map(status => (
@@ -128,11 +128,11 @@ const ExamDetail: React.FC = () => {
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
               <p className="text-sm text-gray-500">Start Date</p>
-              <p className="font-medium">{new Date(currentExam.startDate).toLocaleDateString()}</p>
+              <p className="font-medium">{formatUserFriendlyDate(currentExam.startDate)}</p>
             </div>
             <div>
               <p className="text-sm text-gray-500">End Date</p>
-              <p className="font-medium">{new Date(currentExam.endDate).toLocaleDateString()}</p>
+              <p className="font-medium">{formatUserFriendlyDate(currentExam.endDate)}</p>
             </div>
           </div>
 
@@ -181,7 +181,7 @@ const ExamDetail: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-500">
-                        {new Date(subject.examDate).toLocaleDateString()}
+                        {formatUserFriendlyDate(subject.examDate)}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
