@@ -179,8 +179,8 @@ const ExamForm: React.FC = () => {
       } else {
         await createExamMutation.mutateAsync(formData as CreateExamDto);
       }
-      
-      navigate('/exams');
+
+      navigate('/dashboard/exams');
     } catch (error) {
       console.error('Error saving exam:', error);
     }
