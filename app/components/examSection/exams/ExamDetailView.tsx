@@ -1,16 +1,17 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { useExam } from '~/hooks/useExamQueries';
+import { formatUserFriendlyDate } from '~/utils/dateUtils';
 
 const ExamDetailView: React.FC = () => {
-  const { examId } = useParams<{ examId: string }>();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  
-  const { 
-    data: exam, 
-    isLoading, 
-    error 
-  } = useExam(examId as string);
+
+  const {
+    data: exam,
+    isLoading,
+    error
+  } = useExam(id as string);
 
   if (isLoading) {
     return (
@@ -41,8 +42,8 @@ const ExamDetailView: React.FC = () => {
 
   return (
     <div className="container mx-auto py-6 px-4">
-      <button 
-        onClick={() => navigate('/student/exams')}
+      <button
+        onClick={() => navigate(-1)}
         className="mb-4 text-blue-600 hover:text-blue-800 flex items-center"
       >
         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
@@ -70,10 +71,10 @@ const ExamDetailView: React.FC = () => {
           <div>
             <h2 className="text-lg font-semibold mb-2">Exam Period</h2>
             <p className="text-gray-700">
-              <span className="font-medium">Start Date:</span> {new Date(exam.startDate).toLocaleDateString()}
+              <span className="font-medium">Start Date:</span> {formatUserFriendlyDate(exam.startDate)}
             </p>
             <p className="text-gray-700">
-              <span className="font-medium">End Date:</span> {new Date(exam.endDate).toLocaleDateString()}
+              <span className="font-medium">End Date:</span> {formatUserFriendlyDate(exam.endDate)}
             </p>
           </div>
           <div>
@@ -94,7 +95,7 @@ const ExamDetailView: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                       <p className="text-sm text-gray-500">Exam Date</p>
-                      <p className="font-medium">{new Date(subject.examDate).toLocaleDateString()}</p>
+                      <p className="font-medium">{formatUserFriendlyDate(subject.examDate)}</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-500">Start Time</p>
