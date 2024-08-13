@@ -2,6 +2,7 @@ import { createColumnHelper, type ColumnDef } from '@tanstack/react-table';
 import type { ExamResponse } from '~/types/exam';
 import { GenericDataTable } from '~/components/common/table/GenericDataTable';
 import { SortableColumnHeader } from '~/components/common/table/TableHelpers';
+import { formatUserFriendlyDate } from '~/utils/dateUtils';
 
 interface StudentExamsTableProps {
   data: ExamResponse[];
@@ -34,7 +35,7 @@ export function createStudentExamColumns(
       header: ({ column }) => <SortableColumnHeader column={column} title="Start Date" />,
       cell: (info) => (
         <div className="text-sm text-gray-500">
-          {new Date(info.getValue()).toLocaleDateString()}
+          {formatUserFriendlyDate(info.getValue())}
         </div>
       ),
     }),
@@ -42,7 +43,7 @@ export function createStudentExamColumns(
       header: ({ column }) => <SortableColumnHeader column={column} title="End Date" />,
       cell: (info) => (
         <div className="text-sm text-gray-500">
-          {new Date(info.getValue()).toLocaleDateString()}
+          {formatUserFriendlyDate(info.getValue())}
         </div>
       ),
     }),
