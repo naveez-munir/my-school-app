@@ -1,10 +1,10 @@
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
-import { TextInput } from "~/components/common/form/inputs/TextInput";
 import { DateInput } from "~/components/common/form/inputs/DateInput";
 import { examTypeApi } from "~/services/examTypeApi";
 import type { CreateExamDto, UpdateExamDto } from "~/types/exam";
 import { ClassSelector } from "~/components/common/ClassSelector";
+import { AcademicYearSelector } from "~/components/common/AcademicYearSelector";
 import { TextArea } from "~/components/common/form/inputs/TextArea";
 
 interface ExamDetailsProps {
@@ -60,15 +60,12 @@ const ExamDetails: React.FC<ExamDetailsProps> = ({
 
       <div className="grid md:grid-cols-3 gap-6 mb-6">
         {/* Academic Year */}
-        <div>
-          <TextInput
-            label="Academic Year *"
-            value={formData.academicYear as string}
-            onChange={(value) => onInputChange("academicYear", value)}
-            placeholder="e.g., 2024-2025"
-            error={formErrors.academicYear}
-          />
-        </div>
+        <AcademicYearSelector
+          label="Academic Year *"
+          value={formData.academicYear as string}
+          onChange={(value) => onInputChange("academicYear", value)}
+          error={formErrors.academicYear}
+        />
 
         {/* Start Date */}
         <div>
