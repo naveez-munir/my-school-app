@@ -1,12 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Modal } from '~/components/common/Modal';
 import { TextInput } from '~/components/common/form/inputs/TextInput';
+import { StudentSelector } from '~/components/common/StudentSelector';
 import type { ExamResponse } from '~/types/exam';
 import type {
-  CreateExamResultRequest,
-  ExamOption,
-  StudentOption,
-  SubjectOption
+  CreateExamResultRequest
 } from '~/types/examResult';
 
 interface ExamResultFormProps {
@@ -14,7 +12,6 @@ interface ExamResultFormProps {
   onClose: () => void;
   onSubmit: (data: CreateExamResultRequest) => Promise<void>;
   exams: ExamResponse[];
-  students: StudentOption[];
   isSubmitting: boolean;
 }
 
@@ -23,7 +20,6 @@ export function ExamResultForm({
   onClose,
   onSubmit,
   exams,
-  students,
   isSubmitting
 }: ExamResultFormProps) {
   const [formData, setFormData] = useState<CreateExamResultRequest>({
@@ -199,23 +195,14 @@ export function ExamResultForm({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Student <span className="text-red-500">*</span>
-            </label>
-            <select
+            <StudentSelector
+              label="Student"
               value={formData.studentId}
-              onChange={(e) => handleChange('studentId', e.target.value)}
-              className={`block w-full rounded-md border ${errors.studentId ? 'border-red-300' : 'border-gray-300'} px-3 py-2 text-gray-700`}
+              onChange={(value) => handleChange('studentId', value)}
+              classId={selectedExam?.class.id}
               required
-            >
-              <option value="">Select Student</option>
-              {students.map(student => (
-                <option key={student.id} value={student.id}>
-                  {student.name} ({student.rollNumber})
-                  {student.class ? ` - ${student.class.name}` : ''}
-                </option>
-              ))}
-            </select>
+              placeholder={!selectedExam ? 'Select exam first' : 'Select student'}
+            />
             {errors.studentId && (
               <p className="mt-1 text-sm text-red-600">{errors.studentId}</p>
             )}
