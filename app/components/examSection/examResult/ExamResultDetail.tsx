@@ -1,4 +1,4 @@
-import { Modal } from '~/components/common/Modal';
+import { X } from 'lucide-react';
 import type { DetailedExamResult } from '~/types/examResult';
 
 interface ExamResultDetailProps {
@@ -41,14 +41,33 @@ export function ExamResultDetail({
     }
   };
 
+  if (!isOpen) return null;
+
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title="Exam Result Details"
-      size="xl"
-    >
-      <div className="space-y-6">
+    <>
+      {/* Custom Modal with screen-only class */}
+      <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div
+          className="fixed inset-0 bg-black opacity-50"
+          onClick={onClose}
+        ></div>
+
+        <div className="bg-white rounded-lg w-full max-w-4xl mx-4 z-10 relative max-h-[90vh] overflow-y-auto">
+          {/* Modal Header */}
+          <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center rounded-t-lg">
+            <h3 className="text-lg font-semibold text-gray-900">Exam Result Details</h3>
+            <button
+              type="button"
+              className="text-gray-400 hover:text-gray-500"
+              onClick={onClose}
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+
+          {/* Modal Content */}
+          <div className="px-6 py-4">
+            <div className="space-y-6">
         <div className="bg-gray-50 p-4 rounded-md">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -62,10 +81,10 @@ export function ExamResultDetail({
                   <span className="text-sm text-gray-500">Roll Number:</span>
                   <span className="text-sm font-medium text-gray-900">{result.student.rollNumber}</span>
                 </div>
-                {result.class && (
+                {(result.exam.className || result.class) && (
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-500">Class:</span>
-                    <span className="text-sm font-medium text-gray-900">{result.class.name}</span>
+                    <span className="text-sm font-medium text-gray-900">{result.exam.className || result.class?.name}</span>
                   </div>
                 )}
               </div>
@@ -116,7 +135,7 @@ export function ExamResultDetail({
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {result.detailedSubjectResults.map((subject) => (
+                {result?.detailedSubjectResults?.map((subject) => (
                   <tr key={subject.subject.id}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {subject.subject.name}
@@ -132,88 +151,97 @@ export function ExamResultDetail({
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-center">
                       <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        subject.isPassing ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        subject.status === 'PASS' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                       }`}>
-                        {subject.isPassing ? 'Pass' : 'Fail'}
+                        {subject.status}
                       </span>
                     </td>
                   </tr>
                 ))}
+                <tr className="bg-gray-100 font-semibold">
+                  <td className="px-6 py-4 text-sm text-gray-900" colSpan={3}>
+                    Total Marks
+                  </td>
+                  <td className="px-6 py-4 text-sm text-center text-gray-900" colSpan={2}>
+                    {result.totalMarks}
+                  </td>
+                </tr>
+                <tr className="bg-gray-100 font-semibold">
+                  <td className="px-6 py-4 text-sm text-gray-900" colSpan={3}>
+                    Percentage
+                  </td>
+                  <td className="px-6 py-4 text-sm text-center text-gray-900" colSpan={2}>
+                    {formatPercentage(result.percentage)}
+                  </td>
+                </tr>
               </tbody>
             </table>
           </div>
         </div>
 
         <div className="bg-gray-50 p-4 rounded-md">
-          <div className="flex flex-col md:flex-row justify-between">
-            <div className="mb-4 md:mb-0">
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Overall Result</h3>
-              <div className="space-y-1">
-                <div className="grid grid-cols-2 gap-2">
-                  <span className="text-sm text-gray-500">Total Marks:</span>
-                  <span className="text-sm font-medium text-gray-900">{result.totalMarks}</span>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <span className="text-sm text-gray-500">Percentage:</span>
-                  <span className="text-sm font-medium text-gray-900">{formatPercentage(result.percentage)}</span>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <span className="text-sm text-gray-500">Grade:</span>
-                  <span className={`text-sm font-bold ${getGradeClass(result.grade || '')}`}>{result.grade || '-'}</span>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <span className="text-sm text-gray-500">Rank:</span>
-                  <span className="text-sm font-medium text-gray-900">{result.rank || '-'}</span>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <span className="text-sm text-gray-500">Status:</span>
-                  <span className={`text-sm font-bold ${result.isPassing ? 'text-green-600' : 'text-red-600'}`}>
-                    {result.isPassing ? 'PASS' : 'FAIL'}
-                  </span>
-                </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-4 pb-2 border-b-2 border-blue-500">Overall Result</h3>
+
+          <div className="grid grid-cols-3 gap-4 mb-4">
+            <div className="bg-white p-6 rounded border-2 border-gray-300 text-center">
+              <div className="text-sm text-gray-500 uppercase mb-2">Grade</div>
+              <div className={`text-4xl font-bold ${getGradeClass(result.grade || '')}`}>
+                {result.grade || '-'}
               </div>
             </div>
-            
-            {(result.highestMarks || result.averageMarks) && (
-              <div className="border-t pt-4 md:pt-0 md:border-t-0 md:border-l md:pl-4">
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Class Statistics</h3>
-                <div className="space-y-1">
-                  {result.highestMarks && (
-                    <div className="grid grid-cols-2 gap-2">
-                      <span className="text-sm text-gray-500">Highest Marks:</span>
-                      <span className="text-sm font-medium text-gray-900">{result.highestMarks}</span>
-                    </div>
-                  )}
-                  {result.lowestMarks && (
-                    <div className="grid grid-cols-2 gap-2">
-                      <span className="text-sm text-gray-500">Lowest Marks:</span>
-                      <span className="text-sm font-medium text-gray-900">{result.lowestMarks}</span>
-                    </div>
-                  )}
-                  {result.averageMarks && (
-                    <div className="grid grid-cols-2 gap-2">
-                      <span className="text-sm text-gray-500">Average Marks:</span>
-                      <span className="text-sm font-medium text-gray-900">{result.averageMarks.toFixed(2)}</span>
-                    </div>
-                  )}
-                  {result.totalStudents && (
-                    <div className="grid grid-cols-2 gap-2">
-                      <span className="text-sm text-gray-500">Total Students:</span>
-                      <span className="text-sm font-medium text-gray-900">{result.totalStudents}</span>
-                    </div>
-                  )}
-                </div>
+
+            <div className="bg-white p-6 rounded border-2 border-gray-300 text-center">
+              <div className="text-sm text-gray-500 uppercase mb-2">Class Rank</div>
+              <div className="text-4xl font-bold text-gray-800">
+                #{result.rank || '-'}
               </div>
-            )}
+            </div>
+
+            <div className="bg-white p-6 rounded border-2 border-gray-300 text-center">
+              <div className="text-sm text-gray-500 uppercase mb-2">Result Status</div>
+              <div className={`text-3xl font-bold ${result.status === 'PASS' ? 'text-green-600' : 'text-red-600'}`}>
+                {result.status}
+              </div>
+            </div>
           </div>
+
+          {(result.highestMarks || result.averageMarks) && (
+            <div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Class Statistics</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {result.highestMarks && (
+                  <div className="bg-white p-3 rounded border border-gray-300">
+                    <span className="text-xs text-gray-500 block mb-1">Highest Marks</span>
+                    <span className="text-lg font-semibold text-gray-900">{result.highestMarks}</span>
+                  </div>
+                )}
+                {result.lowestMarks && (
+                  <div className="bg-white p-3 rounded border border-gray-300">
+                    <span className="text-xs text-gray-500 block mb-1">Lowest Marks</span>
+                    <span className="text-lg font-semibold text-gray-900">{result.lowestMarks}</span>
+                  </div>
+                )}
+                {result.averageMarks && (
+                  <div className="bg-white p-3 rounded border border-gray-300">
+                    <span className="text-xs text-gray-500 block mb-1">Average Marks</span>
+                    <span className="text-lg font-semibold text-gray-900">{result.averageMarks.toFixed(2)}</span>
+                  </div>
+                )}
+                {result.totalStudents && (
+                  <div className="bg-white p-3 rounded border border-gray-300">
+                    <span className="text-xs text-gray-500 block mb-1">Total Students</span>
+                    <span className="text-lg font-semibold text-gray-900">{result.totalStudents}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {result.remarks && (
-          <div>
-            <h3 className="text-md font-medium text-gray-900 mb-2">Remarks</h3>
-            <div className="bg-gray-50 p-3 rounded-md">
-              <p className="text-sm text-gray-700">{result.remarks}</p>
-            </div>
+          <div className="bg-yellow-50 p-4 rounded border-l-4 border-yellow-500">
+            <h3 className="text-base font-semibold text-gray-800 mb-2">Remarks:</h3>
+            <p className="text-sm text-gray-700">{result.remarks}</p>
           </div>
         )}
 
@@ -226,7 +254,10 @@ export function ExamResultDetail({
             Close
           </button>
         </div>
+            </div>
+          </div>
+        </div>
       </div>
-    </Modal>
+    </>
   );
 }
