@@ -5,20 +5,26 @@ import { useStudentResults, useExamResult } from '~/hooks/useExamResultQueries';
 import type { DetailedExamResult } from '~/types/examResult';
 import { useStudent } from '~/hooks/useStudentQueries';
 
-const StudentResultDashboard: React.FC = () => {
-  const { 
+interface StudentResultDashboardProps {
+  studentId?: string;
+}
+
+const StudentResultDashboard: React.FC<StudentResultDashboardProps> = ({ studentId: propStudentId }) => {
+  const {
     data: student,
     isLoading: isStudentLoading
-  } = useStudent('');
-  
+  } = useStudent(propStudentId || '');
+
   const [selectedResultId, setSelectedResultId] = useState<string | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
-  const { 
-    data: results = [], 
-    isLoading: isResultsLoading, 
-    error 
-  } = useStudentResults(student?._id || '');
+  const studentId = propStudentId || student?._id || '';
+
+  const {
+    data: results = [],
+    isLoading: isResultsLoading,
+    error
+  } = useStudentResults(studentId);
 
   const { 
     data: detailedResult 
@@ -44,10 +50,10 @@ const StudentResultDashboard: React.FC = () => {
   const isLoading = isStudentLoading || isResultsLoading;
 
   return (
-    <div className="container mx-auto py-6 px-4">
+    <div className="container lg:mx-auto lg:py-6 lg:px-4">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">My Exam Results</h1>
-        <p className="text-gray-600 mt-1">View your academic performance</p>
+        <h1 className="text-responsive-xl font-bold text-gray-800">My Exam Results</h1>
+        <p className="text-xs sm:text-sm text-gray-600 mt-1">View your academic performance</p>
       </div>
 
       {isLoading ? (
