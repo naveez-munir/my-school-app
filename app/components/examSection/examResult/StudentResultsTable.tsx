@@ -2,6 +2,7 @@ import { createColumnHelper, type ColumnDef } from '@tanstack/react-table';
 import type { ExamResultResponse } from '~/types/examResult';
 import { SortableColumnHeader } from '~/components/common/table/TableHelpers';
 import { GenericDataTable } from '~/components/common/table/GenericDataTable';
+import { Eye } from 'lucide-react';
 
 interface StudentResultsTableProps {
   data: ExamResultResponse[];
@@ -95,11 +96,12 @@ export function createStudentResultColumns(
       header: () => <div className="text-right">Actions</div>,
       cell: (info) => (
         <div className="flex justify-end space-x-2">
-          <button 
-            className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+          <button
+            className="text-blue-600 hover:text-blue-900 cursor-pointer"
             onClick={() => onViewDetails(info.row.original.id)}
+            title="View Details"
           >
-            View Details
+            <Eye className="h-4 w-4" />
           </button>
         </div>
       ),
