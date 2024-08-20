@@ -1,27 +1,34 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import toast from 'react-hot-toast';
 import { LeavesTable } from './LeavesTable';
 import { LeaveFormModal } from './LeaveFormModal';
 import { LeaveDetailModal } from './LeaveDetailModal';
 import { ApproveLeaveModal } from './ApproveLeaveModal';
-import { 
-  type LeaveResponse, 
-  LeaveStatus, 
-  LeaveType, 
-  type SearchLeaveRequest, 
+import {
+  type LeaveResponse,
+  LeaveStatus,
+  LeaveType,
+  type SearchLeaveRequest,
   type CreateLeaveRequest,
   type ApproveLeaveRequest
 } from "~/types/staffLeave";
 
-import { 
-  useLeaves, 
-  useCreateLeave, 
-  useUpdateLeave, 
+import {
+  useLeaves,
+  useMyLeaves,
+  useCreateLeave,
+  useUpdateLeave,
   useCancelLeave,
   useApproveLeave
 } from "~/hooks/staffLeaveQueries";
 import { EmployeeTypeSelector } from "~/components/common/EmployeeTypeSelector";
-import { SelectInput } from "~/components/common/form/inputs/SelectInput";
+import { LeaveTypeSelector } from "~/components/common/LeaveTypeSelector";
+import { LeaveStatusSelector } from "~/components/common/LeaveStatusSelector";
 import { DateInput } from "~/components/common/form/inputs/DateInput";
+import { isAdmin, getUserRole } from "~/utils/auth";
+import { UserRoleEnum } from "~/types/user";
+import { useTeacherProfile } from "~/hooks/useTeacherQueries";
+import { MyStudentsLeavesTable } from "~/components/leave/student/myStudentLeaves";
 
 export const LeaveSection = () => {
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
@@ -31,11 +38,28 @@ export const LeaveSection = () => {
   const [selectedLeave, setSelectedLeave] = useState<LeaveResponse | null>(null);
   const [filters, setFilters] = useState<SearchLeaveRequest>({});
 
-  const { 
-    data: leaves = [], 
-    isLoading, 
-    error 
-  } = useLeaves(filters);
+  const isAdminUser = useMemo(() => isAdmin(), []);
+
+  const userRole = getUserRole();
+  const isTeacherRole = userRole?.role === UserRoleEnum.TEACHER;
+  const { data: currentTeacher } = useTeacherProfile(isTeacherRole);
+  const isClassTeacher = !isAdminUser && !!currentTeacher?.classTeacherOf;
+
+  const {
+    data: allLeaves = [],
+    isLoading: isLoadingAll,
+    error: errorAll
+  } = useLeaves(filters, { enabled: isAdminUser });
+
+  const {
+    data: myLeaves = [],
+    isLoading: isLoadingMy,
+    error: errorMy
+  } = useMyLeaves({ enabled: !isAdminUser });
+
+  const leaves = isAdminUser ? allLeaves : myLeaves;
+  const isLoading = isAdminUser ? isLoadingAll : isLoadingMy;
+  const error = isAdminUser ? errorAll : errorMy;
   
   const createLeaveMutation = useCreateLeave();
   const updateLeaveMutation = useUpdateLeave();
@@ -46,17 +70,20 @@ export const LeaveSection = () => {
   const handleSaveLeave = async (data: CreateLeaveRequest) => {
     try {
       if (selectedLeave?.id) {
-        await updateLeaveMutation.mutateAsync({ 
-          id: selectedLeave.id, 
-          data 
+        await updateLeaveMutation.mutateAsync({
+          id: selectedLeave.id,
+          data
         });
+        toast.success('Leave request updated successfully');
       } else {
         await createLeaveMutation.mutateAsync(data);
+        toast.success('Leave request created successfully');
       }
       setIsFormModalOpen(false);
       setSelectedLeave(null);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error saving leave request:", err);
+      toast.error(err?.response?.data?.message || err?.message || 'Failed to save leave request');
     }
   };
 
@@ -77,8 +104,10 @@ export const LeaveSection = () => {
     if (window.confirm('Are you sure you want to cancel this leave request?')) {
       try {
         await cancelLeaveMutation.mutateAsync(id);
-      } catch (err) {
+        toast.success('Leave request cancelled successfully');
+      } catch (err: any) {
         console.error("Error cancelling leave:", err);
+        toast.error(err?.response?.data?.message || err?.message || 'Failed to cancel leave request');
       }
     }
   };
@@ -99,9 +128,12 @@ export const LeaveSection = () => {
   const submitApproval = async (id: string, data: ApproveLeaveRequest) => {
     try {
       await approveLeaveMutation.mutateAsync({ id, data });
+      const action = data.status === LeaveStatus.APPROVED ? 'approved' : 'rejected';
+      toast.success(`Leave request ${action} successfully`);
       setIsApproveModalOpen(false);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error processing leave request:", err);
+      toast.error(err?.response?.data?.message || err?.message || 'Failed to process leave request');
     }
   };
 
@@ -117,59 +149,60 @@ export const LeaveSection = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold text-gray-700">
-          Leave Management
+    <div className="space-y-4 sm:space-y-5 lg:space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-responsive-xl font-semibold text-gray-700">
+          {isAdminUser ? 'Staff Leave Management' : 'My Leave Requests'}
         </h2>
         <button
           onClick={() => {
             setSelectedLeave(null);
             setIsFormModalOpen(true);
           }}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+          className="bg-blue-600 text-white text-xs sm:text-sm px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg hover:bg-blue-700"
         >
           Create Leave Request
         </button>
       </div>
 
-      {/* Filters Section */}
-      <div className="bg-white p-4 rounded-lg shadow">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <EmployeeTypeSelector
-            value={filters?.employeeType || undefined}
-            onChange={(value) => handleFilterChange('employeeType', value)}
-            label="Filter by Employee Type"
-          />
-          {/* TODO need to add the support to filter ALL types like by default it should be All types */}
-          <SelectInput<typeof LeaveType>
-            label="Filter by Leave Type"
-            value={filters.leaveType}
-            options={LeaveType}
-            onChange={(value) => handleFilterChange('leaveType', value || undefined)}
-          />
-          {/* TODO need to add the support to filter ALL for this as well */}
-          <SelectInput<typeof LeaveStatus>
-            label="Filter by Status"
-            value={filters.status}
-            options={LeaveStatus}
-            onChange={(value) => handleFilterChange('status', value || undefined)}
-          />
-          
-          <div className="grid grid-cols-2 gap-4">
-            <DateInput 
-             label="From Date"
-             value={filters.startDateFrom || ''}
-             onChange={(value) => handleFilterChange('startDateFrom', value)}
+      {isAdminUser && (
+        <div className="bg-white p-4 rounded-lg shadow">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <EmployeeTypeSelector
+              value={filters?.employeeType || undefined}
+              onChange={(value) => handleFilterChange('employeeType', value)}
+              label="Filter by Employee Type"
             />
-            <DateInput 
-              label="To Date"
-              value={filters.startDateTo || ''}
-              onChange={(value) => handleFilterChange('startDateTo', value)}
+            <LeaveTypeSelector
+              value={filters.leaveType as any}
+              onChange={(value) => handleFilterChange('leaveType', value === 'all' ? undefined : value)}
+              label="Filter by Leave Type"
+              placeholder="All Types"
+              includeAll={true}
             />
+            <LeaveStatusSelector
+              value={filters.status as any}
+              onChange={(value) => handleFilterChange('status', value === 'all' ? undefined : value)}
+              label="Filter by Status"
+              placeholder="All Statuses"
+              includeAll={true}
+            />
+
+            <div className="grid grid-cols-2 gap-4">
+              <DateInput
+               label="From Date"
+               value={filters.startDateFrom || ''}
+               onChange={(value) => handleFilterChange('startDateFrom', value)}
+              />
+              <DateInput
+                label="To Date"
+                value={filters.startDateTo || ''}
+                onChange={(value) => handleFilterChange('startDateTo', value)}
+              />
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {isLoading ? (
         <div className="text-center py-8">
@@ -186,6 +219,7 @@ export const LeaveSection = () => {
           onCancel={handleCancel}
           onApprove={handleApprove}
           onReject={handleReject}
+          isAdmin={isAdminUser}
         />
       )}
 
@@ -219,6 +253,12 @@ export const LeaveSection = () => {
         onApprove={submitApproval}
         isSubmitting={approveLeaveMutation.isPending}
       />
+
+      {isClassTeacher && (
+        <div className="mt-8 pt-8 border-t border-gray-200">
+          <MyStudentsLeavesTable />
+        </div>
+      )}
     </div>
   );
 };
