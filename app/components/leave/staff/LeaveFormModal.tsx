@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Modal } from '~/components/common/Modal';
-import { 
-  type LeaveResponse, 
-  type CreateLeaveRequest, 
-  LeaveType, 
-  EmployeeType 
+import {
+  type LeaveResponse,
+  type CreateLeaveRequest,
+  LeaveType,
+  EmployeeType
 } from '~/types/staffLeave';
 import { EmployeeTypeSelector } from '~/components/common/EmployeeTypeSelector';
 import { TeacherSelector } from '~/components/common/TeacherSelector';
@@ -12,6 +12,7 @@ import { StaffSelector } from '~/components/common/StaffSelector';
 import { SelectInput } from '~/components/common/form/inputs/SelectInput';
 import { DateInput } from '~/components/common/form/inputs/DateInput';
 import { TextArea } from '~/components/common/form/inputs/TextArea';
+import { isAdmin, getUserRole, getUserId } from '~/utils/auth';
 
 interface LeaveFormModalProps {
   isOpen: boolean;
@@ -28,6 +29,15 @@ export function LeaveFormModal({
   initialData,
   isSubmitting
 }: LeaveFormModalProps) {
+  const isAdminUser = useMemo(() => isAdmin(), []);
+  const currentUserId = useMemo(() => getUserId(), []);
+  const currentUserRole = useMemo(() => getUserRole()?.role, []);
+
+  const currentEmployeeType = useMemo(() => {
+    if (currentUserRole === 'teacher') return EmployeeType.TEACHER;
+    return EmployeeType.STAFF;
+  }, [currentUserRole]);
+
   const [formData, setFormData] = useState<CreateLeaveRequest>({
     employeeId: '',
     employeeType: EmployeeType.TEACHER,
@@ -36,7 +46,7 @@ export function LeaveFormModal({
     endDate: '',
     reason: ''
   });
-  
+
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -45,15 +55,14 @@ export function LeaveFormModal({
         employeeId: initialData.employeeId,
         employeeType: initialData.employeeType,
         leaveType: initialData.leaveType,
-        startDate: initialData.startDate.split('T')[0], // Format date to YYYY-MM-DD
-        endDate: initialData.endDate.split('T')[0],     // Format date to YYYY-MM-DD
+        startDate: initialData.startDate.split('T')[0],
+        endDate: initialData.endDate.split('T')[0],
         reason: initialData.reason || ''
       });
     } else {
-      // Reset form when opening for a new entry
       setFormData({
-        employeeId: '',
-        employeeType: EmployeeType.TEACHER,
+        employeeId: isAdminUser ? '' : (currentUserId || ''),
+        employeeType: isAdminUser ? EmployeeType.TEACHER : currentEmployeeType,
         leaveType: LeaveType.CASUAL,
         startDate: '',
         endDate: '',
@@ -61,7 +70,7 @@ export function LeaveFormModal({
       });
     }
     setErrors({});
-  }, [initialData, isOpen]);
+  }, [initialData, isOpen, isAdminUser, currentUserId, currentEmployeeType]);
 
   const handleValueChange = (field: keyof CreateLeaveRequest, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -116,28 +125,28 @@ export function LeaveFormModal({
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 gap-4">
-          {/* Employee Type and ID */}
-          <div className="grid grid-cols-2 gap-2">
-            <EmployeeTypeSelector 
-             value={formData.employeeType}
-             onChange={(value) =>handleValueChange('employeeType', value) }
-            />
-            {formData?.employeeType && formData.employeeType === EmployeeType.TEACHER ?
-              <TeacherSelector
-                value={formData.employeeId}
-                onChange={(employeeId) => setFormData(prev => ({ ...prev, employeeId }))}
-                required
+          {isAdminUser && (
+            <div className="grid grid-cols-2 gap-2">
+              <EmployeeTypeSelector
+               value={formData.employeeType}
+               onChange={(value) =>handleValueChange('employeeType', value) }
               />
-              :
-              <StaffSelector
-                value={formData.employeeId}
-                onChange={(employeeId) => setFormData(prev => ({ ...prev, employeeId }))}
-                required
-              />
-            }
-          </div>
-          
-          {/* Leave Type */}
+              {formData?.employeeType && formData.employeeType === EmployeeType.TEACHER ?
+                <TeacherSelector
+                  value={formData.employeeId}
+                  onChange={(employeeId) => setFormData(prev => ({ ...prev, employeeId }))}
+                  required
+                />
+                :
+                <StaffSelector
+                  value={formData.employeeId}
+                  onChange={(employeeId) => setFormData(prev => ({ ...prev, employeeId }))}
+                  required
+                />
+              }
+            </div>
+          )}
+
           <SelectInput<typeof LeaveType>
             label="Leave Type"
             value={formData.leaveType}
