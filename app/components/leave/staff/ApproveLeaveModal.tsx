@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { Modal } from '~/components/common/Modal';
-import { 
-  type LeaveResponse, 
-  LeaveStatus, 
+import {
+  type LeaveResponse,
+  LeaveStatus,
   type ApproveLeaveRequest,
   EmployeeType
 } from '~/types/staffLeave';
 import { LeaveTypeLabels } from './LeaveDetailModal';
+import { PaymentOverrideToggle } from './PaymentOverrideToggle';
+import { formatUserFriendlyDate } from '~/utils/dateUtils';
 
 interface ApproveLeaveModalProps {
   isOpen: boolean;
@@ -31,27 +33,31 @@ export function ApproveLeaveModal({
     approverId: '',
     approverType: EmployeeType.TEACHER
   });
-  
-  if (!leave) return null;
+  const [overrideEnabled, setOverrideEnabled] = useState(false);
+  const [isPaid, setIsPaid] = useState(true);
+  const [overrideReason, setOverrideReason] = useState('');
 
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return '-';
-    return new Date(dateString).toLocaleDateString();
-  };
+  if (!leave) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!leave.id || !approverInfo.approverId) return;
-    
+
+    if (!leave.id) return;
+
     try {
-      await onApprove(leave.id, {
-        approvedBy: approverInfo.approverId,
-        approverType: approverInfo.approverType,
+      const approveData: ApproveLeaveRequest = {
         status: approvalStatus,
-        comments: comments.trim() || undefined
-      });
-      
+        comments: comments.trim() || undefined,
+      };
+
+      if (overrideEnabled) {
+        approveData.overridePaidStatus = true;
+        approveData.isPaid = isPaid;
+        approveData.overrideReason = overrideReason.trim() || undefined;
+      }
+
+      await onApprove(leave.id, approveData);
+
       onClose();
     } catch (error) {
       console.error('Error approving/rejecting leave', error);
@@ -84,7 +90,7 @@ export function ApproveLeaveModal({
             <div>
               <p className="text-sm text-gray-500">Duration</p>
               <p className="text-sm font-medium text-gray-900">
-                {formatDate(leave.startDate)} to {formatDate(leave.endDate)}
+                {formatUserFriendlyDate(leave.startDate)} to {formatUserFriendlyDate(leave.endDate)}
               </p>
             </div>
             
@@ -101,6 +107,17 @@ export function ApproveLeaveModal({
                 <p className="text-sm font-medium text-gray-900">{leave.reason}</p>
               </div>
             )}
+
+            <div>
+              <p className="text-sm text-gray-500">Current Payment Status</p>
+              <p className="text-sm font-medium text-gray-900">
+                {leave.isPaid ? (
+                  <span className="text-green-600">✅ Paid Leave</span>
+                ) : (
+                  <span className="text-red-600">❌ Unpaid Leave</span>
+                )}
+              </p>
+            </div>
           </div>
         </div>
         
@@ -169,6 +186,18 @@ export function ApproveLeaveModal({
           </div>
         </div>
         
+        {approvalStatus === LeaveStatus.APPROVED && (
+          <PaymentOverrideToggle
+            enabled={overrideEnabled}
+            isPaid={isPaid}
+            reason={overrideReason}
+            onEnabledChange={setOverrideEnabled}
+            onIsPaidChange={setIsPaid}
+            onReasonChange={setOverrideReason}
+            currentPaidStatus={leave.isPaid}
+          />
+        )}
+
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="comments">
             Comments
@@ -179,8 +208,8 @@ export function ApproveLeaveModal({
             onChange={(e) => setComments(e.target.value)}
             rows={3}
             className="block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-700"
-            placeholder={approvalStatus === LeaveStatus.APPROVED ? 
-              "Optional comments for approval" : 
+            placeholder={approvalStatus === LeaveStatus.APPROVED ?
+              "Optional comments for approval" :
               "Please provide a reason for rejection"}
           />
         </div>
@@ -197,11 +226,11 @@ export function ApproveLeaveModal({
           <button
             type="submit"
             className={`px-4 py-2 text-sm font-medium text-white rounded-md disabled:opacity-50 ${
-              approvalStatus === LeaveStatus.APPROVED ? 
-                'bg-green-600 hover:bg-green-700' : 
+              approvalStatus === LeaveStatus.APPROVED ?
+                'bg-green-600 hover:bg-green-700' :
                 'bg-red-600 hover:bg-red-700'
             }`}
-            disabled={isSubmitting || !approverInfo.approverId}
+            disabled={isSubmitting}
           >
             {isSubmitting ? 'Processing...' : (approvalStatus === LeaveStatus.APPROVED ? 'Approve' : 'Reject')}
           </button>
