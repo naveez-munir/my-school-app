@@ -18,12 +18,12 @@ export function AllStudentLeavesTable() {
     classId: '',
     studentId: '',
   });
-  
+
   const queryParams = {
     ...(filters.status ? { status: filters.status } : {}),
     ...(filters.studentId ? { studentId: filters.studentId } : {})
   };
-  
+
   const { data: leaves = [], isLoading, error } = useStudentLeaves(queryParams);
   
   const handleClassChange = (classId: string) => {
@@ -71,12 +71,12 @@ export function AllStudentLeavesTable() {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-semibold">All Student Leave Requests</h1>
+        <h1 className="text-xs sm:text-sm lg:text-base font-semibold">All Student Leave Requests</h1>
       </div>
-      
+
       {/* Filters Section */}
       <div className="bg-white shadow rounded-lg p-6">
-        <h2 className="text-lg font-medium mb-4">Filters</h2>
+        <h2 className="text-xs sm:text-sm font-medium mb-4">Filters</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
@@ -129,11 +129,12 @@ export function AllStudentLeavesTable() {
         config={{
           showStudent: true,
           showRequestedBy: true,
+          showApprovedBy: true,
           showCreatedAt: true,
           actions: (row) => (
-            <button 
+            <button
               className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-              onClick={() => handleViewDetails(row._id)}
+              onClick={() => handleViewDetails(row.id || row._id || '')}
             >
               View Details
             </button>
