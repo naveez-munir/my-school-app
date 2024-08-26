@@ -22,9 +22,9 @@ export function LeavesByStudentTable() {
       config={{
         showReason: true,
         actions: (row) => (
-          <button 
+          <button
             className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-            onClick={() => handleViewDetails(row._id)}
+            onClick={() => handleViewDetails(row.id || row._id || '')}
           >
             View Details
           </button>
