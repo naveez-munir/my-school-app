@@ -12,6 +12,7 @@ export type LeaveTableConfig = {
   showComments?: boolean;
   showCreatedAt?: boolean;
   showRequestedBy?: boolean;
+  showApprovedBy?: boolean;
   actions?: (row: StudentLeaveResponse) => React.ReactNode;
 };
 
@@ -108,17 +109,30 @@ export function createLeaveColumns(config: LeaveTableConfig = {}): ColumnDef<Stu
   
   if (config.showRequestedBy) {
     columns.push(
-      columnHelper.accessor('requestedByParent', {
+      columnHelper.accessor('requestedByUserName', {
         header: ({ column }) => <SortableColumnHeader column={column} title="Requested By" />,
         cell: (info) => (
           <div className="text-sm text-gray-500">
-            {info.getValue()}
+            {info.getValue() || '-'}
           </div>
         ),
       })
     );
   }
-  
+
+  if (config.showApprovedBy) {
+    columns.push(
+      columnHelper.accessor('approverName', {
+        header: ({ column }) => <SortableColumnHeader column={column} title="Approved By" />,
+        cell: (info) => (
+          <div className="text-sm text-gray-500">
+            {info.getValue() || '-'}
+          </div>
+        ),
+      })
+    );
+  }
+
   if (config.showCreatedAt) {
     columns.push(
       columnHelper.accessor('createdAt', {
@@ -184,10 +198,10 @@ export function LeaveBaseTable({
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-semibold">{title}</h1>
+        <h1 className="text-responsive-xl font-semibold">{title}</h1>
         {headerContent}
       </div>
-      
+
       <GenericDataTable<StudentLeaveResponse>
         data={data}
         columns={columns}
