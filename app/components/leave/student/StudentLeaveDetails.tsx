@@ -4,11 +4,10 @@ import {
   useCancelStudentLeave,
 } from "~/hooks/useStudentLeaveQueries";
 import { LeaveStatus } from "~/types/studentLeave";
-import { format } from "date-fns";
 import toast from "react-hot-toast";
-import { useStudentName } from "~/utils/hooks/useStudentName";
 import { getLeaveTypeStyle } from "~/utils/employeeStatusColor";
 import { LeaveStatusBadge } from "./LeaveStatusBadge";
+import { formatUserFriendlyDate, formatDateTime } from "~/utils/dateUtils";
 
 export function StudentLeaveDetailsView() {
   const { id } = useParams<{ id: string }>();
@@ -16,8 +15,6 @@ export function StudentLeaveDetailsView() {
   const { data: leave, isLoading, error } = useStudentLeave(id || "");
   const { mutate: cancelLeave, isPending: isCancelling } =
     useCancelStudentLeave();
-
-  const studentName = useStudentName(leave?.studentId || "");
 
   if (isLoading) {
     return (
@@ -49,24 +46,21 @@ export function StudentLeaveDetailsView() {
   }
 
   const handleCancelLeave = () => {
-    if (!leave._id) return;
+    const leaveId = leave.id || leave._id;
+    if (!leaveId) return;
 
-    cancelLeave(leave._id, {
+    cancelLeave(leaveId, {
       onSuccess: () => {
         toast.success("Leave request cancelled successfully");
         navigate(-1);
       },
-      onError: (error) => {
-        toast.error(`Failed to cancel leave request: ${error.message}`);
+      onError: (error: any) => {
+        toast.error(error?.response?.data?.message || error?.message || 'Failed to cancel leave request');
       },
     });
   };
 
   const leaveTypeStyle = getLeaveTypeStyle(leave.leaveType);
-
-  const formatDate = (dateString: any) => {
-    return format(new Date(dateString), "MMM dd, yyyy");
-  };
 
   return (
     <div className="max-w-4xl mx-auto py-6 px-4">
@@ -84,9 +78,6 @@ export function StudentLeaveDetailsView() {
               Leave Request Details
             </h1>
           </div>
-          <p className="text-gray-500 mt-1">
-            Request #{leave._id.substring(leave._id.length - 6).toUpperCase()}
-          </p>
         </div>
 
         <LeaveStatusBadge
@@ -102,9 +93,11 @@ export function StudentLeaveDetailsView() {
           <div className="flex flex-col md:flex-row justify-between">
             <div className="mb-4 md:mb-0">
               <h2 className="text-xl font-semibold text-gray-800">
-                {studentName || leave.studentId}
+                {leave.studentName || 'Student'}
               </h2>
-              <p className="text-gray-600">Student ID: {leave.studentId}</p>
+              {!leave.studentName && (
+                <p className="text-gray-600 text-sm">Student ID: {leave.studentId}</p>
+              )}
             </div>
             <div className="flex flex-col items-start md:items-end">
               <div
@@ -113,7 +106,7 @@ export function StudentLeaveDetailsView() {
                 {leave.leaveType.replace("_", " ")}
               </div>
               <p className="text-gray-500 text-sm mt-1">
-                Requested on {format(new Date(leave.createdAt), "MMM dd, yyyy")}
+                Requested on {formatUserFriendlyDate(leave.createdAt)}
               </p>
             </div>
           </div>
@@ -136,7 +129,7 @@ export function StudentLeaveDetailsView() {
               <div className="flex items-center">
                 <span className="text-gray-500 mr-2">From:</span>
                 <span className="font-medium">
-                  {formatDate(leave.startDate)}
+                  {formatUserFriendlyDate(leave.startDate)}
                 </span>
               </div>
 
@@ -144,7 +137,7 @@ export function StudentLeaveDetailsView() {
                 <div className="flex items-center">
                   <span className="text-gray-500 mr-2">To:</span>
                   <span className="font-medium">
-                    {formatDate(leave.endDate)}
+                    {formatUserFriendlyDate(leave.endDate)}
                   </span>
                 </div>
               )}
@@ -186,11 +179,13 @@ export function StudentLeaveDetailsView() {
               Processing Details
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {leave.approvedBy && (
+              {(leave.approverName || leave.approvedBy) && (
                 <div className="bg-gray-50 rounded-lg p-4">
                   <p className="text-sm text-gray-500 mb-1">Processed By</p>
-                  <p className="font-medium">{leave.approvedBy}</p>
-                  <p className="text-sm text-gray-500">{leave.approverType}</p>
+                  <p className="font-medium">{leave.approverName || leave.approvedBy}</p>
+                  {leave.approverType && (
+                    <p className="text-sm text-gray-500">{leave.approverType}</p>
+                  )}
                 </div>
               )}
 
@@ -198,7 +193,7 @@ export function StudentLeaveDetailsView() {
                 <div className="bg-gray-50 rounded-lg p-4">
                   <p className="text-sm text-gray-500 mb-1">Processed On</p>
                   <p className="font-medium">
-                    {formatDate(leave.approvalDate)}
+                    {formatUserFriendlyDate(leave.approvalDate)}
                   </p>
                 </div>
               )}
@@ -241,14 +236,16 @@ export function StudentLeaveDetailsView() {
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-gray-50 rounded-lg p-4">
-              <p className="text-sm text-gray-500 mb-1">Requested By</p>
-              <p className="font-medium">{leave.requestedByParent}</p>
+              <p className="text-sm text-gray-500 mb-1">Created At</p>
+              <p className="font-medium">
+                {formatDateTime(leave.createdAt)}
+              </p>
             </div>
 
             <div className="bg-gray-50 rounded-lg p-4">
-              <p className="text-sm text-gray-500 mb-1">Created At</p>
+              <p className="text-sm text-gray-500 mb-1">Last Updated</p>
               <p className="font-medium">
-                {format(new Date(leave.createdAt), "MMM dd, yyyy HH:mm")}
+                {formatDateTime(leave.updatedAt)}
               </p>
             </div>
           </div>
