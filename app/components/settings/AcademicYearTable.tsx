@@ -1,19 +1,9 @@
-import {
-  useReactTable,
-  getCoreRowModel,
-  getPaginationRowModel,
-  getFilteredRowModel,
-  getSortedRowModel,
-  flexRender,
-  createColumnHelper,
-  type FilterFn,
-  type SortingState,
-} from '@tanstack/react-table';
+import { createColumnHelper } from '@tanstack/react-table';
 import type { AcademicYear } from '~/types/academicYear';
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { ChevronDown, ChevronUp, Edit, Trash2 } from 'lucide-react';
-import { TextInput } from '~/components/common/form/inputs/TextInput';
 import { formatUserFriendlyDate } from '~/utils/dateUtils';
+import { GenericDataTable } from '~/components/common/table/GenericDataTable';
 
 interface AcademicYearTableProps {
   data: AcademicYear[];
@@ -26,12 +16,6 @@ interface AcademicYearTableMetaType {
   onDelete: (id: string) => void;
 }
 
-const fuzzyFilter: FilterFn<AcademicYear> = (row, columnId, filterValue: string) => {
-  const value = row.getValue(columnId) as string;
-  if (!value) return false;
-  return value.toString().toLowerCase().includes(filterValue.toLowerCase());
-};
-
 const columnHelper = createColumnHelper<AcademicYear>();
 
 const AcademicYearTable: React.FC<AcademicYearTableProps> = ({
@@ -39,14 +23,7 @@ const AcademicYearTable: React.FC<AcademicYearTableProps> = ({
   onEdit,
   onDelete
 }) => {
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [globalFilter, setGlobalFilter] = useState('');
-  const [pagination, setPagination] = useState({
-    pageIndex: 0,
-    pageSize: 20,
-  });
-
-  const columns = [
+  const columns = useMemo(() => [
     columnHelper.accessor('displayName', {
       header: ({ column }) => (
         <div className="flex items-center cursor-pointer" onClick={() => column.toggleSorting()}>
@@ -162,137 +139,21 @@ const AcademicYearTable: React.FC<AcademicYearTableProps> = ({
         );
       },
     }),
-  ];
-
-  const tableData = useMemo(() => data, [data]);
-
-  const table = useReactTable({
-    data: tableData,
-    columns,
-    state: {
-      sorting,
-      globalFilter,
-      pagination,
-    },
-    onSortingChange: setSorting,
-    onPaginationChange: setPagination,
-    onGlobalFilterChange: setGlobalFilter,
-    globalFilterFn: fuzzyFilter,
-    getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    meta: {
-      onEdit,
-      onDelete
-    } as AcademicYearTableMetaType,
-  });
+  ], []);
 
   return (
-    <div className="space-y-4">
-      <div className="bg-white p-4 rounded-lg shadow">
-        <div className="grid gap-4 md:grid-cols-2">
-          <TextInput
-            label="Search"
-            value={globalFilter ?? ''}
-            onChange={(value) => setGlobalFilter(value)}
-            placeholder="Search all columns..."
-          />
-          <div className="flex items-end">
-            <select
-              value={pagination.pageSize}
-              onChange={e => {
-                table.setPageSize(Number(e.target.value));
-              }}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-500 cursor-pointer"
-            >
-              {[5, 10, 20, 30, 40, 50].map(pageSize => (
-                <option key={pageSize} value={pageSize}>
-                  Show {pageSize}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-white shadow rounded-lg overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              {table.getHeaderGroups().map(headerGroup => (
-                <tr key={headerGroup.id}>
-                  {headerGroup.headers.map(header => (
-                    <th
-                      key={header.id}
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </th>
-                  ))}
-                </tr>
-              ))}
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {table.getRowModel().rows.length === 0 ? (
-                <tr>
-                  <td colSpan={columns.length} className="px-6 py-4 text-center text-gray-500">
-                    No academic years found
-                  </td>
-                </tr>
-              ) : (
-                table.getRowModel().rows.map(row => (
-                  <tr key={row.id} className="hover:bg-gray-50">
-                    {row.getVisibleCells().map(cell => (
-                      <td key={cell.id} className="px-6 py-4 whitespace-nowrap">
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </td>
-                    ))}
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-          <div className="flex-1 flex justify-between items-center">
-            <div className="text-sm text-gray-700">
-              Showing{' '}
-              <span className="font-medium">{table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1}</span>
-              {' '}-{' '}
-              <span className="font-medium">
-                {Math.min((table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize, table.getFilteredRowModel().rows.length)}
-              </span>
-              {' '}of{' '}
-              <span className="font-medium">{table.getFilteredRowModel().rows.length}</span>
-              {' '}results
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => table.previousPage()}
-                disabled={!table.getCanPreviousPage()}
-                className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Previous
-              </button>
-              <button
-                onClick={() => table.nextPage()}
-                disabled={!table.getCanNextPage()}
-                className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Next
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <GenericDataTable
+      data={data}
+      columns={columns}
+      initialPageSize={20}
+      pageSizeOptions={[5, 10, 20, 30, 40, 50]}
+      emptyStateMessage="No academic years found"
+      searchPlaceholder="Search all columns..."
+      meta={{
+        onEdit,
+        onDelete
+      } as AcademicYearTableMetaType}
+    />
   );
 };
 
