@@ -46,7 +46,7 @@ export function createStaffColumns(): ColumnDef<StaffListResponse, any>[] {
               </span>
             </div>
           )}
-          <div className="text-sm font-medium text-gray-900">
+          <div className="font-medium text-gray-900">
             {info.getValue()}
           </div>
         </div>
@@ -55,7 +55,7 @@ export function createStaffColumns(): ColumnDef<StaffListResponse, any>[] {
     columnHelper.accessor('designation', {
       header: ({ column }) => <SortableColumnHeader column={column} title="Designation" />,
       cell: (info) => (
-        <div className="text-sm text-gray-900">
+        <div className="text-gray-900">
           {info.getValue()}
         </div>
       ),
@@ -63,7 +63,7 @@ export function createStaffColumns(): ColumnDef<StaffListResponse, any>[] {
     columnHelper.accessor('department', {
       header: ({ column }) => <SortableColumnHeader column={column} title="Department" />,
       cell: (info) => (
-        <div className="text-sm text-gray-900">
+        <div className="text-gray-900">
           {info.getValue() || '—'}
         </div>
       ),
@@ -71,7 +71,7 @@ export function createStaffColumns(): ColumnDef<StaffListResponse, any>[] {
     columnHelper.accessor('phone', {
       header: ({ column }) => <SortableColumnHeader column={column} title="Phone" />,
       cell: (info) => (
-        <div className="text-sm text-gray-500">
+        <div className="text-gray-500">
           {info.getValue() || '—'}
         </div>
       ),
