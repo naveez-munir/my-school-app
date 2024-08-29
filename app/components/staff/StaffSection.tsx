@@ -62,21 +62,21 @@ export const StaffSection = () => {
   };
 
   return (
-    <div className="space-y-6 p-4 sm:p-6 md:p-8">
+    <div className="space-y-6 p-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <Users className="h-6 w-6 text-gray-600" />
-            <h1 className="text-2xl font-bold tracking-tight text-gray-700">Staff Management</h1>
+            <Users className="h-5 w-5 lg:h-6 lg:w-6 text-gray-600" />
+            <h1 className="text-xs sm:text-sm lg:text-base font-bold tracking-tight text-gray-700">Staff Management</h1>
           </div>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-xs lg:text-sm text-gray-500 mt-1">
             Manage staff members and their information
           </p>
         </div>
 
         <button
           onClick={() => navigate('/dashboard/staff/new')}
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          className="flex items-center gap-2 bg-blue-600 text-white text-xs sm:text-sm px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg hover:bg-blue-700 transition-colors"
         >
           <Plus className="h-4 w-4" />
           Add Staff Member
@@ -87,7 +87,7 @@ export const StaffSection = () => {
         {isLoading ? (
           <StaffSkeleton />
         ) : error ? (
-          <div className="bg-red-50 text-red-700 p-4 rounded-lg">{(error as Error).message}</div>
+          <div className="bg-red-50 text-red-700 p-4 rounded-lg text-sm">{(error as Error).message}</div>
         ) : (
           <StaffTable
             data={staffMembers}
