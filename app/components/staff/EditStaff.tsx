@@ -29,7 +29,7 @@ export function EditStaff() {
             navigate('/dashboard/staff');
           },
           onError: (error) => {
-            toast.error(getErrorMessage(error));
+            toast.error(getErrorMessage(error), { duration: 5000 });
           }
         }
       );
