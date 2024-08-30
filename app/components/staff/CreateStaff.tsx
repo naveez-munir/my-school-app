@@ -12,7 +12,7 @@ export function CreateStaff() {
 
   const handleSubmit = (data: CreateStaffRequest) => {
     const cleanedData = cleanStaffData(data);
-    
+
     createStaffMutation.mutate(
       cleanedData as CreateStaffRequest,
       {
@@ -21,7 +21,7 @@ export function CreateStaff() {
           navigate('/dashboard/staff');
         },
         onError: (error) => {
-          toast.error(getErrorMessage(error));
+          toast.error(getErrorMessage(error), { duration: 5000 });
         }
       }
     );
