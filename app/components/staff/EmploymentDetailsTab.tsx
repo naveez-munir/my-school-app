@@ -1,13 +1,15 @@
+import type { Control, FieldErrors } from 'react-hook-form';
 import { TextInput } from '~/components/common/form/inputs/TextInput';
 import { SelectInput } from '~/components/common/form/inputs/SelectInput';
-import { DateInput } from '~/components/common/form/inputs/DateInput';
-import { type CreateStaffRequest, UserRole } from '~/types/staff';
+import { UserRole, EmploymentStatus } from '~/types/staff';
 import { ListItemManager } from './ListItemManager';
+import { FormField } from '~/components/common/form/FormField';
+import type { CreateStaffFormData } from '~/utils/validation/staffValidation';
 
 interface EmploymentDetailsTabProps {
-  formData: CreateStaffRequest;
+  control: Control<CreateStaffFormData>;
+  errors: FieldErrors<CreateStaffFormData>;
   isSubmitting: boolean;
-  handleInputChange: (field: keyof CreateStaffRequest, value: any) => void;
   handleAddQualification: () => void;
   handleUpdateQualification: (index: number, value: string) => void;
   handleRemoveQualification: (index: number) => void;
@@ -17,12 +19,15 @@ interface EmploymentDetailsTabProps {
   handleAddResponsibility: () => void;
   handleUpdateResponsibility: (index: number, value: string) => void;
   handleRemoveResponsibility: (index: number) => void;
+  qualifications: string[];
+  skills: string[];
+  responsibilities: string[];
 }
 
 export function EmploymentDetailsTab({
-  formData,
+  control,
+  errors,
   isSubmitting,
-  handleInputChange,
   handleAddQualification,
   handleUpdateQualification,
   handleRemoveQualification,
@@ -31,94 +36,143 @@ export function EmploymentDetailsTab({
   handleRemoveSkill,
   handleAddResponsibility,
   handleUpdateResponsibility,
-  handleRemoveResponsibility
+  handleRemoveResponsibility,
+  qualifications,
+  skills,
+  responsibilities
 }: EmploymentDetailsTabProps) {
-  const employmentStatusOptions = {
-    'Active': 'Active',
-    'OnLeave': 'On Leave',
-    'Resigned': 'Resigned',
-    'Terminated': 'Terminated'
+  const departmentOptions = {
+    'Teaching': 'Teaching',
+    'Administration': 'Administration',
+    'Accounts': 'Accounts',
+    'Library': 'Library',
+    'Transport': 'Transport',
+    'Security': 'Security',
+    'Maintenance': 'Maintenance',
+    'Other': 'Other'
   };
-
-  // const designationOptions = {
-  //   [UserRole.ADMIN]: 'Admin',
-  //   [UserRole.PRINCIPAL]: 'Principal',
-  //   [UserRole.ACCOUNTANT]: 'Accountant',
-  //   [UserRole.LIBRARIAN]: 'Librarian',
-  //   [UserRole.DRIVER]: 'Driver',
-  //   [UserRole.SECURITY]: 'Security',
-  //   [UserRole.CLEANER]: 'Cleaner',
-  //   [UserRole.TENANT_ADMIN]: 'Tenant Admin'
-  // };
 
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <DateInput
-          label="Joining Date"
-          value={formData.joiningDate ? new Date(formData.joiningDate).toISOString().split('T')[0] : ''}
-          onChange={(value) => handleInputChange('joiningDate', new Date(value))}
-          required
-          disabled={isSubmitting}
+        <FormField
+          name="joiningDate"
+          control={control}
+          errors={errors}
+          render={(field) => (
+            <TextInput
+              label="Joining Date"
+              type="date"
+              value={field.value}
+              onChange={field.onChange}
+              required
+              disabled={isSubmitting}
+            />
+          )}
         />
-        
-        <DateInput
-          label="Leaving Date"
-          value={formData.leavingDate ? new Date(formData.leavingDate).toISOString().split('T')[0] : ''}
-          onChange={(value) => handleInputChange('leavingDate', new Date(value))}
-          disabled={isSubmitting}
+
+        <FormField
+          name="leavingDate"
+          control={control}
+          errors={errors}
+          render={(field) => (
+            <TextInput
+              label="Leaving Date"
+              type="date"
+              value={field.value || ''}
+              onChange={field.onChange}
+              disabled={isSubmitting}
+            />
+          )}
         />
-        
-        <SelectInput
-          label="Employment Status"
-          value={formData.employmentStatus}
-          options={employmentStatusOptions}
-          onChange={(value) => handleInputChange('employmentStatus', value)}
-          required
-          disabled={isSubmitting}
+
+        <FormField
+          name="employmentStatus"
+          control={control}
+          errors={errors}
+          render={(field) => (
+            <SelectInput<typeof EmploymentStatus>
+              label="Employment Status"
+              value={field.value}
+              onChange={field.onChange}
+              options={EmploymentStatus}
+              required
+              disabled={isSubmitting}
+            />
+          )}
         />
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <SelectInput
-          label="Designation"
-          value={formData.designation}
-          options={UserRole}
-          onChange={(value) => handleInputChange('designation', value)}
-          required
-          disabled={isSubmitting}
+        <FormField
+          name="designation"
+          control={control}
+          errors={errors}
+          render={(field) => (
+            <SelectInput<typeof UserRole>
+              label="Designation"
+              value={field.value}
+              onChange={field.onChange}
+              options={UserRole}
+              required
+              disabled={isSubmitting}
+            />
+          )}
         />
-        
-        <TextInput
-          label="Department"
-          value={formData.department || ''}
-          onChange={(value) => handleInputChange('department', value)}
-          disabled={isSubmitting}
+
+        <FormField
+          name="department"
+          control={control}
+          errors={errors}
+          render={(field) => (
+            <SelectInput
+              label="Department"
+              value={field.value || ''}
+              onChange={field.onChange}
+              options={departmentOptions}
+              placeholder="Select Department"
+              disabled={isSubmitting}
+            />
+          )}
         />
       </div>
-      
+
       <div>
-        <TextInput
-          label="Job Description"
-          value={formData.jobDescription || ''}
-          onChange={(value) => handleInputChange('jobDescription', value)}
-          disabled={isSubmitting}
+        <FormField
+          name="jobDescription"
+          control={control}
+          errors={errors}
+          render={(field) => (
+            <TextInput
+              label="Job Description"
+              value={field.value || ''}
+              onChange={field.onChange}
+              disabled={isSubmitting}
+            />
+          )}
         />
       </div>
-      
+
       <div>
-        <TextInput
-          label="Reporting To"
-          value={formData.reportingTo || ''}
-          onChange={(value) => handleInputChange('reportingTo', value)}
-          disabled={isSubmitting}
+        <FormField
+          name="reportingTo"
+          control={control}
+          errors={errors}
+          render={(field) => (
+            <TextInput
+              label="Reporting To"
+              value={field.value || ''}
+              onChange={field.onChange}
+              disabled={isSubmitting}
+            />
+          )}
         />
       </div>
 
       {/* Responsibilities List */}
       <ListItemManager
         title="Responsibilities"
-        items={formData.responsibilities || []}
+        items={responsibilities}
         onAdd={handleAddResponsibility}
         onUpdate={handleUpdateResponsibility}
         onRemove={handleRemoveResponsibility}
