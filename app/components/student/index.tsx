@@ -44,17 +44,17 @@ export function StudentSection() {
   };
 
   return (
-    <div className="space-y-6 p-4 sm:p-6 md:p-8">
+    <div className="space-y-4 sm:space-y-5 lg:space-y-6 p-3 sm:p-4 lg:p-6 xl:p-8">
       {/* Header Section */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <Users className="h-6 w-6 text-gray-600" />
-            <h1 className="text-2xl font-bold tracking-tight text-gray-700">
+            <Users className="icon-lg text-gray-600" />
+            <h1 className="text-page-title font-bold tracking-tight">
               {userRole?.role === 'teacher' ? 'My Students' : 'Students'}
             </h1>
           </div>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-body-secondary mt-1">
             Manage student records, enrollments, and information
           </p>
         </div>
@@ -62,9 +62,9 @@ export function StudentSection() {
         {userIsAdmin && (
           <button
             onClick={() => navigate('/dashboard/students/new')}
-            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+            className="btn-primary flex items-center gap-1.5 sm:gap-2 transition-colors"
           >
-            <Plus className="h-4 w-4" />
+            <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             Add New Student
           </button>
         )}
@@ -75,7 +75,7 @@ export function StudentSection() {
         {loading ? (
           <StudentsSkeleton />
         ) : error ? (
-          <div className="p-4 bg-red-50 text-red-700 rounded-lg">
+          <div className="p-4 bg-red-50 text-red-700 rounded-lg text-body">
             {(error as Error).message || "An error occurred"}
           </div>
         ) : (
@@ -94,29 +94,29 @@ export function StudentSection() {
         title="Delete Student"
         size="sm"
       >
-        <div className="space-y-4">
-          <div className="flex items-center gap-3 p-3 bg-red-50 rounded-lg">
-            <Trash2 className="h-5 w-5 text-red-600" />
-            <p className="text-sm text-red-800">
+        <div className="space-y-3 sm:space-y-4">
+          <div className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 bg-red-50 rounded-lg">
+            <Trash2 className="icon-lg text-red-600 flex-shrink-0" />
+            <p className="text-body text-red-800">
               This action cannot be undone. This will permanently delete the student record.
             </p>
           </div>
 
-          <p className="text-sm text-gray-600">
+          <p className="text-body text-gray-600">
             Are you sure you want to delete <strong>{deleteModal.studentName}</strong>?
           </p>
 
-          <div className="flex justify-end gap-3 pt-4">
+          <div className="flex justify-end gap-2 sm:gap-3 pt-3 sm:pt-4">
             <button
               onClick={() => setDeleteModal({ isOpen: false })}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+              className="btn-secondary font-medium"
             >
               Cancel
             </button>
             <button
               onClick={handleDeleteConfirm}
               disabled={deleteStudentMutation.isPending}
-              className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50"
+              className="btn-danger font-medium disabled:opacity-50"
             >
               {deleteStudentMutation.isPending ? 'Deleting...' : 'Delete Student'}
             </button>
