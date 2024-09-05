@@ -8,6 +8,7 @@ import type { CreateStudentDto } from "~/types/student";
 import { cleanFormData } from "~/utils/cleanFormData";
 import toast from 'react-hot-toast';
 import { formatUserFriendlyDate } from '~/utils/dateUtils';
+import { getErrorMessage } from '~/utils/error';
 
 type FormStep = 'basic' | 'guardian' | 'review';
 
@@ -52,15 +53,24 @@ export function StudentFormPage() {
       setIsSubmitting(true);
       const cleanedData = cleanFormData(finalFormData) as CreateStudentDto;
       console.log('Submitting data:', cleanedData);
+
       const result = await createStudentMutation.mutateAsync(cleanedData as CreateStudentDto);
-      toast.success('Student record created successfully!');
-      navigate(`/dashboard/students/${result.id}/details`);
+      console.log('Backend response:', result);
+
+      if (!result) {
+        throw new Error('No response received from server');
+      }
+
+      if (!result.id) {
+        console.error('Response missing ID field:', result);
+        throw new Error('Student created but no ID returned from server');
+      }
+
+      toast.success('Student record created successfully!', { duration: 5000 });
+      navigate(`/dashboard/students/${result.id}`);
     } catch (error) {
       console.error('Failed to create student:', error);
-      const errorMessage = error instanceof Error 
-      ? error.message 
-      : 'An unexpected error occurred while creating the student record';
-      toast.error(errorMessage);
+      toast.error(getErrorMessage(error), { duration: 5000 });
     } finally {
       setIsSubmitting(false);
     }
@@ -78,39 +88,39 @@ export function StudentFormPage() {
 
   // Create a ReviewStep component to show all the info before final submission
   const ReviewStep = () => (
-    <div className="p-6 space-y-6">
-      <h3 className="text-lg font-medium">Review Student Information</h3>
-      
+    <div className="p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-5 lg:space-y-6">
+      <h3 className="text-page-title">Review Student Information</h3>
+
       {/* Display basic info summary */}
-      <div className="border rounded-md p-4">
-        <h4 className="font-medium mb-2">Basic Information</h4>
-        <div className="grid grid-cols-2 gap-4">
-          <div><span className="text-gray-500">Name:</span> {formData.firstName} {formData.lastName}</div>
-          <div><span className="text-gray-500">CNI:</span> {formData.cniNumber}</div>
-          <div><span className="text-gray-500">DOB:</span> {formatUserFriendlyDate(formData.dateOfBirth)}</div>
-          <div><span className="text-gray-500">Gender:</span> {formData.gender}</div>
-          <div><span className="text-gray-500">Grade:</span> {formData.gradeLevel}</div>
-          <div><span className="text-gray-500">Admission Date:</span> {formatUserFriendlyDate(formData.admissionDate)}</div>
+      <div className="border rounded-md p-3 sm:p-4">
+        <h4 className="text-heading mb-2 sm:mb-3">Basic Information</h4>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+          <div className="text-body"><span className="text-label">Name:</span> {formData.firstName} {formData.lastName}</div>
+          <div className="text-body"><span className="text-label">CNI:</span> {formData.cniNumber}</div>
+          <div className="text-body"><span className="text-label">DOB:</span> {formatUserFriendlyDate(formData.dateOfBirth)}</div>
+          <div className="text-body"><span className="text-label">Gender:</span> {formData.gender}</div>
+          <div className="text-body"><span className="text-label">Grade:</span> {formData.gradeLevel}</div>
+          <div className="text-body"><span className="text-label">Admission Date:</span> {formatUserFriendlyDate(formData.admissionDate)}</div>
         </div>
       </div>
-      
+
       {/* Display guardian info summary */}
-      <div className="border rounded-md p-4">
-        <h4 className="font-medium mb-2">Guardian Information</h4>
-        <div className="grid grid-cols-2 gap-4">
-          <div><span className="text-gray-500">Name:</span> {formData.guardian?.name}</div>
-          <div><span className="text-gray-500">CNI:</span> {formData.guardian?.cniNumber}</div>
-          <div><span className="text-gray-500">Relationship:</span> {formData.guardian?.relationship}</div>
-          <div><span className="text-gray-500">Phone:</span> {formData.guardian?.phone}</div>
-          <div><span className="text-gray-500">Email:</span> {formData.guardian?.email || 'N/A'}</div>
+      <div className="border rounded-md p-3 sm:p-4">
+        <h4 className="text-heading mb-2 sm:mb-3">Guardian Information</h4>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+          <div className="text-body"><span className="text-label">Name:</span> {formData.guardian?.name}</div>
+          <div className="text-body"><span className="text-label">CNI:</span> {formData.guardian?.cniNumber}</div>
+          <div className="text-body"><span className="text-label">Relationship:</span> {formData.guardian?.relationship}</div>
+          <div className="text-body"><span className="text-label">Phone:</span> {formData.guardian?.phone}</div>
+          <div className="text-body"><span className="text-label">Email:</span> {formData.guardian?.email || 'N/A'}</div>
         </div>
       </div>
-      
-      <div className="flex justify-end space-x-3 pt-6 border-t">
+
+      <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 pt-4 sm:pt-5 lg:pt-6 border-t">
         <button
           type="button"
           onClick={handleBack}
-          className="px-4 py-2 border rounded-md text-gray-700 hover:bg-gray-50"
+          className="btn-secondary"
         >
           Previous
         </button>
@@ -118,7 +128,7 @@ export function StudentFormPage() {
           type="button"
           onClick={() => handleSubmit()}
           disabled={isSubmitting}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-blue-400"
+          className="btn-primary disabled:bg-blue-400"
         >
           {isSubmitting ? 'Submitting...' : 'Create Student'}
         </button>
@@ -127,21 +137,21 @@ export function StudentFormPage() {
   );
 
   return (
-    <div className="max-w-4xl mx-auto py-8 px-4">
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-gray-900">Add New Student</h1>
-        <p className="mt-2 text-sm text-gray-600">
-          Enter the essential information to create a new student record. 
+    <div className="max-w-4xl mx-auto py-4 sm:py-6 lg:py-8 px-3 sm:px-4">
+      <div className="mb-4 sm:mb-6 lg:mb-8">
+        <h1 className="text-responsive-xl font-semibold text-gray-900">Add New Student</h1>
+        <p className="mt-1 sm:mt-2 text-body-secondary">
+          Enter the essential information to create a new student record.
           Additional details can be added after creation.
         </p>
       </div>
 
       {/* Step indicator */}
-      <div className="mb-8">
-        <StepIndicator 
-          steps={steps} 
+      <div className="mb-4 sm:mb-6 lg:mb-8">
+        <StepIndicator
+          steps={steps}
           currentStep={activeStep}
-          onStepClick={handleStepSelect} 
+          onStepClick={handleStepSelect}
         />
       </div>
 
