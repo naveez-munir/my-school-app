@@ -47,11 +47,11 @@ const StudentAvatar = ({ student }: { student: Student }) => (
     <img
       src={student.photoUrl}
       alt={`${student.firstName} ${student.lastName}`}
-      className="h-24 w-24 rounded-full object-cover border-4 border-white shadow"
+      className="h-16 w-16 sm:h-20 sm:w-20 md:h-24 md:w-24 rounded-full object-cover border-4 border-white shadow"
     />
   ) : (
-    <div className="h-24 w-24 rounded-full bg-blue-100 flex items-center justify-center border-4 border-white shadow">
-      <User className="h-10 w-10 text-blue-600" />
+    <div className="h-16 w-16 sm:h-20 sm:w-20 md:h-24 md:w-24 rounded-full bg-blue-100 flex items-center justify-center border-4 border-white shadow">
+      <User className="h-7 w-7 sm:h-8 sm:w-8 md:h-10 md:w-10 text-blue-600" />
     </div>
   )
 );
@@ -75,7 +75,7 @@ export function StudentDetailPage({stId} : {stId?:string}) {
   if (!student) {
     return (
       <div className="text-center py-10">
-        <h3 className="text-lg font-medium text-gray-900">Student not found</h3>
+        <h3 className="text-heading">Student not found</h3>
         {isAdmin() && (<div className="mt-4">
           <Link to="/dashboard/students" className="text-blue-600 hover:text-blue-800">
             Back to students list
@@ -86,33 +86,33 @@ export function StudentDetailPage({stId} : {stId?:string}) {
   }
 
   return (
-    <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+    <div className="">
       {/* Student header */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="p-6 sm:p-8 bg-gradient-to-r from-blue-50 to-indigo-50 border-b">
-          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
+        <div className="p-3 sm:p-6 lg:p-8 bg-gradient-to-r from-blue-50 to-indigo-50 border-b">
+          <div className="flex flex-row items-start gap-3 sm:gap-6">
             <div className="flex-shrink-0">
               <StudentAvatar student={student} />
             </div>
 
-            <div className="flex-1 text-center sm:text-left">
-              <h1 className="text-xl font-bold text-gray-900">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-responsive-xl font-bold text-gray-900">
                 {student.firstName} {student.lastName}
               </h1>
 
-              <div className="mt-2 space-y-1">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4">
-                  <div className="flex items-center gap-1 justify-center sm:justify-start">
-                    <span className="text-sm font-medium text-gray-500">Roll #:</span>
-                    <span className="text-sm text-gray-900">{student.rollNumber || 'Not assigned'}</span>
+              <div className="mt-1 sm:mt-2 space-y-0.5 sm:space-y-1">
+                <div className="flex flex-wrap items-center gap-x-2 sm:gap-x-4 gap-y-0.5">
+                  <div className="flex items-center gap-1">
+                    <span className="text-label">Roll #:</span>
+                    <span className="text-body">{student.rollNumber || 'Not assigned'}</span>
                   </div>
-                  <div className="flex items-center gap-1 justify-center sm:justify-start">
-                    <span className="text-sm font-medium text-gray-500">Grade:</span>
-                    <span className="text-sm text-gray-900">{student.gradeLevel}</span>
+                  <div className="flex items-center gap-1">
+                    <span className="text-label">Grade:</span>
+                    <span className="text-body">{student.gradeLevel}</span>
                   </div>
-                  <div className="flex items-center gap-1 justify-center sm:justify-start">
-                    <span className="text-sm font-medium text-gray-500">Status:</span>
-                    <span className={`text-sm px-2 py-0.5 rounded-full ${
+                  <div className="flex items-center gap-1">
+                    <span className="text-label">Status:</span>
+                    <span className={`text-responsive px-2 py-0.5 rounded-full ${
                       student.status === 'Active' ? 'bg-green-100 text-green-800' :
                       student.status === 'Inactive' ? 'bg-red-100 text-red-800' :
                       student.status === 'Graduated' ? 'bg-blue-100 text-blue-800' :
@@ -123,40 +123,40 @@ export function StudentDetailPage({stId} : {stId?:string}) {
                   </div>
                 </div>
 
-                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4">
+                <div className="flex flex-wrap items-center gap-x-2 sm:gap-x-4 gap-y-0.5">
                   {student.cniNumber && (
-                    <div className="flex items-center gap-1 justify-center sm:justify-start">
-                      <span className="text-sm font-medium text-gray-500">CNI:</span>
-                      <span className="text-sm text-gray-900">{student.cniNumber}</span>
+                    <div className="flex items-center gap-1">
+                      <span className="text-label">CNI:</span>
+                      <span className="text-body">{student.cniNumber}</span>
                     </div>
                   )}
                   {student.class?.className && (
-                    <div className="flex items-center gap-1 justify-center sm:justify-start">
-                      <span className="text-sm font-medium text-gray-500">Class:</span>
-                      <span className="text-sm text-gray-900">{student.class.className}</span>
+                    <div className="flex items-center gap-1">
+                      <span className="text-label">Class:</span>
+                      <span className="text-body">{student.class.className}</span>
                     </div>
                   )}
                 </div>
 
-                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4">
+                <div className="flex flex-wrap items-center gap-x-2 sm:gap-x-4 gap-y-0.5">
                   {student.email && (
-                    <div className="flex items-center gap-1 justify-center sm:justify-start">
-                      <Mail className="h-4 w-4 text-gray-500" />
-                      <span className="text-sm text-gray-900">{student.email}</span>
+                    <div className="flex items-center gap-1">
+                      <Mail className="icon-md text-gray-500" />
+                      <span className="text-body truncate max-w-[200px] sm:max-w-none">{student.email}</span>
                     </div>
                   )}
                   {student.phone && (
-                    <div className="flex items-center gap-1 justify-center sm:justify-start">
-                      <Phone className="h-4 w-4 text-gray-500" />
-                      <span className="text-sm text-gray-900">{student.phone}</span>
+                    <div className="flex items-center gap-1">
+                      <Phone className="icon-md text-gray-500" />
+                      <span className="text-body">{student.phone}</span>
                     </div>
                   )}
                 </div>
 
                 {student.guardian?.name && (
-                  <div className="flex items-center gap-1 justify-center sm:justify-start">
-                    <span className="text-sm font-medium text-gray-500">Guardian:</span>
-                    <span className="text-sm text-gray-900">
+                  <div className="flex items-center gap-1">
+                    <span className="text-label">Guardian:</span>
+                    <span className="text-body">
                       {student.guardian.name} ({student.guardian.relationship})
                     </span>
                   </div>
@@ -165,29 +165,41 @@ export function StudentDetailPage({stId} : {stId?:string}) {
             </div>
 
             {isAdmin() && (
-              <div className="flex-shrink-0">
+              <div className="flex-shrink-0 hidden sm:block">
                 <button
                   onClick={() => navigate('/dashboard/students')}
-                  className="px-4 py-2 bg-white text-gray-700 rounded-lg hover:bg-gray-50 border border-gray-300 transition-colors"
+                  className="btn-secondary transition-colors"
                 >
                   Back to List
                 </button>
               </div>
             )}
           </div>
+
+          {/* Mobile Back Button */}
+          {isAdmin() && (
+            <div className="mt-3 sm:hidden">
+              <button
+                onClick={() => navigate('/dashboard/students')}
+                className="btn-secondary w-full"
+              >
+                Back to List
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="mt-8">
+      <div className="mt-4 sm:mt-6 lg:mt-8">
         <TabGroup selectedIndex={tabIndex} onChange={setTabIndex}>
-          <TabList className="flex space-x-8 border-b border-gray-200">
+          <TabList className="flex space-x-4 sm:space-x-6 lg:space-x-8 border-b border-gray-200 overflow-x-auto">
             {TABS.map((tab) => (
               <Tab
                 key={tab.key}
                 className={({ selected }) =>
                   classNames(
-                    'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm outline-none',
+                    'whitespace-nowrap py-2 sm:py-3 lg:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm outline-none',
                     selected
                       ? 'border-blue-500 text-blue-600'
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -198,8 +210,8 @@ export function StudentDetailPage({stId} : {stId?:string}) {
               </Tab>
             ))}
           </TabList>
-          
-          <TabPanels className="mt-6">
+
+          <TabPanels className="mt-4 sm:mt-6">
             {TAB_COMPONENTS.map(({ Component }, index) => (
               <TabPanel key={TABS[index].key}>
                 <Component student={student} />
