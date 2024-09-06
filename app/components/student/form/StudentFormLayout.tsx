@@ -42,12 +42,12 @@ export function StudentFormLayout({
     });
 
   return (
-    <div className={`max-w-4xl mx-auto py-8 px-4 ${className}`}>
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-gray-900">{title}</h1>
+    <div className={`mx-auto py-4 sm:py-6 lg:py-8 px-3 sm:px-4 ${className}`}>
+      <div className="mb-4 sm:mb-6 lg:mb-8">
+        <h1 className="text-responsive-xl font-semibold text-gray-900">{title}</h1>
         {description &&
           (typeof description === "string" ? (
-            <p className="mt-2 text-sm text-gray-600">
+            <p className="mt-1 sm:mt-2 text-body-secondary">
               {description.replace("{studentName}", studentName)}
             </p>
           ) : (
@@ -56,21 +56,21 @@ export function StudentFormLayout({
       </div>
 
       <div className="bg-white shadow rounded-lg">
-        <form onSubmit={onSubmit} className="p-6 space-y-6">
+        <form onSubmit={onSubmit} className="p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-5 lg:space-y-6">
           {children}
 
-          <div className="flex justify-end space-x-3 pt-6 border-t">
+          <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 pt-4 sm:pt-5 lg:pt-6 border-t">
             <button
               type="button"
               onClick={handleCancel}
-              className="px-4 py-2 border rounded-md text-gray-700 hover:bg-gray-50"
+              className="btn-secondary"
             >
               {cancelLabel}
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-blue-400"
+              className="btn-primary disabled:bg-blue-400"
             >
               {isSubmitting ? "Saving..." : submitLabel}
             </button>
