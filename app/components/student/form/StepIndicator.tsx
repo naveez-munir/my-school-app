@@ -13,7 +13,7 @@ export function StepIndicator({
 }: StepIndicatorProps) {
   return (
     <nav aria-label="Progress">
-      <ol className="flex items-center">
+      <ol className="flex items-center justify-between w-full">
         {steps.map((step, index) => {
           const isActive = step.id === currentStep;
           const isCompleted =
@@ -22,20 +22,10 @@ export function StepIndicator({
           return (
             <li
               key={step.id}
-              className={`${index !== 0 ? "ml-8 sm:ml-16" : ""} relative`}
+              className={`relative flex items-center ${
+                index !== steps.length - 1 ? "flex-1" : ""
+              }`}
             >
-              {index !== 0 && (
-                <div
-                  className="absolute inset-0 flex items-center"
-                  aria-hidden="true"
-                >
-                  <div
-                    className={`h-0.5 w-full ${
-                      isCompleted ? "bg-blue-600" : "bg-gray-200"
-                    }`}
-                  />
-                </div>
-              )}
               <button
                 onClick={() => onStepClick(step.id)}
                 className={`relative flex items-center justify-center ${
@@ -43,20 +33,20 @@ export function StepIndicator({
                 }`}
                 aria-current={isActive ? "step" : undefined}
               >
-                <span className="h-9 flex items-center">
+                <span className="h-7 lg:h-9 flex items-center">
                   <span
                     className={`
-                    relative z-10 w-8 h-8 flex items-center justify-center rounded-full
+                    relative z-10 w-7 h-7 lg:w-8 lg:h-8 flex items-center justify-center rounded-full
                     ${isActive ? "bg-white border-2 border-blue-600" : ""}
                     ${isCompleted ? "bg-blue-600" : "bg-gray-200"}
                   `}
                   >
                     {isCompleted ? (
-                      <CheckIcon className="w-5 h-5 text-white" />
+                      <CheckIcon className="w-4 h-4 lg:w-5 lg:h-5 text-white" />
                     ) : (
                       <span
                         className={`
-                        text-sm font-medium
+                        text-xs lg:text-sm font-medium
                         ${isActive ? "text-blue-600" : "text-gray-500"}
                       `}
                       >
@@ -65,10 +55,10 @@ export function StepIndicator({
                     )}
                   </span>
                 </span>
-                <span className="ml-4 min-w-0 flex flex-col">
+                <span className="ml-2 sm:ml-3 lg:ml-4 min-w-0 flex flex-col">
                   <span
                     className={`
-                    text-sm font-medium
+                    text-xs lg:text-sm font-medium whitespace-nowrap
                     ${isActive ? "text-blue-600" : ""}
                     ${isCompleted ? "text-gray-900" : "text-gray-500"}
                   `}
@@ -77,6 +67,20 @@ export function StepIndicator({
                   </span>
                 </span>
               </button>
+
+              {/* Connecting line between steps */}
+              {index !== steps.length - 1 && (
+                <div
+                  className="flex-1 h-0.5 mx-2 sm:mx-3 lg:mx-4"
+                  aria-hidden="true"
+                >
+                  <div
+                    className={`h-full ${
+                      isCompleted ? "bg-blue-600" : "bg-gray-200"
+                    }`}
+                  />
+                </div>
+              )}
             </li>
           );
         })}
