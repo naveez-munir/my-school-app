@@ -1,8 +1,12 @@
+import { useEffect } from "react";
 import { useParams } from "react-router";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { DateInput } from "~/components/common/form/inputs/DateInput";
 import { SelectInput } from "~/components/common/form/inputs/SelectInput";
 import { TextInput } from "~/components/common/form/inputs/TextInput";
 import { TextArea } from "~/components/common/form/inputs/TextArea";
+import { FormField } from "~/components/common/form/FormField";
 import {
   Gender,
   BloodGroup,
@@ -11,6 +15,7 @@ import {
 import { useUpdatePersonalInfo } from "~/hooks/useStudentQueries";
 import { useStudentForm } from "~/hooks/forms/useStudentForm";
 import { StudentFormLayout } from "./StudentFormLayout";
+import { updatePersonalInfoSchema, type UpdatePersonalInfoFormData } from "~/utils/validation/studentValidation";
 
 export function PersonalInfoForm() {
   const { id } = useParams<{ id: string }>();
@@ -18,10 +23,10 @@ export function PersonalInfoForm() {
   const {
     student,
     formData,
-    handleChange,
-    handleSubmit,
+    setFormData,
     isLoadingStudent,
     isPending,
+    handleSubmit: submitToApi,
   } = useStudentForm<UpdatePersonalInfoDto>({
     initialDataMapper: (student) => ({
       firstName: student.firstName || "",
@@ -48,6 +53,28 @@ export function PersonalInfoForm() {
     mutationHook: useUpdatePersonalInfo,
   });
 
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm<UpdatePersonalInfoFormData>({
+    resolver: zodResolver(updatePersonalInfoSchema),
+    defaultValues: formData,
+  });
+
+  // Update form when student data loads
+  useEffect(() => {
+    if (formData) {
+      reset(formData);
+    }
+  }, [formData, reset]);
+
+  const onSubmit = async (validatedData: UpdatePersonalInfoFormData) => {
+    setFormData(validatedData as UpdatePersonalInfoDto);
+    await submitToApi(validatedData);
+  };
+
   return (
     <StudentFormLayout
       student={student}
@@ -55,68 +82,124 @@ export function PersonalInfoForm() {
       isSubmitting={isPending}
       title="Edit Personal Information"
       description={`Update personal details for {studentName}.`}
-      onSubmit={handleSubmit}
+      onSubmit={handleSubmit(onSubmit)}
       studentId={id}
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <TextInput
-          label="First Name"
-          value={formData.firstName || ""}
-          onChange={(value) => handleChange("firstName", value)}
-          required
+        <FormField
+          name="firstName"
+          control={control}
+          errors={errors}
+          render={(field) => (
+            <TextInput
+              label="First Name"
+              value={field.value || ""}
+              onChange={field.onChange}
+              required
+            />
+          )}
         />
 
-        <TextInput
-          label="Last Name"
-          value={formData.lastName || ""}
-          onChange={(value) => handleChange("lastName", value)}
-          required
+        <FormField
+          name="lastName"
+          control={control}
+          errors={errors}
+          render={(field) => (
+            <TextInput
+              label="Last Name"
+              value={field.value || ""}
+              onChange={field.onChange}
+              required
+            />
+          )}
         />
 
-        <DateInput
-          label="Date of Birth"
-          value={formData.dateOfBirth || ""}
-          onChange={(value) => handleChange("dateOfBirth", value)}
-          required
+        <FormField
+          name="dateOfBirth"
+          control={control}
+          errors={errors}
+          render={(field) => (
+            <DateInput
+              label="Date of Birth"
+              value={field.value || ""}
+              onChange={field.onChange}
+              required
+            />
+          )}
         />
 
-        <SelectInput<typeof Gender>
-          label="Gender"
-          value={formData.gender || Gender.Male}
-          onChange={(value) => handleChange("gender", value)}
-          options={Gender}
-          placeholder="Select Gender"
-          required
+        <FormField
+          name="gender"
+          control={control}
+          errors={errors}
+          render={(field) => (
+            <SelectInput<typeof Gender>
+              label="Gender"
+              value={field.value || Gender.Male}
+              onChange={field.onChange}
+              options={Gender}
+              placeholder="Select Gender"
+              required
+            />
+          )}
         />
 
-        <SelectInput<typeof BloodGroup>
-          label="Blood Group"
-          value={formData.bloodGroup}
-          onChange={(value) => handleChange("bloodGroup", value)}
-          options={BloodGroup}
-          placeholder="Select Blood Group"
+        <FormField
+          name="bloodGroup"
+          control={control}
+          errors={errors}
+          render={(field) => (
+            <SelectInput<typeof BloodGroup>
+              label="Blood Group"
+              value={field.value}
+              onChange={field.onChange}
+              options={BloodGroup}
+              placeholder="Select Blood Group"
+            />
+          )}
         />
 
-        <TextInput
-          label="Phone"
-          value={formData.phone || ""}
-          onChange={(value) => handleChange("phone", value)}
-          type="tel"
+        <FormField
+          name="phone"
+          control={control}
+          errors={errors}
+          render={(field) => (
+            <TextInput
+              label="Phone"
+              value={field.value || ""}
+              onChange={field.onChange}
+              type="tel"
+            />
+          )}
         />
 
-        <TextInput
-          label="Email"
-          value={formData.email || ""}
-          onChange={(value) => handleChange("email", value)}
-          type="email"
+        <FormField
+          name="email"
+          control={control}
+          errors={errors}
+          render={(field) => (
+            <TextInput
+              label="Email"
+              value={field.value || ""}
+              onChange={field.onChange}
+              type="email"
+            />
+          )}
         />
 
         <div className="md:col-span-2">
-          <TextArea
-            label="Address"
-            value={formData.address || ""}
-            onChange={(value) => handleChange("address", value)}
-            rows={3}
+          <FormField
+            name="address"
+            control={control}
+            errors={errors}
+            render={(field) => (
+              <TextArea
+                label="Address"
+                value={field.value || ""}
+                onChange={field.onChange}
+                rows={3}
+              />
+            )}
           />
         </div>
       </div>
