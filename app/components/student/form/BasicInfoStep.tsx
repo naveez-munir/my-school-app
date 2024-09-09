@@ -1,17 +1,22 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { DateInput } from "~/components/common/form/inputs/DateInput";
 import { SelectInput } from "~/components/common/form/inputs/SelectInput";
 import { TextArea } from "~/components/common/form/inputs/TextArea";
 import { TextInput } from "~/components/common/form/inputs/TextInput";
-import { Gender, BloodGroup, GradeLevel } from "~/types/student";
+import { GradeSelector } from "~/components/common/GradeSelector";
+import { FormField } from "~/components/common/form/FormField";
+import { Gender, BloodGroup } from "~/types/student";
 import type { BasicInfoStepProps, CreateStudentDto } from "~/types/student";
+import { basicInfoSchema, type BasicInfoFormData } from "~/utils/validation/studentValidation";
 
 export function BasicInfoStep({
   data,
   onComplete,
   onBack,
 }: BasicInfoStepProps) {
-  const getInitialFormData = (data: Partial<CreateStudentDto>) => {
+  const getInitialFormData = (data: Partial<CreateStudentDto>): BasicInfoFormData => {
     return {
       firstName: data.firstName || "",
       lastName: data.lastName || "",
@@ -19,133 +24,209 @@ export function BasicInfoStep({
       dateOfBirth: data.dateOfBirth || "",
       admissionDate: data.admissionDate || "",
       gender: data.gender || Gender.Male,
-      bloodGroup: data.bloodGroup || undefined,
+      bloodGroup: data.bloodGroup || null,
       phone: data.phone || null,
       email: data.email || null,
       address: data.address || "",
-      rollNumber: data.rollNumber || "",
       gradeLevel: data.gradeLevel || "",
     };
   };
 
-  const [formData, setFormData] = useState(() => getInitialFormData(data));
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm<BasicInfoFormData>({
+    resolver: zodResolver(basicInfoSchema),
+    defaultValues: getInitialFormData(data),
+  });
 
   useEffect(() => {
-    setFormData(getInitialFormData(data));
-  }, [data]);
+    reset(getInitialFormData(data));
+  }, [data, reset]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onComplete(formData);
-  };
-  const handleChange = (field: keyof typeof formData, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+  const onSubmit = (validatedData: BasicInfoFormData) => {
+    onComplete(validatedData);
   };
 
   return (
-    <form onSubmit={handleSubmit} className="p-6 space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <TextInput
-          label="First Name"
-          value={formData.firstName}
-          onChange={(value) => handleChange("firstName", value)}
-          required
+    <form onSubmit={handleSubmit(onSubmit)} className="p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-5 lg:space-y-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 lg:gap-6">
+        <FormField
+          name="firstName"
+          control={control}
+          errors={errors}
+          render={(field) => (
+            <TextInput
+              label="First Name"
+              value={field.value}
+              onChange={field.onChange}
+              required
+            />
+          )}
         />
 
-        <TextInput
-          label="Last Name"
-          value={formData.lastName}
-          onChange={(value) => handleChange("lastName", value)}
-          required
+        <FormField
+          name="lastName"
+          control={control}
+          errors={errors}
+          render={(field) => (
+            <TextInput
+              label="Last Name"
+              value={field.value}
+              onChange={field.onChange}
+              required
+            />
+          )}
         />
 
-        <TextInput
-          label="CNI Number"
-          value={formData.cniNumber}
-          onChange={(value) => handleChange("cniNumber", value)}
-          required
+        <FormField
+          name="cniNumber"
+          control={control}
+          errors={errors}
+          render={(field) => (
+            <TextInput
+              label="CNI Number"
+              value={field.value}
+              onChange={field.onChange}
+              placeholder="12345-1234567-1"
+              required
+            />
+          )}
         />
 
-        <DateInput
-          label="Date of Birth"
-          value={formData.dateOfBirth}
-          onChange={(value) => handleChange("dateOfBirth", value)}
-          required
-        />
-        <SelectInput<typeof Gender>
-          label="Gender"
-          value={formData.gender}
-          onChange={(value) =>
-            setFormData((prev) => ({ ...prev, gender: value }))
-          }
-          options={Gender}
-          placeholder="Select Gender"
-          required
+        <FormField
+          name="dateOfBirth"
+          control={control}
+          errors={errors}
+          render={(field) => (
+            <DateInput
+              label="Date of Birth"
+              value={field.value}
+              onChange={field.onChange}
+              required
+            />
+          )}
         />
 
-        <SelectInput<typeof BloodGroup>
-          label="Blood Group"
-          value={formData.bloodGroup}
-          onChange={(value) =>
-            setFormData((prev) => ({ ...prev, bloodGroup: value }))
-          }
-          options={BloodGroup}
-          placeholder="Select Blood Group"
-          required
+        <FormField
+          name="gender"
+          control={control}
+          errors={errors}
+          render={(field) => (
+            <SelectInput<typeof Gender>
+              label="Gender"
+              value={field.value}
+              onChange={field.onChange}
+              options={Gender}
+              placeholder="Select Gender"
+              required
+            />
+          )}
         />
 
-        <TextInput
-          label="Phone"
-          value={formData.phone || ""}
-          onChange={(value) => handleChange("phone", value)}
-          type="tel"
+        <FormField
+          name="bloodGroup"
+          control={control}
+          errors={errors}
+          render={(field) => (
+            <SelectInput<typeof BloodGroup>
+              label="Blood Group"
+              value={field.value}
+              onChange={field.onChange}
+              options={BloodGroup}
+              placeholder="Select Blood Group"
+            />
+          )}
         />
 
-        <TextInput
-          label="Email"
-          value={formData.email || ""}
-          onChange={(value) => handleChange("email", value)}
-          type="email"
+        <FormField
+          name="phone"
+          control={control}
+          errors={errors}
+          render={(field) => (
+            <TextInput
+              label="Phone"
+              value={field.value || ""}
+              onChange={field.onChange}
+              type="tel"
+              placeholder="03XXXXXXXXX"
+            />
+          )}
+        />
+
+        <FormField
+          name="email"
+          control={control}
+          errors={errors}
+          render={(field) => (
+            <TextInput
+              label="Email"
+              value={field.value || ""}
+              onChange={field.onChange}
+              type="email"
+            />
+          )}
         />
 
         <div className="md:col-span-2">
-          <TextArea
-            label="Address"
-            value={formData.address}
-            onChange={(value) => handleChange("address", value)}
-            rows={3}
+          <FormField
+            name="address"
+            control={control}
+            errors={errors}
+            render={(field) => (
+              <TextArea
+                label="Address"
+                value={field.value || ""}
+                onChange={field.onChange}
+                rows={3}
+              />
+            )}
           />
         </div>
 
-        <DateInput
-          label="Admission Date"
-          value={formData.admissionDate}
-          onChange={(value) => handleChange("admissionDate", value)}
-          required
+        <FormField
+          name="admissionDate"
+          control={control}
+          errors={errors}
+          render={(field) => (
+            <DateInput
+              label="Admission Date"
+              value={field.value}
+              onChange={field.onChange}
+              required
+            />
+          )}
         />
-        <SelectInput<typeof GradeLevel>
-          label="Grade Level"
-          value={formData.gradeLevel as GradeLevel}
-          onChange={(value) =>
-            setFormData((prev) => ({ ...prev, gradeLevel: value }))
-          }
-          options={GradeLevel}
-          placeholder="Select grade level"
-          required
+
+        <FormField
+          name="gradeLevel"
+          control={control}
+          errors={errors}
+          render={(field) => (
+            <GradeSelector
+              label="Grade Level"
+              value={field.value}
+              onChange={field.onChange}
+              placeholder="Select grade level"
+              required
+            />
+          )}
         />
       </div>
 
-      <div className="flex justify-end space-x-3 pt-6 border-t">
+      <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 pt-4 sm:pt-5 lg:pt-6 border-t">
         <button
           type="button"
           onClick={onBack}
-          className="px-4 py-2 border rounded-md text-gray-700 hover:bg-gray-50 cursor-pointer"
+          className="px-3 py-1.5 sm:px-4 sm:py-2 border rounded-md text-xs sm:text-sm text-gray-700 hover:bg-gray-50 cursor-pointer"
         >
           Back
         </button>
         <button
           type="submit"
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer"
+          className="px-3 py-1.5 sm:px-4 sm:py-2 bg-blue-600 text-white rounded-md text-xs sm:text-sm hover:bg-blue-700 cursor-pointer"
         >
           Next
         </button>
