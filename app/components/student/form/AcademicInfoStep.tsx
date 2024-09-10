@@ -1,27 +1,32 @@
+import { useEffect } from "react";
 import { useParams } from "react-router";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { DateInput } from "~/components/common/form/inputs/DateInput";
 import { TextInput } from "~/components/common/form/inputs/TextInput";
-import { SelectInput } from "~/components/common/form/inputs/SelectInput";
 import { ClassSelector } from "~/components/common/ClassSelector";
-import { GradeLevel, type UpdateAcademicInfoDto } from "~/types/student";
+import { GradeSelector } from "~/components/common/GradeSelector";
+import { FormField } from "~/components/common/form/FormField";
+import type { UpdateAcademicInfoDto } from "~/types/student";
 import { useUpdateAcademicInfo } from "~/hooks/useStudentQueries";
 import { useStudentForm } from "~/hooks/forms/useStudentForm";
 import { StudentFormLayout } from "./StudentFormLayout";
+import { updateAcademicInfoSchema, type UpdateAcademicInfoFormData } from "~/utils/validation/studentValidation";
 
 export function AcademicInfoForm() {
   const { id } = useParams<{ id: string }>();
   const {
     student,
     formData,
-    handleChange,
-    handleSubmit,
+    setFormData,
     isLoadingStudent,
     isPending,
+    handleSubmit: submitToApi,
   } = useStudentForm<UpdateAcademicInfoDto>({
     initialDataMapper: (student) => ({
-      class: student.class,
+      class: student.class?._id || null,
       rollNumber: student.rollNumber,
-      gradeLevel: student.gradeLevel || "",
+      gradeLevel: student.gradeLevel?.toUpperCase() || "",
       enrollmentDate: student.enrollmentDate || null,
     }),
     defaultData: {
@@ -33,6 +38,27 @@ export function AcademicInfoForm() {
     mutationHook: useUpdateAcademicInfo,
   });
 
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm<UpdateAcademicInfoFormData>({
+    resolver: zodResolver(updateAcademicInfoSchema),
+    defaultValues: formData,
+  });
+
+  useEffect(() => {
+    if (formData) {
+      reset(formData);
+    }
+  }, [formData, reset]);
+
+  const onSubmit = async (validatedData: UpdateAcademicInfoFormData) => {
+    setFormData(validatedData as UpdateAcademicInfoDto);
+    await submitToApi(validatedData);
+  };
+
   return (
     <StudentFormLayout
       student={student}
@@ -40,35 +66,61 @@ export function AcademicInfoForm() {
       isSubmitting={isPending}
       title="Edit Academic Information"
       description={`Update academic details for {studentName}.`}
-      onSubmit={handleSubmit}
+      onSubmit={handleSubmit(onSubmit)}
       studentId={id}
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <SelectInput<typeof GradeLevel>
-          label="Grade Level"
-          value={formData.gradeLevel as GradeLevel}
-          onChange={(value) => handleChange("gradeLevel", value)}
-          options={GradeLevel}
-          placeholder="Select Grade Level"
-          required
+        <FormField
+          name="gradeLevel"
+          control={control}
+          errors={errors}
+          render={(field) => (
+            <GradeSelector
+              value={field.value || ""}
+              onChange={field.onChange}
+              label="Grade Level"
+              required
+            />
+          )}
         />
 
-        <ClassSelector
-          value={formData.class || ""}
-          onChange={(classId) => handleChange("class", classId)}
-          label="Class"
+        <FormField
+          name="class"
+          control={control}
+          errors={errors}
+          render={(field) => (
+            <ClassSelector
+              value={field.value || ""}
+              onChange={field.onChange}
+              label="Class"
+            />
+          )}
         />
 
-        <TextInput
-          label="Roll Number"
-          value={formData.rollNumber || ""}
-          onChange={(value) => handleChange("rollNumber", value)}
+        <FormField
+          name="rollNumber"
+          control={control}
+          errors={errors}
+          render={(field) => (
+            <TextInput
+              label="Roll Number"
+              value={field.value || ""}
+              onChange={field.onChange}
+            />
+          )}
         />
 
-        <DateInput
-          label="Enrollment Date"
-          value={formData.enrollmentDate || ""}
-          onChange={(value) => handleChange("enrollmentDate", value)}
+        <FormField
+          name="enrollmentDate"
+          control={control}
+          errors={errors}
+          render={(field) => (
+            <DateInput
+              label="Enrollment Date"
+              value={field.value || ""}
+              onChange={field.onChange}
+            />
+          )}
         />
       </div>
     </StudentFormLayout>
