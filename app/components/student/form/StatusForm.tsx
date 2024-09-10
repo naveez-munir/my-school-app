@@ -1,8 +1,11 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "react-router";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { DateInput } from "~/components/common/form/inputs/DateInput";
 import { SelectInput } from "~/components/common/form/inputs/SelectInput";
 import { TextArea } from "~/components/common/form/inputs/TextArea";
+import { FormField } from "~/components/common/form/FormField";
 import {
   StudentStatus,
   ExitStatus,
@@ -11,6 +14,7 @@ import {
 import { useUpdateStudentStatus } from "~/hooks/useStudentQueries";
 import { useStudentForm } from "~/hooks/forms/useStudentForm";
 import { StudentFormLayout } from "./StudentFormLayout";
+import { updateStatusSchema, type UpdateStatusFormData } from "~/utils/validation/studentValidation";
 
 export function StatusForm() {
   const { id } = useParams<{ id: string }>();
@@ -18,11 +22,10 @@ export function StatusForm() {
   const {
     student,
     formData,
-    handleChange,
     setFormData,
-    handleSubmit: baseHandleSubmit,
     isLoadingStudent,
     isPending,
+    handleSubmit: submitToApi,
   } = useStudentForm<UpdateStatusDto>({
     initialDataMapper: (student) => ({
       status: student.status || StudentStatus.Active,
@@ -39,25 +42,40 @@ export function StatusForm() {
     mutationHook: useUpdateStudentStatus,
   });
 
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+    reset,
+    watch,
+  } = useForm<UpdateStatusFormData>({
+    resolver: zodResolver(updateStatusSchema),
+    defaultValues: formData,
+  });
+
+  const exitStatus = watch("exitStatus");
   const [showExitFields, setShowExitFields] = useState<boolean>(
-    formData.exitStatus !== ExitStatus.None
+    exitStatus !== ExitStatus.None
   );
 
   useEffect(() => {
-    setShowExitFields(formData.exitStatus !== ExitStatus.None);
-  }, [formData.exitStatus]);
+    if (formData) {
+      reset(formData);
+    }
+  }, [formData, reset]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  useEffect(() => {
+    setShowExitFields(exitStatus !== ExitStatus.None);
+  }, [exitStatus]);
+
+  const onSubmit = async (validatedData: UpdateStatusFormData) => {
     const dataToSubmit: UpdateStatusDto = {
-      ...formData,
-      exitDate:
-        formData.exitStatus === ExitStatus.None ? null : formData.exitDate,
-      exitRemarks:
-        formData.exitStatus === ExitStatus.None ? null : formData.exitRemarks,
+      ...validatedData,
+      exitDate: validatedData.exitStatus === ExitStatus.None ? null : validatedData.exitDate,
+      exitRemarks: validatedData.exitStatus === ExitStatus.None ? null : validatedData.exitRemarks,
     };
     setFormData(dataToSubmit);
-    baseHandleSubmit(e);
+    await submitToApi(dataToSubmit);
   };
 
   return (
@@ -67,43 +85,71 @@ export function StatusForm() {
       isSubmitting={isPending}
       title="Edit Student Status"
       description={`Update status information for {studentName}.`}
-      onSubmit={handleSubmit}
+      onSubmit={handleSubmit(onSubmit)}
       studentId={id}
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <SelectInput<typeof StudentStatus>
-          label="Student Status"
-          value={formData.status}
-          onChange={(value) => handleChange("status", value)}
-          options={StudentStatus}
-          placeholder="Select Status"
-          required
+        <FormField
+          name="status"
+          control={control}
+          errors={errors}
+          render={(field) => (
+            <SelectInput<typeof StudentStatus>
+              label="Student Status"
+              value={field.value}
+              onChange={field.onChange}
+              options={StudentStatus}
+              placeholder="Select Status"
+              required
+            />
+          )}
         />
 
-        <SelectInput<typeof ExitStatus>
-          label="Exit Status"
-          value={formData.exitStatus || ExitStatus.None}
-          onChange={(value) => handleChange("exitStatus", value)}
-          options={ExitStatus}
-          placeholder="Select Exit Status"
+        <FormField
+          name="exitStatus"
+          control={control}
+          errors={errors}
+          render={(field) => (
+            <SelectInput<typeof ExitStatus>
+              label="Exit Status"
+              value={field.value || ExitStatus.None}
+              onChange={field.onChange}
+              options={ExitStatus}
+              placeholder="Select Exit Status"
+            />
+          )}
         />
 
         {showExitFields && (
           <>
-            <DateInput
-              label="Exit Date"
-              value={formData.exitDate || ""}
-              onChange={(value) => handleChange("exitDate", value)}
-              required={showExitFields}
+            <FormField
+              name="exitDate"
+              control={control}
+              errors={errors}
+              render={(field) => (
+                <DateInput
+                  label="Exit Date"
+                  value={field.value || ""}
+                  onChange={field.onChange}
+                  required={showExitFields}
+                />
+              )}
             />
 
             <div className="md:col-span-2">
-              <TextArea
-                label="Exit Remarks"
-                value={formData.exitRemarks || ""}
-                onChange={(value) => handleChange("exitRemarks", value)}
-                rows={3}
-                placeholder="Reason for leaving the school"
+              <FormField
+                name="exitRemarks"
+                control={control}
+                errors={errors}
+                render={(field) => (
+                  <TextArea
+                    label="Exit Remarks"
+                    value={field.value || ""}
+                    onChange={field.onChange}
+                    rows={3}
+                    placeholder="Reason for leaving the school"
+                  />
+                )}
               />
             </div>
           </>
