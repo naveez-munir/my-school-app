@@ -1,17 +1,20 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   DocumentType,
-  type AddDocumentDto,
   type Student,
   type UpdatePersonalInfoDto,
 } from "~/types/student";
 import { SelectInput } from "~/components/common/form/inputs/SelectInput";
+import { FormField } from "~/components/common/form/FormField";
 import { PhotoUpload } from "./PhotoUpload";
 import { DocumentUploader } from "./DocumentUploader";
 import { useAddStudentDocument, useUpdatePersonalInfo } from "~/hooks/useStudentQueries";
 import { useStudentForm } from "~/hooks/forms/useStudentForm";
 import { StudentFormLayout } from "./StudentFormLayout";
+import { documentSchema, type DocumentFormData } from "~/utils/validation/studentValidation";
 import toast from "react-hot-toast";
 
 export function DocumentsForm() {
@@ -37,11 +40,21 @@ export function DocumentsForm() {
   const addDocumentMutation = useAddStudentDocument();
 
   const [documents, setDocuments] = useState<Student["documents"]>([]);
-  const [newDocument, setNewDocument] = useState<Partial<AddDocumentDto>>({
-    documentType: "",
-    documentUrl: "",
-  });
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+
+  // Form validation for adding documents
+  const {
+    control: documentControl,
+    handleSubmit: handleDocumentSubmit,
+    formState: { errors: documentErrors },
+    reset: resetDocumentForm,
+  } = useForm<DocumentFormData>({
+    resolver: zodResolver(documentSchema),
+    defaultValues: {
+      documentType: "",
+      documentUrl: "",
+    },
+  });
 
   useEffect(() => {
     if (student && student.documents) {
@@ -49,8 +62,8 @@ export function DocumentsForm() {
     }
   }, [student]);
 
-  const handleAddDocument = async () => {
-    if (!id || !newDocument.documentType || !newDocument.documentUrl) return;
+  const handleAddDocument = async (validatedData: DocumentFormData) => {
+    if (!id) return;
 
     const toastId = toast.loading("Adding document...");
 
@@ -58,12 +71,9 @@ export function DocumentsForm() {
       setIsSubmitting(true);
       await addDocumentMutation.mutateAsync({
         id,
-        data: newDocument as AddDocumentDto,
+        data: validatedData,
       });
-      setNewDocument({
-        documentType: "",
-        documentUrl: "",
-      });
+      resetDocumentForm();
       toast.success("Document added successfully", { id: toastId });
     } catch (error) {
       console.error("Failed to add document:", error);
@@ -78,10 +88,6 @@ export function DocumentsForm() {
 
   const handlePhotoChange = (url: string) => {
     handleChange("photoUrl", url);
-  };
-
-  const handleDocumentUrlChange = (url: string) => {
-    setNewDocument(prev => ({ ...prev, documentUrl: url }));
   };
 
   const handleRemoveDocument = (index: number) => {
@@ -154,43 +160,51 @@ export function DocumentsForm() {
 
         <div className="mt-6 border rounded-md p-4 bg-gray-50">
           <h4 className="font-medium text-gray-800 mb-4">Add New Document</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <SelectInput<typeof DocumentType>
-              label="Document Type"
-              value={newDocument.documentType as DocumentType}
-              options={DocumentType}
-              onChange={(value) =>
-                setNewDocument((prev) => ({ ...prev, documentType: value }))
-              }
-              placeholder="Select document type"
-            />
-            
-            <div className="flex items-end">
-              <button
-                type="button"
-                onClick={handleAddDocument}
-                disabled={
-                  !newDocument.documentType ||
-                  !newDocument.documentUrl ||
-                  isSubmitting ||
-                  addDocumentMutation.isPending
-                }
-                className="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-700 disabled:bg-gray-400 disabled:cursor-not-allowed w-full"
-              >
-                {isSubmitting || addDocumentMutation.isPending
-                  ? "Adding..."
-                  : "Add Document"}
-              </button>
+          <form onSubmit={handleDocumentSubmit(handleAddDocument)}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <FormField
+                name="documentType"
+                control={documentControl}
+                errors={documentErrors}
+                render={(field) => (
+                  <SelectInput<typeof DocumentType>
+                    label="Document Type"
+                    value={field.value as DocumentType}
+                    options={DocumentType}
+                    onChange={field.onChange}
+                    placeholder="Select document type"
+                  />
+                )}
+              />
+
+              <div className="flex items-end">
+                <button
+                  type="submit"
+                  disabled={isSubmitting || addDocumentMutation.isPending}
+                  className="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-700 disabled:bg-gray-400 disabled:cursor-not-allowed w-full"
+                >
+                  {isSubmitting || addDocumentMutation.isPending
+                    ? "Adding..."
+                    : "Add Document"}
+                </button>
+              </div>
             </div>
-          </div>
-          
-          <DocumentUploader
-            currentDocumentUrl={newDocument.documentUrl}
-            documentType={newDocument.documentType || "Document"}
-            onDocumentChange={handleDocumentUrlChange}
-            folder={`students/${id}/documents`}
-            label="Upload Document"
-          />
+
+            <FormField
+              name="documentUrl"
+              control={documentControl}
+              errors={documentErrors}
+              render={(field) => (
+                <DocumentUploader
+                  currentDocumentUrl={field.value}
+                  documentType="Document"
+                  onDocumentChange={field.onChange}
+                  folder={`students/${id}/documents`}
+                  label="Upload Document"
+                />
+              )}
+            />
+          </form>
         </div>
       </div>
     </StudentFormLayout>
