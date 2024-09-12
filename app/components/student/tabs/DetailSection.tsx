@@ -32,36 +32,38 @@ export function DetailSection({
   const navigate = useNavigate();
   const isAdminUser = isAdmin();
 
-  const columnClass = columns === 2 ? 'grid-cols-2' : 'grid-cols-3';
+  const columnClass = columns === 2
+    ? 'grid-cols-1 sm:grid-cols-2'
+    : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3';
 
   return (
-    <div className={`bg-white border border-gray-300 rounded-lg ${className}`}>
+    <div className={`card ${className}`}>
       {/* Header */}
-      <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+      <div className="flex-between px-3 sm:px-4 lg:px-6 py-3 sm:py-4 border-b border-gray-200">
+        <h3 className="text-heading lg:text-base font-semibold text-gray-900">{title}</h3>
         {showEditButton && editPath && isAdminUser && studentId && (
           <button
             onClick={() => navigate(`/dashboard/students/${studentId}${editPath}`)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+            className="btn-primary flex items-center gap-1 sm:gap-2"
           >
             <span>✏️</span>
-            Edit
+            <span className="hidden sm:inline">Edit</span>
           </button>
         )}
       </div>
 
       {/* Content */}
-      <div className="px-6 py-5">
-        <div className={`grid gap-6 ${columnClass}`}>
+      <div className="px-3 sm:px-4 lg:px-6 py-3 sm:py-4 lg:py-5">
+        <div className={`grid gap-3 sm:gap-4 lg:gap-6 ${columnClass}`}>
           {fields.map((field, index) => {
             const Icon = field.icon;
             return (
               <div key={index} className="flex flex-col">
-                <div className="flex items-center gap-2 mb-2">
-                  {Icon && <Icon className="w-4 h-4 text-gray-500" />}
-                  <span className="text-sm text-gray-600 font-medium">{field.label}</span>
+                <div className="flex-center mb-1 sm:mb-2">
+                  {Icon && <Icon className="icon-md text-gray-500" />}
+                  <span className="text-label">{field.label}</span>
                 </div>
-                <p className={`text-gray-900 font-medium ${field.valueClassName || ''}`}>
+                <p className={`text-body font-medium ${field.valueClassName || ''}`}>
                   {field.value !== undefined && field.value !== null
                     ? field.value
                     : (field.fallback || 'Not provided')}
