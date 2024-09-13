@@ -42,11 +42,11 @@ export function InfoCard({
       
       <div className="space-y-2">
         {fields.map((field, index) => (
-          <div key={index}>
+          <div key={index} className="flex justify-between items-center">
             <span className="text-gray-500 text-sm">{field.label}:</span>
-            <p className={field.valueClassName || ''}>
-              {field.value !== undefined && field.value !== null 
-                ? field.value 
+            <p className={field.valueClassName || 'font-medium text-gray-900'}>
+              {field.value !== undefined && field.value !== null
+                ? field.value
                 : (field.fallback || 'Not provided')}
             </p>
           </div>
