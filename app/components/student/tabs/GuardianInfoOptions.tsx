@@ -18,23 +18,23 @@ export function GuardianInfoOption1({ student }: StudentDataProps) {
   ];
 
   return (
-    <div className="bg-white border border-gray-300 rounded-lg">
+    <div className="card">
       <StudentSectionHeader
         title="Guardian Information"
         editPath="/edit/guardian"
         studentId={student._id}
       />
-      <div className="p-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="p-4 sm:p-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
           {fields.map((field, index) => {
             const Icon = field.icon;
             return (
-              <div key={index} className={`${field.color} rounded-lg p-4 border border-gray-200`}>
-                <div className="flex items-center gap-2 mb-2">
-                  <Icon className="w-4 h-4 text-gray-600" />
-                  <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">{field.label}</span>
+              <div key={index} className={`${field.color} rounded-lg p-3 sm:p-4 border border-gray-200`}>
+                <div className="flex-center mb-2">
+                  <Icon className="icon-md text-gray-600" />
+                  <span className="text-section-title">{field.label}</span>
                 </div>
-                <p className="text-sm font-semibold text-gray-900 line-clamp-2">{field.value}</p>
+                <p className="text-body font-semibold line-clamp-2">{field.value}</p>
               </div>
             );
           })}
@@ -51,56 +51,56 @@ export function GuardianInfoOption1({ student }: StudentDataProps) {
  */
 export function GuardianInfoOption2({ student }: StudentDataProps) {
   return (
-    <div className="bg-white border border-gray-300 rounded-lg">
+    <div className="card">
       <StudentSectionHeader
         title="Guardian Information"
         editPath="/edit/guardian"
         studentId={student._id}
       />
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 p-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 p-4 sm:p-6">
         {/* Left Sidebar */}
-        <div className="lg:col-span-1 space-y-4">
-          <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-            <div className="flex items-center gap-2 mb-2">
-              <Users className="w-4 h-4 text-gray-600" />
-              <span className="text-xs font-semibold text-gray-600 uppercase">Guardian Name</span>
+        <div className="lg:col-span-1 space-y-3 sm:space-y-4">
+          <div className="info-box">
+            <div className="flex-center mb-2">
+              <Users className="icon-md text-gray-600" />
+              <span className="text-section-title">Guardian Name</span>
             </div>
-            <p className="text-sm font-semibold text-gray-900">{student.guardian.name}</p>
+            <p className="text-body font-semibold">{student.guardian.name}</p>
           </div>
 
-          <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-            <div className="flex items-center gap-2 mb-2">
-              <Users className="w-4 h-4 text-gray-600" />
-              <span className="text-xs font-semibold text-gray-600 uppercase">Relationship</span>
+          <div className="info-box">
+            <div className="flex-center mb-2">
+              <Users className="icon-md text-gray-600" />
+              <span className="text-section-title">Relationship</span>
             </div>
-            <p className="text-sm font-semibold text-gray-900">{student.guardian.relationship}</p>
+            <p className="text-body font-semibold">{student.guardian.relationship}</p>
           </div>
 
-          <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-            <div className="flex items-center gap-2 mb-2">
-              <User className="w-4 h-4 text-gray-600" />
-              <span className="text-xs font-semibold text-gray-600 uppercase">CNI Number</span>
+          <div className="info-box">
+            <div className="flex-center mb-2">
+              <User className="icon-md text-gray-600" />
+              <span className="text-section-title">CNI Number</span>
             </div>
-            <p className="text-sm font-semibold text-gray-900">{student.guardian.cniNumber}</p>
+            <p className="text-body font-semibold">{student.guardian.cniNumber}</p>
           </div>
         </div>
 
         {/* Right Content */}
         <div className="lg:col-span-2">
-          <h4 className="text-sm font-semibold text-gray-900 mb-4">Contact Information</h4>
+          <h4 className="text-heading mb-3 sm:mb-4">Contact Information</h4>
           <div className="space-y-3">
-            <div className="flex items-start gap-3 bg-gray-50 rounded-lg p-4 border border-gray-200">
-              <Phone className="w-4 h-4 text-gray-600 mt-1 flex-shrink-0" />
+            <div className="flex-start info-box">
+              <Phone className="icon-md text-gray-600 mt-0.5 flex-shrink-0" />
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold text-gray-600 uppercase">Phone</p>
-                <p className="text-sm font-semibold text-gray-900 break-words mt-1">{student.guardian.phone}</p>
+                <p className="text-section-title">Phone</p>
+                <p className="text-body font-semibold break-words mt-1">{student.guardian.phone}</p>
               </div>
             </div>
-            <div className="flex items-start gap-3 bg-gray-50 rounded-lg p-4 border border-gray-200">
-              <Mail className="w-4 h-4 text-gray-600 mt-1 flex-shrink-0" />
+            <div className="flex-start info-box">
+              <Mail className="icon-md text-gray-600 mt-0.5 flex-shrink-0" />
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold text-gray-600 uppercase">Email</p>
-                <p className="text-sm font-semibold text-gray-900 break-words mt-1">{student.guardian.email}</p>
+                <p className="text-section-title">Email</p>
+                <p className="text-body font-semibold break-words mt-1">{student.guardian.email}</p>
               </div>
             </div>
           </div>
@@ -126,23 +126,23 @@ export function GuardianInfoOption3({ student }: StudentDataProps) {
   ];
 
   return (
-    <div className="bg-white border border-gray-300 rounded-lg">
+    <div className="card">
       <StudentSectionHeader
         title="Guardian Information"
         editPath="/edit/guardian"
         studentId={student._id}
       />
-      <div className="p-6">
-        <h4 className="text-sm font-semibold text-gray-900 mb-4">Guardian Details</h4>
+      <div className="p-4 sm:p-6">
+        <h4 className="text-heading mb-3 sm:mb-4">Guardian Details</h4>
         <div className="space-y-3">
           {fields.map((field, index) => {
             const Icon = field.icon;
             return (
-              <div key={index} className="flex items-center gap-4 p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
-                <Icon className="w-5 h-5 text-blue-600 flex-shrink-0" />
+              <div key={index} className="flex items-center gap-3 sm:gap-4 p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
+                <Icon className="icon-lg text-blue-600 flex-shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">{field.label}</p>
-                  <p className="text-sm font-semibold text-gray-900 mt-1 break-words">{field.value}</p>
+                  <p className="text-section-title">{field.label}</p>
+                  <p className="text-body font-semibold mt-1 break-words">{field.value}</p>
                 </div>
               </div>
             );
@@ -169,24 +169,24 @@ export function GuardianInfoOption4({ student }: StudentDataProps) {
   ];
 
   return (
-    <div className="bg-white border border-gray-300 rounded-lg">
+    <div className="card">
       <StudentSectionHeader
         title="Guardian Information"
         editPath="/edit/guardian"
         studentId={student._id}
       />
-      <div className="p-6">
-        <h4 className="text-sm font-semibold text-gray-900 mb-4">Guardian Details</h4>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="p-4 sm:p-6">
+        <h4 className="text-heading mb-3 sm:mb-4">Guardian Details</h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
           {fields.map((field, index) => {
             const Icon = field.icon;
             return (
-              <div key={index} className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:border-gray-300 transition-colors">
-                <div className="flex items-start gap-3">
-                  <Icon className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+              <div key={index} className="info-box-hover">
+                <div className="flex-start">
+                  <Icon className="icon-lg text-blue-600 mt-0.5 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">{field.label}</p>
-                    <p className="text-sm font-semibold text-gray-900 mt-2 break-words">{field.value}</p>
+                    <p className="text-section-title">{field.label}</p>
+                    <p className="text-body font-semibold mt-2 break-words">{field.value}</p>
                   </div>
                 </div>
               </div>
