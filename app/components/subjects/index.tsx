@@ -87,7 +87,7 @@ export const SubjectSection = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold text-gray-700">
+        <h2 className="text-xs sm:text-sm lg:text-base font-semibold text-gray-700">
           Course Management
         </h2>
         <button
@@ -95,7 +95,7 @@ export const SubjectSection = () => {
             setEditingSubject(null);
             setIsModalOpen(true);
           }}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+          className="bg-blue-600 text-white text-xs sm:text-sm px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg hover:bg-blue-700"
         >
           Add Course
         </button>
