@@ -2,17 +2,21 @@ import { createColumnHelper, type ColumnDef } from '@tanstack/react-table';
 import type { Subject, SubjectsTableProps } from '~/types/subject';
 import { GenericDataTable } from '../common/table/GenericDataTable';
 import { SortableColumnHeader, createActionsColumn, type ActionButton } from '../common/table/TableHelpers';
+import { Edit, Trash2 } from 'lucide-react';
+import { formatUserFriendlyDate } from '~/utils/dateUtils';
 
 export function createSubjectColumns(): ColumnDef<Subject, any>[] {
   const columnHelper = createColumnHelper<Subject>();
   const actions: ActionButton<Subject>[] = [
     {
       label: 'Edit',
+      icon: Edit,
       onClick: (item, _, meta) => meta.onEdit?.(item),
       color: 'blue'
     },
     {
       label: 'Delete',
+      icon: Trash2,
       onClick: (_, id, meta) => meta.onDelete?.(id),
       color: 'red'
     }
@@ -39,7 +43,7 @@ export function createSubjectColumns(): ColumnDef<Subject, any>[] {
       header: ({ column }) => <SortableColumnHeader column={column} title="Created Date" />,
       cell: (info) => (
         <div className="text-sm text-gray-500">
-          {new Date(info.getValue()).toLocaleDateString()}
+          {formatUserFriendlyDate(info.getValue())}
         </div>
       ),
     }),
