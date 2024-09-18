@@ -38,21 +38,21 @@ export function createTeacherColumns(onEdit?: (teacher: TeacherResponse) => void
     columnHelper.accessor('name', {
       header: ({ column }) => <SortableColumnHeader column={column} title="Teacher Name" />,
       cell: (info) => (
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-2 sm:space-x-2.5">
           {info.row.original.photoUrl ? (
             <img
               src={info.row.original.photoUrl}
               alt={info.getValue()}
-              className="h-8 w-8 rounded-full object-cover"
+              className="h-6 w-6 sm:h-7 sm:w-7 rounded-full object-cover"
             />
           ) : (
-            <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
+            <div className="h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-gray-200 flex items-center justify-center">
               <span className="text-xs font-medium text-gray-600">
                 {info.getValue().split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
               </span>
             </div>
           )}
-          <div className="text-sm font-medium text-gray-900">
+          <div className="font-medium text-gray-900">
             {info.getValue()}
           </div>
         </div>
@@ -61,7 +61,7 @@ export function createTeacherColumns(onEdit?: (teacher: TeacherResponse) => void
     columnHelper.accessor('cniNumber', {
       header: ({ column }) => <SortableColumnHeader column={column} title="CNI Number" />,
       cell: (info) => (
-        <div className="text-sm text-gray-500">
+        <div className="text-gray-500">
           {info.getValue()}
         </div>
       ),
@@ -69,7 +69,7 @@ export function createTeacherColumns(onEdit?: (teacher: TeacherResponse) => void
     columnHelper.accessor('phone', {
       header: ({ column }) => <SortableColumnHeader column={column} title="Phone" />,
       cell: (info) => (
-        <div className="text-sm text-gray-500">
+        <div className="text-gray-500">
           {info.getValue() || '-'}
         </div>
       ),
@@ -77,7 +77,7 @@ export function createTeacherColumns(onEdit?: (teacher: TeacherResponse) => void
     columnHelper.accessor('assignedClassName', {
       header: ({ column }) => <SortableColumnHeader column={column} title="Assigned Class" />,
       cell: (info) => (
-        <div className="text-sm text-gray-500">
+        <div className="text-gray-500">
           {info.getValue() || '-'}
         </div>
       ),
@@ -85,7 +85,7 @@ export function createTeacherColumns(onEdit?: (teacher: TeacherResponse) => void
     columnHelper.accessor('employmentStatus', {
       header: ({ column }) => <SortableColumnHeader column={column} title="Status" />,
       cell: (info) => (
-        <span className={`px-2 py-1 rounded-full text-xs ${getEmploymentStatusColor(info.getValue())}`}>
+        <span className={`px-2 py-0.5 sm:py-1 rounded-full text-xs ${getEmploymentStatusColor(info.getValue())}`}>
           {info.getValue()}
         </span>
       ),
