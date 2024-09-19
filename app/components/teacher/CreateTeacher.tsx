@@ -3,24 +3,33 @@ import { TeacherForm } from './TeacherForm';
 import type { CreateTeacherDto } from '~/types/teacher';
 import { useNavigate } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
+import { getErrorMessage } from '~/utils/error';
 
 export function CreateTeacher() {
   const navigate = useNavigate();
   const createTeacherMutation = useCreateTeacher();
   const queryClient = useQueryClient();
 
-  const handleSubmit = async (data: CreateTeacherDto) => {
-    try {
-      const submissionData = { ...data };
-      if (submissionData.classTeacherOf === '') {
-        delete submissionData.classTeacherOf;
-      }
-      await createTeacherMutation.mutateAsync(submissionData);
-      queryClient.invalidateQueries({ queryKey: ['classes'] });
-      navigate('/dashboard/teachers');
-    } catch (error) {
-      console.error('Failed to create teacher:', error);
+  const handleSubmit = (data: CreateTeacherDto) => {
+    const submissionData = { ...data };
+    if (submissionData.classTeacherOf === '') {
+      delete submissionData.classTeacherOf;
     }
+
+    createTeacherMutation.mutate(
+      submissionData,
+      {
+        onSuccess: () => {
+          toast.success('Teacher created successfully');
+          queryClient.invalidateQueries({ queryKey: ['classes'] });
+          navigate('/dashboard/teachers');
+        },
+        onError: (error) => {
+          toast.error(getErrorMessage(error));
+        }
+      }
+    );
   };
 
   return (
