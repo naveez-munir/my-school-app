@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { useStudent } from '~/hooks/useStudentQueries';
 import toast from 'react-hot-toast';
+import { cleanFormData } from '~/utils/cleanFormData';
+import { getErrorMessage } from '~/utils/error';
 
 export function useStudentForm<TFormData, TMutationData = TFormData>({
   initialDataMapper,
@@ -47,30 +49,39 @@ export function useStudentForm<TFormData, TMutationData = TFormData>({
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    
+  const handleSubmit = async (dataOrEvent?: TFormData | React.FormEvent) => {
+    // Check if it's an event or data
+    const isEvent = dataOrEvent && typeof dataOrEvent === 'object' && 'preventDefault' in dataOrEvent;
+
+    if (isEvent) {
+      (dataOrEvent as React.FormEvent).preventDefault();
+    }
+
     if (!id) return;
-    
+
     const toastId = toast.loading(`Saving ${entityName.toLowerCase()}...`);
-    
+
     try {
       setIsSubmitting(true);
-      const dataToSubmit = transformOnSubmit 
-        ? transformOnSubmit(formData)
-        : formData as unknown as TMutationData;
+      // Use passed data if available, otherwise use formData from state
+      const dataToUse = !isEvent && dataOrEvent ? dataOrEvent as TFormData : formData;
+      const dataToSubmit = transformOnSubmit
+        ? transformOnSubmit(dataToUse)
+        : dataToUse as unknown as TMutationData;
+      // Clean the data to remove null, undefined, and empty string values
+      const cleanedData = cleanFormData(dataToSubmit);
       await mutation.mutateAsync({
         id,
-        data: dataToSubmit
+        data: cleanedData
       });
       if (onSuccess) {
-        onSuccess(formData);
+        onSuccess(dataToUse);
       }
-      
-      toast.success(successMessage, { id: toastId });
-      
+
+      toast.success(successMessage, { id: toastId, duration: 5000 });
+
       if (redirectPath) {
-        const path = typeof redirectPath === 'function' 
+        const path = typeof redirectPath === 'function'
           ? redirectPath(id)
           : redirectPath;
         navigate(path);
@@ -79,11 +90,7 @@ export function useStudentForm<TFormData, TMutationData = TFormData>({
       }
     } catch (error) {
       console.error('Form submission failed:', error);
-      const errorMessage = error instanceof Error 
-        ? error.message 
-        : `Failed to save ${entityName.toLowerCase()}`;
-      
-      toast.error(errorMessage, { id: toastId });
+      toast.error(getErrorMessage(error), { id: toastId, duration: 5000 });
     } finally {
       setIsSubmitting(false);
     }
