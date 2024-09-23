@@ -1,9 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { studentApi, baseStudentService } from '~/services/studentApi';
 import { createQueryHooks } from './queryHookFactory';
-import type { 
-  Student, 
-  StudentResponse, 
+import type {
+  Student,
+  StudentResponse,
   CreateStudentDto,
   UpdatePersonalInfoDto,
   UpdateAcademicInfoDto,
@@ -64,77 +64,78 @@ export const useStudent = (id: string) => {
 // Specialized mutation hooks for different update operations
 export const useUpdatePersonalInfo = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdatePersonalInfoDto }) => 
+    mutationFn: ({ id, data }: { id: string; data: UpdatePersonalInfoDto }) =>
       studentApi.updatePersonalInfo(id, data),
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: baseStudentHooks.keys.detail(variables.id) });
-      queryClient.invalidateQueries({ queryKey: baseStudentHooks.keys.lists() });
+      queryClient.invalidateQueries({ queryKey: baseStudentHooks.keys.all });
     }
   });
 };
 
 export const useUpdateAcademicInfo = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateAcademicInfoDto }) => 
+    mutationFn: ({ id, data }: { id: string; data: UpdateAcademicInfoDto }) =>
       studentApi.updateAcademicInfo(id, data),
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: baseStudentHooks.keys.detail(variables.id) });
-      queryClient.invalidateQueries({ queryKey: baseStudentHooks.keys.lists() });
+      queryClient.invalidateQueries({ queryKey: baseStudentHooks.keys.all });
     }
   });
 };
 
 export const useUpdateGuardianInfo = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateGuardianInfoDto }) => 
+    mutationFn: ({ id, data }: { id: string; data: UpdateGuardianInfoDto }) =>
       studentApi.updateGuardianInfo(id, data),
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: baseStudentHooks.keys.detail(variables.id) });
-      queryClient.invalidateQueries({ queryKey: baseStudentHooks.keys.lists() });
+      queryClient.invalidateQueries({ queryKey: baseStudentHooks.keys.all });
     }
   });
 };
 
 export const useUpdateStudentStatus = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateStatusDto }) => 
+    mutationFn: ({ id, data }: { id: string; data: UpdateStatusDto }) =>
       studentApi.updateStatus(id, data),
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: baseStudentHooks.keys.detail(variables.id) });
-      queryClient.invalidateQueries({ queryKey: baseStudentHooks.keys.lists() });
+      queryClient.invalidateQueries({ queryKey: baseStudentHooks.keys.all });
     }
   });
 };
 
 export const useAddStudentDocument = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: AddDocumentDto }) => 
+    mutationFn: ({ id, data }: { id: string; data: AddDocumentDto }) =>
       studentApi.addDocument(id, data),
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: baseStudentHooks.keys.detail(variables.id) });
+      queryClient.invalidateQueries({ queryKey: baseStudentHooks.keys.all });
     }
   });
 };
 
 export const useUpdateStudentAttendance = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateAttendanceDto }) => 
+    mutationFn: ({ id, data }: { id: string; data: UpdateAttendanceDto }) =>
       studentApi.updateAttendance(id, data),
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: baseStudentHooks.keys.detail(variables.id) });
-      queryClient.invalidateQueries({ queryKey: baseStudentHooks.keys.lists() });
+      queryClient.invalidateQueries({ queryKey: baseStudentHooks.keys.all });
     }
   });
 };
