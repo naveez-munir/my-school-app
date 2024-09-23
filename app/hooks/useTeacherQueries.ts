@@ -26,6 +26,22 @@ export const useTeacher = (id: string) => {
   });
 };
 
+export const useTeacherByUserId = (userId: string) => {
+  return useQuery({
+    queryKey: ['teachers', 'by-user', userId],
+    queryFn: () => teacherApi.getByUserId(userId),
+    enabled: !!userId
+  });
+};
+
+export const useTeacherProfile = (enabled: boolean = true) => {
+  return useQuery({
+    queryKey: ['teachers', 'profile'],
+    queryFn: () => teacherApi.getProfile(),
+    enabled
+  });
+};
+
 
 export const useAssignTeacherToClass = () => {
   const queryClient = useQueryClient();
