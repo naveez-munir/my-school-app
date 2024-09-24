@@ -1,12 +1,14 @@
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { dailyDiaryApi } from '~/services/dailyDiary';
 import { createQueryHooks } from './queryHookFactory';
-import type { 
+import type {
   DailyDiaryResponse,
-  CreateDailyDiaryRequest, 
+  CreateDailyDiaryRequest,
   UpdateDailyDiaryRequest,
   DiaryQueryParams,
-  AttachmentRequest
+  AttachmentRequest,
+  AddSubjectTaskRequest,
+  UpdateSubjectTaskRequest
 } from '~/types/dailyDiary';
 
 // Create base CRUD hooks for diary operations
@@ -47,10 +49,49 @@ export const useAddAttachment = () => {
 
 export const useRemoveAttachment = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ diaryId, attachmentId }: { diaryId: string; attachmentId: string }) => 
+    mutationFn: ({ diaryId, attachmentId }: { diaryId: string; attachmentId: string }) =>
       dailyDiaryApi.removeAttachment(diaryId, attachmentId),
+    onSuccess: (_result, { diaryId }) => {
+      queryClient.invalidateQueries({ queryKey: baseDiaryHooks.keys.lists() });
+      queryClient.invalidateQueries({ queryKey: baseDiaryHooks.keys.detail(diaryId) });
+    }
+  });
+};
+
+export const useAddSubjectTask = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ diaryId, taskData }: { diaryId: string; taskData: AddSubjectTaskRequest }) =>
+      dailyDiaryApi.addSubjectTask(diaryId, taskData),
+    onSuccess: (updatedDiary) => {
+      queryClient.invalidateQueries({ queryKey: baseDiaryHooks.keys.lists() });
+      queryClient.invalidateQueries({ queryKey: baseDiaryHooks.keys.detail(updatedDiary.id) });
+    }
+  });
+};
+
+export const useUpdateSubjectTask = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ diaryId, taskId, updateData }: { diaryId: string; taskId: string; updateData: UpdateSubjectTaskRequest }) =>
+      dailyDiaryApi.updateSubjectTask(diaryId, taskId, updateData),
+    onSuccess: (updatedDiary) => {
+      queryClient.invalidateQueries({ queryKey: baseDiaryHooks.keys.lists() });
+      queryClient.invalidateQueries({ queryKey: baseDiaryHooks.keys.detail(updatedDiary.id) });
+    }
+  });
+};
+
+export const useDeleteSubjectTask = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ diaryId, taskId }: { diaryId: string; taskId: string }) =>
+      dailyDiaryApi.deleteSubjectTask(diaryId, taskId),
     onSuccess: (_result, { diaryId }) => {
       queryClient.invalidateQueries({ queryKey: baseDiaryHooks.keys.lists() });
       queryClient.invalidateQueries({ queryKey: baseDiaryHooks.keys.detail(diaryId) });
