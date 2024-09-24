@@ -14,8 +14,10 @@ import type {
   MonthlyReportFilter,
   ClassAttendanceReport,
   UserAttendanceReport,
-  MonthlyAttendanceReport
-} from '~/types/attendance'; // Update path as needed
+  MonthlyAttendanceReport,
+  PaginatedResponse,
+  AttendanceFilterParams
+} from '~/types/attendance';
 
 // Create base CRUD hooks for attendance operations
 const baseAttendanceHooks = createQueryHooks<AttendanceRecord, CreateAttendanceInput, UpdateAttendanceInput>(
@@ -23,20 +25,32 @@ const baseAttendanceHooks = createQueryHooks<AttendanceRecord, CreateAttendanceI
   attendanceApi
 );
 
-// Modified version of useAttendanceRecords to accept filter parameters
-export const useAttendanceRecords = (params?: any) => {
-  return useQuery({
+// Server-side paginated attendance records
+export const useAttendanceRecords = (params?: AttendanceFilterParams) => {
+  return useQuery<PaginatedResponse<AttendanceRecord>>({
     queryKey: [...baseAttendanceHooks.keys.lists(), params],
-    queryFn: () => attendanceApi.getAll(params),
+    queryFn: () => attendanceApi.getAllPaginated(params),
   });
 };
 
 // Specialized hook for batch attendance creation
 export const useCreateBatchAttendance = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (data: BatchAttendanceInput) => attendanceApi.createBatch(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: baseAttendanceHooks.keys.lists() });
+    }
+  });
+};
+
+export const useBatchCheckout = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: { attendanceIds: string[]; checkOutTime?: string }) =>
+      attendanceApi.batchCheckout(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: baseAttendanceHooks.keys.lists() });
     }
