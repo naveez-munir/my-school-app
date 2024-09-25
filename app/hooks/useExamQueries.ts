@@ -22,6 +22,14 @@ export const useMyExams = () => {
   });
 };
 
+export const useMyTeachingExams = (options?: { enabled?: boolean }) => {
+  return useQuery({
+    queryKey: [...baseHooks.keys.lists(), 'my-teaching-exams'],
+    queryFn: () => examApi.getMyTeachingExams(),
+    enabled: options?.enabled ?? true,
+  });
+};
+
 export const useUpdateExamStatus = () => {
   const queryClient = useQueryClient();
   
