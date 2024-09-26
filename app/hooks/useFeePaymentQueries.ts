@@ -18,11 +18,12 @@ const baseHooks = createQueryHooks<FeePayment, CreateFeePaymentInput, UpdateFeeP
 // Custom hook for bulk payments
 export const useCreateBulkPayments = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (data: BulkFeePaymentInput) => feePaymentApi.createBulkPayments(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: baseHooks.keys.lists() });
+      queryClient.invalidateQueries({ queryKey: ['studentFees'] });
     }
   });
 };
@@ -110,12 +111,27 @@ export const usePaymentReceipt = (paymentId: string) => {
   });
 };
 
+// Override useCreateEntity to invalidate student fees
+export const useCreateFeePayment = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: CreateFeePaymentInput) => feePaymentApi.create(data),
+    onSuccess: (payment) => {
+      queryClient.invalidateQueries({ queryKey: baseHooks.keys.lists() });
+      // Invalidate student fees to update status and amounts
+      queryClient.invalidateQueries({ queryKey: ['studentFees'] });
+      queryClient.invalidateQueries({ queryKey: ['payments'] });
+      queryClient.setQueryData(baseHooks.keys.detail(payment._id), payment);
+    }
+  });
+};
+
 // Export base hooks with renamed exports
 export const {
   keys: feePaymentKeys,
   useEntities: useFeePayments,
   useEntity: useFeePayment,
-  useCreateEntity: useCreateFeePayment,
   useUpdateEntity: useUpdateFeePayment,
   useDeleteEntity: useDeleteFeePayment
 } = baseHooks;
