@@ -49,21 +49,21 @@ export const usePendingFees = (params?: GetPendingFeesParams) => {
   });
 };
 
-// Generate a single student fee
 export const useGenerateStudentFee = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (data: GenerateStudentFeeInput) => studentFeeApi.generateFee(data),
     onSuccess: (newFee: AnyStudentFee) => {
-      // Update queries
-      queryClient.invalidateQueries({ 
+      queryClient.invalidateQueries({
         queryKey: studentFeeKeys.lists()
       });
       queryClient.invalidateQueries({
         queryKey: studentFeeKeys.byStudent(newFee.studentId.toString())
       });
-      // Update detail cache
+      queryClient.invalidateQueries({
+        queryKey: ['studentFees', 'pending']
+      });
       queryClient.setQueryData(
         studentFeeKeys.detail(newFee._id),
         newFee
@@ -72,27 +72,31 @@ export const useGenerateStudentFee = () => {
   });
 };
 
-// Bulk generate student fees
 export const useBulkGenerateStudentFees = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (data: BulkGenerateStudentFeeInput) => studentFeeApi.bulkGenerateFees(data),
-    onSuccess: (fees: AnyStudentFee[]) => {
-      queryClient.invalidateQueries({ 
+    onSuccess: (result: any) => {
+      queryClient.invalidateQueries({
         queryKey: studentFeeKeys.lists()
       });
-      
-      // Update caches for each fee
-      fees.forEach(fee => {
-        queryClient.setQueryData(
-          studentFeeKeys.detail(fee._id),
-          fee
-        );
-        queryClient.invalidateQueries({
-          queryKey: studentFeeKeys.byStudent(fee.studentId.toString())
-        });
+      queryClient.invalidateQueries({
+        queryKey: ['studentFees', 'pending']
       });
+
+      const fees = result.fees || result;
+      if (Array.isArray(fees)) {
+        fees.forEach((fee: AnyStudentFee) => {
+          queryClient.setQueryData(
+            studentFeeKeys.detail(fee._id),
+            fee
+          );
+          queryClient.invalidateQueries({
+            queryKey: studentFeeKeys.byStudent(fee.studentId.toString())
+          });
+        });
+      }
     }
   });
 };
@@ -100,16 +104,19 @@ export const useBulkGenerateStudentFees = () => {
 // Apply discount to a fee
 export const useApplyDiscount = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: ApplyDiscountInput }) => 
+    mutationFn: ({ id, data }: { id: string; data: ApplyDiscountInput }) =>
       studentFeeApi.applyDiscount(id, data),
     onSuccess: (updatedFee: AnyStudentFee) => {
-      queryClient.invalidateQueries({ 
+      queryClient.invalidateQueries({
         queryKey: studentFeeKeys.lists()
       });
       queryClient.invalidateQueries({
         queryKey: studentFeeKeys.byStudent(updatedFee.studentId.toString())
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['studentFees', 'pending']
       });
       queryClient.setQueryData(
         studentFeeKeys.detail(updatedFee._id),
@@ -122,16 +129,19 @@ export const useApplyDiscount = () => {
 // Cancel a fee
 export const useCancelFee = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ id, reason }: { id: string; reason: string }) => 
+    mutationFn: ({ id, reason }: { id: string; reason: string }) =>
       studentFeeApi.cancelFee(id, reason),
     onSuccess: (updatedFee: AnyStudentFee) => {
-      queryClient.invalidateQueries({ 
+      queryClient.invalidateQueries({
         queryKey: studentFeeKeys.lists()
       });
       queryClient.invalidateQueries({
         queryKey: studentFeeKeys.byStudent(updatedFee.studentId.toString())
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['studentFees', 'pending']
       });
       queryClient.setQueryData(
         studentFeeKeys.detail(updatedFee._id),
@@ -144,12 +154,15 @@ export const useCancelFee = () => {
 // Calculate late fees
 export const useCalculateLateFees = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: () => studentFeeApi.calculateLateFees(),
     onSuccess: () => {
-      queryClient.invalidateQueries({ 
+      queryClient.invalidateQueries({
         queryKey: studentFeeKeys.lists()
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['studentFees', 'pending']
       });
     }
   });
@@ -158,12 +171,15 @@ export const useCalculateLateFees = () => {
 // Update fee statuses
 export const useUpdateFeeStatuses = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: () => studentFeeApi.updateFeeStatuses(),
     onSuccess: () => {
-      queryClient.invalidateQueries({ 
+      queryClient.invalidateQueries({
         queryKey: studentFeeKeys.lists()
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['studentFees', 'pending']
       });
     }
   });
@@ -172,17 +188,21 @@ export const useUpdateFeeStatuses = () => {
 // Generate recurring fees
 export const useGenerateRecurringFees = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (options: {
       academicYear: string;
       month?: number;
       quarter?: number;
       billType: string;
+      feeStructureSelections?: Record<string, string>;
     }) => studentFeeApi.generateRecurringFees(options),
     onSuccess: () => {
-      queryClient.invalidateQueries({ 
+      queryClient.invalidateQueries({
         queryKey: studentFeeKeys.lists()
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['studentFees', 'pending']
       });
     }
   });
