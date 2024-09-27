@@ -77,43 +77,81 @@ export const useCreateStudentDiscount = () => {
 // Hook for updating a student discount
 export const useUpdateStudentDiscount = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: ({
-      id, 
-      data, 
-      syncWithFees = false
+      id,
+      data,
+      syncWithFees = false,
+      studentId
     }: {
-      id: string; 
-      data: UpdateStudentDiscountInput; 
+      id: string;
+      data: UpdateStudentDiscountInput;
       syncWithFees?: boolean;
+      studentId: string;
     }) => studentDiscountApi.update(id, data, syncWithFees),
-    onSuccess: (updatedDiscount) => {
-      queryClient.invalidateQueries({ 
-        queryKey: studentDiscountKeys.lists() 
+
+    // Optimistic update
+    onMutate: async ({ id, data, studentId }) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({
+        queryKey: studentDiscountKeys.byStudent(studentId)
       });
-      
-      queryClient.invalidateQueries({
-        queryKey: studentDiscountKeys.byStudent(updatedDiscount.studentId.toString())
-      });
-      
-      queryClient.invalidateQueries({
-        queryKey: studentDiscountKeys.activeByStudent(updatedDiscount.studentId.toString())
-      });
-      
-      queryClient.setQueryData(
-        studentDiscountKeys.detail(updatedDiscount._id),
-        updatedDiscount
+
+      // Snapshot the previous value
+      const previousDiscounts = queryClient.getQueryData<StudentDiscount[]>(
+        studentDiscountKeys.byStudent(studentId)
       );
-      
+
+      // Optimistically update the discount
+      if (previousDiscounts) {
+        queryClient.setQueryData<StudentDiscount[]>(
+          studentDiscountKeys.byStudent(studentId),
+          previousDiscounts.map(discount =>
+            discount._id === id
+              ? {
+                  ...discount,
+                  ...data,
+                  startDate: typeof data.startDate === 'string' ? data.startDate : discount.startDate,
+                  endDate: data.endDate ? (typeof data.endDate === 'string' ? data.endDate : discount.endDate) : discount.endDate
+                }
+              : discount
+          )
+        );
+      }
+
+      // Return context with snapshot
+      return { previousDiscounts, studentId };
+    },
+
+    // If mutation fails, rollback
+    onError: (err, variables, context) => {
+      if (context?.previousDiscounts) {
+        queryClient.setQueryData(
+          studentDiscountKeys.byStudent(context.studentId),
+          context.previousDiscounts
+        );
+      }
+      console.error("Error updating discount:", err);
+    },
+
+    // Always refetch after success or error
+    onSettled: (_data, _error, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: studentDiscountKeys.byStudent(variables.studentId)
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: studentDiscountKeys.activeByStudent(variables.studentId)
+      });
+
       // Invalidate student fee lists as they may have changed
       queryClient.invalidateQueries({
         queryKey: ['studentFees', 'list']
       });
-      
-      // Invalidate student-specific fee list
+
       queryClient.invalidateQueries({
-        queryKey: ['studentFees', 'list', 'byStudent', updatedDiscount.studentId.toString()]
+        queryKey: ['studentFees', 'list', 'byStudent', variables.studentId]
       });
     }
   });
@@ -122,41 +160,74 @@ export const useUpdateStudentDiscount = () => {
 // Hook for toggling a discount's status
 export const useToggleDiscountStatus = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: ({
-      id, 
-      syncWithFees = false
+      id,
+      syncWithFees = false,
+      studentId
     }: {
-      id: string; 
+      id: string;
       syncWithFees?: boolean;
+      studentId: string;
     }) => studentDiscountApi.toggleStatus(id, syncWithFees),
-    onSuccess: (updatedDiscount) => {
-      queryClient.invalidateQueries({ 
-        queryKey: studentDiscountKeys.lists() 
+
+    // Optimistic update
+    onMutate: async ({ id, studentId }) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({
+        queryKey: studentDiscountKeys.byStudent(studentId)
       });
-      
-      queryClient.invalidateQueries({
-        queryKey: studentDiscountKeys.byStudent(updatedDiscount.studentId.toString())
-      });
-      
-      queryClient.invalidateQueries({
-        queryKey: studentDiscountKeys.activeByStudent(updatedDiscount.studentId.toString())
-      });
-      
-      queryClient.setQueryData(
-        studentDiscountKeys.detail(updatedDiscount._id),
-        updatedDiscount
+
+      // Snapshot the previous value
+      const previousDiscounts = queryClient.getQueryData<StudentDiscount[]>(
+        studentDiscountKeys.byStudent(studentId)
       );
-      
+
+      // Optimistically toggle the status
+      if (previousDiscounts) {
+        queryClient.setQueryData<StudentDiscount[]>(
+          studentDiscountKeys.byStudent(studentId),
+          previousDiscounts.map(discount =>
+            discount._id === id
+              ? { ...discount, isActive: !discount.isActive }
+              : discount
+          )
+        );
+      }
+
+      // Return context with snapshot
+      return { previousDiscounts, studentId };
+    },
+
+    // If mutation fails, rollback
+    onError: (err, variables, context) => {
+      if (context?.previousDiscounts) {
+        queryClient.setQueryData(
+          studentDiscountKeys.byStudent(context.studentId),
+          context.previousDiscounts
+        );
+      }
+      console.error("Error toggling discount status:", err);
+    },
+
+    // Always refetch after success or error
+    onSettled: (data, error, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: studentDiscountKeys.byStudent(variables.studentId)
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: studentDiscountKeys.activeByStudent(variables.studentId)
+      });
+
       // Invalidate student fee lists as they may have changed
       queryClient.invalidateQueries({
         queryKey: ['studentFees', 'list']
       });
-      
-      // Invalidate student-specific fee list
+
       queryClient.invalidateQueries({
-        queryKey: ['studentFees', 'list', 'byStudent', updatedDiscount.studentId.toString()]
+        queryKey: ['studentFees', 'list', 'byStudent', variables.studentId]
       });
     }
   });
@@ -192,52 +263,71 @@ export const useSyncDiscountWithFees = () => {
 // Hook for removing a student discount
 export const useRemoveStudentDiscount = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: ({
-      id, 
-      syncWithFees = false
+      id,
+      syncWithFees = false,
+      studentId
     }: {
-      id: string; 
+      id: string;
       syncWithFees?: boolean;
-    }) => {
-      // Get the discount data from cache before removing
-      const discount = queryClient.getQueryData<StudentDiscount>(
-        studentDiscountKeys.detail(id)
-      );
-      
-      return studentDiscountApi.remove(id, syncWithFees).then(result => {
-        return { result, discount };
+      studentId: string;
+    }) => studentDiscountApi.remove(id, syncWithFees),
+
+    // Optimistic update
+    onMutate: async ({ id, studentId }) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({
+        queryKey: studentDiscountKeys.byStudent(studentId)
       });
-    },
-    onSuccess: ({ result, discount }) => {
-      if (discount) {
-        queryClient.invalidateQueries({ 
-          queryKey: studentDiscountKeys.lists() 
-        });
-        
-        queryClient.invalidateQueries({
-          queryKey: studentDiscountKeys.byStudent(discount.studentId.toString())
-        });
-        
-        queryClient.invalidateQueries({
-          queryKey: studentDiscountKeys.activeByStudent(discount.studentId.toString())
-        });
-        
-        queryClient.removeQueries({
-          queryKey: studentDiscountKeys.detail(discount._id)
-        });
-        
-        // Invalidate student fee lists as they may have changed
-        queryClient.invalidateQueries({
-          queryKey: ['studentFees', 'list']
-        });
-        
-        // Invalidate student-specific fee list
-        queryClient.invalidateQueries({
-          queryKey: ['studentFees', 'list', 'byStudent', discount.studentId.toString()]
-        });
+
+      // Snapshot the previous value
+      const previousDiscounts = queryClient.getQueryData<StudentDiscount[]>(
+        studentDiscountKeys.byStudent(studentId)
+      );
+
+      // Optimistically remove the discount from cache
+      if (previousDiscounts) {
+        queryClient.setQueryData<StudentDiscount[]>(
+          studentDiscountKeys.byStudent(studentId),
+          previousDiscounts.filter(discount => discount._id !== id)
+        );
       }
+
+      // Return context with snapshot
+      return { previousDiscounts, studentId };
+    },
+
+    // If mutation fails, rollback
+    onError: (err, variables, context) => {
+      if (context?.previousDiscounts) {
+        queryClient.setQueryData(
+          studentDiscountKeys.byStudent(context.studentId),
+          context.previousDiscounts
+        );
+      }
+      console.error("Error removing discount:", err);
+    },
+
+    // Always refetch after success or error
+    onSettled: (data, error, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: studentDiscountKeys.byStudent(variables.studentId)
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: studentDiscountKeys.activeByStudent(variables.studentId)
+      });
+
+      // Invalidate student fee lists as they may have changed
+      queryClient.invalidateQueries({
+        queryKey: ['studentFees', 'list']
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ['studentFees', 'list', 'byStudent', variables.studentId]
+      });
     }
   });
 };
