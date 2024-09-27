@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { expenseApi } from '../services/expenseApi';
+import toast from 'react-hot-toast';
 import type {
   Expense,
   CreateExpenseDto,
@@ -53,11 +54,16 @@ export const useExpenseSummary = (year: number, month?: number) => {
 // Hook for creating a new expense
 export const useCreateExpense = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (data: CreateExpenseDto) => expenseApi.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: expenseKeys.lists() });
+      toast.success('Expense created successfully!');
+    },
+    onError: (error: any) => {
+      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to create expense';
+      toast.error(errorMessage);
     }
   });
 };
@@ -65,7 +71,7 @@ export const useCreateExpense = () => {
 // Hook for updating an expense
 export const useUpdateExpense = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: UpdateExpenseDto }) => expenseApi.update(id, data),
     onSuccess: (updatedExpense) => {
@@ -73,6 +79,11 @@ export const useUpdateExpense = () => {
       if (updatedExpense.id) {
         queryClient.setQueryData(expenseKeys.detail(updatedExpense.id), updatedExpense);
       }
+      toast.success('Expense updated successfully!');
+    },
+    onError: (error: any) => {
+      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to update expense';
+      toast.error(errorMessage);
     }
   });
 };
@@ -80,15 +91,21 @@ export const useUpdateExpense = () => {
 // Hook for approving or rejecting an expense
 export const useApproveExpense = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: ApproveExpenseDto }) => 
+    mutationFn: ({ id, data }: { id: string; data: ApproveExpenseDto }) =>
       expenseApi.approveExpense(id, data),
-    onSuccess: (updatedExpense) => {
+    onSuccess: (updatedExpense, variables) => {
       queryClient.invalidateQueries({ queryKey: expenseKeys.lists() });
       if (updatedExpense.id) {
         queryClient.setQueryData(expenseKeys.detail(updatedExpense.id), updatedExpense);
       }
+      const isApproved = variables.data.status === 'APPROVED';
+      toast.success(isApproved ? 'Expense approved successfully!' : 'Expense rejected successfully!');
+    },
+    onError: (error: any) => {
+      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to process expense approval';
+      toast.error(errorMessage);
     }
   });
 };
@@ -96,18 +113,24 @@ export const useApproveExpense = () => {
 // Hook for processing payment for an expense
 export const useProcessPayment = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: ProcessExpensePaymentDto }) => 
+    mutationFn: ({ id, data }: { id: string; data: ProcessExpensePaymentDto }) =>
       expenseApi.processPayment(id, data),
     onSuccess: (updatedExpense) => {
       queryClient.invalidateQueries({ queryKey: expenseKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: ['payments'] });
       if (updatedExpense.id) {
         queryClient.setQueryData(expenseKeys.detail(updatedExpense.id), updatedExpense);
       }
-      
+
       // Also invalidate summary data since payments affect summary
       queryClient.invalidateQueries({ queryKey: expenseKeys.summary() });
+      toast.success('Payment processed successfully!');
+    },
+    onError: (error: any) => {
+      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to process payment';
+      toast.error(errorMessage);
     }
   });
 };
@@ -115,15 +138,20 @@ export const useProcessPayment = () => {
 // Hook for deleting an expense
 export const useDeleteExpense = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (id: string) => expenseApi.delete(id),
     onSuccess: (_, id) => {
       queryClient.invalidateQueries({ queryKey: expenseKeys.lists() });
       queryClient.removeQueries({ queryKey: expenseKeys.detail(id) });
-      
+
       // Also invalidate summary data
       queryClient.invalidateQueries({ queryKey: expenseKeys.summary() });
+      toast.success('Expense deleted successfully!');
+    },
+    onError: (error: any) => {
+      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to delete expense';
+      toast.error(errorMessage);
     }
   });
 };
