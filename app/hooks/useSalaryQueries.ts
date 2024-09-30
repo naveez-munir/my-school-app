@@ -113,19 +113,20 @@ export const useApproveSalary = () => {
 // Hook for processing payment for a salary
 export const useProcessPayment = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ 
-      id, 
-      data 
-    }: { 
-      id: string; 
-      data: ProcessPaymentDto 
+    mutationFn: ({
+      id,
+      data
+    }: {
+      id: string;
+      data: ProcessPaymentDto
     }) => salaryApi.processPayment(id, data),
     onSuccess: (updatedSalary) => {
       queryClient.invalidateQueries({ queryKey: baseHooks.keys.lists() });
+      queryClient.invalidateQueries({ queryKey: ['payments'] });
       queryClient.setQueryData(
-        baseHooks.keys.detail(updatedSalary.id as string), 
+        baseHooks.keys.detail(updatedSalary.id as string),
         updatedSalary
       );
     }
