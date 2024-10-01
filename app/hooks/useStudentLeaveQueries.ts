@@ -49,6 +49,13 @@ export const useMyStudentsLeaves = () => {
   });
 };
 
+export const useMyClassStudentsLeaves = () => {
+  return useQuery({
+    queryKey: [...studentLeaveKeys.all, 'my-class'],
+    queryFn: () => studentLeaveApi.getMyClassStudentsLeaves()
+  });
+};
+
 export const useStudentLeavesByStudent = (studentId: string) => {
   return useQuery({
     queryKey: studentLeaveKeys.studentLeaves(studentId),
@@ -66,12 +73,15 @@ export const useMyLeaves = (params?: SearchStudentLeaveRequest) => {
 
 export const useCreateStudentLeave = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (data: CreateStudentLeaveRequest) => studentLeaveApi.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: studentLeaveKeys.lists() });
       queryClient.invalidateQueries({ queryKey: studentLeaveKeys.myStudents() });
+      queryClient.invalidateQueries({ queryKey: studentLeaveKeys.myLeaves() });
+      queryClient.invalidateQueries({ queryKey: studentLeaveKeys.pending() });
+      queryClient.invalidateQueries({ queryKey: studentLeaveKeys.all });
     }
   });
 };
@@ -85,12 +95,13 @@ export const useApproveStudentLeave = () => {
     onSuccess: (updatedLeave) => {
       queryClient.invalidateQueries({ queryKey: studentLeaveKeys.lists() });
       queryClient.invalidateQueries({ queryKey: studentLeaveKeys.pending() });
-      
+      queryClient.invalidateQueries({ queryKey: [...studentLeaveKeys.all, 'my-class'] });
+
       if (updatedLeave._id) {
         queryClient.setQueryData(studentLeaveKeys.detail(updatedLeave._id), updatedLeave);
         if (updatedLeave.studentId) {
-          queryClient.invalidateQueries({ 
-            queryKey: studentLeaveKeys.studentLeaves(updatedLeave.studentId) 
+          queryClient.invalidateQueries({
+            queryKey: studentLeaveKeys.studentLeaves(updatedLeave.studentId)
           });
         }
       }
