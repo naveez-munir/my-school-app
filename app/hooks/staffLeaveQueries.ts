@@ -28,11 +28,19 @@ export const leaveKeys = {
   balanceDetail: (id: string) => [...leaveKeys.balances(), 'detail', id] as const,
 };
 
-// Hook for fetching leaves with filters
-export const useLeaves = (params?: SearchLeaveRequest) => {
+export const useLeaves = (params?: SearchLeaveRequest, options?: { enabled?: boolean }) => {
   return useQuery({
     queryKey: leaveKeys.list(params || {}),
-    queryFn: () => leaveApi.getAll(params)
+    queryFn: () => leaveApi.getAll(params),
+    ...options
+  });
+};
+
+export const useMyLeaves = (options?: { enabled?: boolean }) => {
+  return useQuery({
+    queryKey: [...leaveKeys.all, 'my-leaves'],
+    queryFn: () => leaveApi.getMyLeaves(),
+    ...options
   });
 };
 
