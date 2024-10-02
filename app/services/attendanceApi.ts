@@ -11,7 +11,9 @@ import type {
   MonthlyReportFilter,
   ClassAttendanceReport,
   UserAttendanceReport,
-  MonthlyAttendanceReport
+  MonthlyAttendanceReport,
+  PaginatedResponse,
+  AttendanceFilterParams
 } from '~/types/attendance';
 
 const baseAttendanceService = createEntityService<AttendanceRecord, CreateAttendanceInput, UpdateAttendanceInput>(
@@ -21,6 +23,11 @@ const baseAttendanceService = createEntityService<AttendanceRecord, CreateAttend
 
 export const attendanceApi = {
   ...baseAttendanceService,
+
+  getAllPaginated: async (params?: AttendanceFilterParams): Promise<PaginatedResponse<AttendanceRecord>> => {
+    const response = await api.get<PaginatedResponse<AttendanceRecord>>('/attendance', { params });
+    return response.data;
+  },
   
   // Batch attendance creation
   createBatch: async (data: BatchAttendanceInput): Promise<BatchResponse> => {
@@ -43,6 +50,12 @@ export const attendanceApi = {
   // Monthly attendance report
   getMonthlyReport: async (filter: MonthlyReportFilter): Promise<MonthlyAttendanceReport> => {
     const response = await api.get<MonthlyAttendanceReport>('/attendance/report/monthly', { params: filter });
+    return response.data;
+  },
+
+  // Batch checkout
+  batchCheckout: async (data: { attendanceIds: string[]; checkOutTime?: string }): Promise<{ success: boolean; message: string; updatedCount: number }> => {
+    const response = await api.put('/attendance/batch/checkout', data);
     return response.data;
   }
 };
