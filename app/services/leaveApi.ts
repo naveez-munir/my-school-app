@@ -40,7 +40,6 @@ export const leaveApi = {
   // Include all base CRUD operations
   ...baseLeaveService,
   
-  // Override getAll to handle params properly
   getAll: async (params?: SearchLeaveRequest): Promise<LeaveResponse[]> => {
     const response = await api.get<LeaveResponse[]>(
       '/leaves',
@@ -48,8 +47,12 @@ export const leaveApi = {
     );
     return response.data;
   },
-  
-  // Get leaves by employee
+
+  getMyLeaves: async (): Promise<LeaveResponse[]> => {
+    const response = await api.get<LeaveResponse[]>('/leaves/my-leaves');
+    return response.data;
+  },
+
   getByEmployee: async (employeeId: string, employeeType: string): Promise<LeaveResponse[]> => {
     const response = await api.get<LeaveResponse[]>(`/leaves/employee/${employeeId}`, {
       params: { employeeType }
