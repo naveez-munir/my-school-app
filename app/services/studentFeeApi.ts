@@ -90,8 +90,17 @@ export const studentFeeApi = {
     month?: number;
     quarter?: number;
     billType: string;
-  }): Promise<{ generated: number; skipped: number }> => {
-    const response = await api.post<{ generated: number; skipped: number }>(
+    feeStructureSelections?: Record<string, string>;
+  }): Promise<{
+    generated: number;
+    skipped: number;
+    classesRequiringSelection?: Array<{
+      classId: string;
+      className: string;
+      availableStructures: Array<{ id: string; description: string }>;
+    }>;
+  }> => {
+    const response = await api.post(
       '/student-fees/generate-recurring',
       options
     );
