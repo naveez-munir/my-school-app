@@ -1,12 +1,8 @@
 import api from './apiClient';
-import { createEntityService } from './apiServiceBuilder';
 import type {
   Payment,
-  CreatePaymentDto,
-  UpdatePaymentDto,
   SearchPaymentParams,
-  CreateReferencePaymentDto,
-  PaymentSummary
+  PaymentSummary,
 } from '../types/payment.types';
 
 // Prepare query params for API requests
@@ -28,17 +24,7 @@ export const prepareQueryParams = (params: SearchPaymentParams): Record<string, 
   return queryParams;
 };
 
-// Create the base service with standard CRUD operations
-const basePaymentService = createEntityService<
-  Payment,
-  CreatePaymentDto,
-  UpdatePaymentDto
->(api, '/payments');
-
 export const paymentApi = {
-  // Include all base CRUD operations
-  ...basePaymentService,
-  
   // Override getAll to handle params properly
   getAll: async (params?: SearchPaymentParams): Promise<Payment[]> => {
     const response = await api.get<Payment[]>(
@@ -47,47 +33,29 @@ export const paymentApi = {
     );
     return response.data;
   },
-  
+
+  // Get single payment by ID
+  getById: async (id: string): Promise<Payment> => {
+    const response = await api.get<Payment>(`/payments/${id}`);
+    return response.data;
+  },
+
   // Get payment by reference
   getByReference: async (paymentFor: string, referenceId: string): Promise<Payment[]> => {
     const response = await api.get<Payment[]>(`/payments/reference/${paymentFor}/${referenceId}`);
     return response.data;
   },
-  
+
   // Get payment summary
   getSummary: async (year: number, month?: number): Promise<PaymentSummary> => {
     const params: Record<string, string> = { year: year.toString() };
     if (month !== undefined) {
       params.month = month.toString();
     }
-    
+
     const response = await api.get<PaymentSummary>('/payments/summary', { params });
     return response.data;
   },
-  
-  // Update payment status
-  updateStatus: async (id: string, status: string): Promise<Payment> => {
-    const response = await api.put<Payment>(`/payments/${id}/status`, { status });
-    return response.data;
-  },
-  
-  // Create payment for salary
-  createSalaryPayment: async (
-    salaryId: string, 
-    data: CreateReferencePaymentDto
-  ): Promise<Payment> => {
-    const response = await api.post<Payment>(`/payments/salary/${salaryId}`, data);
-    return response.data;
-  },
-  
-  // Create payment for expense
-  createExpensePayment: async (
-    expenseId: string, 
-    data: CreateReferencePaymentDto
-  ): Promise<Payment> => {
-    const response = await api.post<Payment>(`/payments/expense/${expenseId}`, data);
-    return response.data;
-  }
 };
 
 export default paymentApi;
