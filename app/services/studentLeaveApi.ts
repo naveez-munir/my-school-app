@@ -9,14 +9,14 @@ import type {
 
 export const prepareLeaveQueryParams = (params: SearchStudentLeaveRequest): Record<string, string> => {
   const queryParams: Record<string, string> = {};
-  
+
   if (params.studentId) queryParams.studentId = params.studentId;
   if (params.status) queryParams.status = params.status;
   if (params.startDateFrom) queryParams.startDateFrom = params.startDateFrom;
   if (params.startDateTo) queryParams.startDateTo = params.startDateTo;
   if (params.endDateFrom) queryParams.endDateFrom = params.endDateFrom;
   if (params.endDateTo) queryParams.endDateTo = params.endDateTo;
-  
+
   return queryParams;
 };
 
@@ -50,6 +50,11 @@ export const studentLeaveApi = {
 
   getMyStudentsLeaves: async (): Promise<StudentLeaveResponse[]> => {
     const response = await api.get<StudentLeaveResponse[]>('/student-leaves/my-students');
+    return response.data;
+  },
+
+  getMyClassStudentsLeaves: async (): Promise<StudentLeaveResponse[]> => {
+    const response = await api.get<StudentLeaveResponse[]>('/student-leaves/my-class');
     return response.data;
   },
 
