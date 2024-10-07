@@ -57,5 +57,15 @@ export const teacherApi = {
   updateStatus: async (teacherId: string, employmentStatus: string) => {
     const response = await api.put(`/teachers/${teacherId}/status`, { employmentStatus });
     return response.data;
+  },
+
+  getByUserId: async (userId: string) => {
+    const response = await api.get('/teachers', { params: { userId } });
+    return response.data && response.data.length > 0 ? response.data[0] : null;
+  },
+
+  getProfile: async () => {
+    const response = await api.get('/teachers/profile');
+    return response.data;
   }
 };
