@@ -68,7 +68,7 @@ export interface Guardian {
   name: string;
   cniNumber: string;
   relationship: GuardianRelationship;
-  phone: string | null;
+  phone: string;
   email?: string | null;
 }
 
