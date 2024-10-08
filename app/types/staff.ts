@@ -6,14 +6,14 @@ export enum EmploymentStatus {
 }
 
 export enum UserRole {
-  ACCOUNTANT = 'ACCOUNTANT',
-  LIBRARIAN = 'LIBRARIAN',
-  ADMIN = 'ADMIN',
-  PRINCIPAL = 'PRINCIPAL',
-  DRIVER = 'DRIVER',
-  SECURITY = 'SECURITY',
-  CLEANER = 'CLEANER',
-  TENANT_ADMIN = 'TENANT_ADMIN'
+  ACCOUNTANT = 'accountant',
+  LIBRARIAN = 'librarian',
+  ADMIN = 'admin',
+  PRINCIPAL = 'principal',
+  DRIVER = 'driver',
+  SECURITY = 'security',
+  CLEANER = 'cleaner',
+  TENANT_ADMIN = 'tenant_admin'
 }
 
 export interface EmergencyContact {
