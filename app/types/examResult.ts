@@ -4,6 +4,8 @@ export interface ExamResultResponse {
     id: string;
     type: string;
     academicYear: string;
+    classId?: string;
+    className?: string;
   };
   student: {
     id: string;
