@@ -98,8 +98,6 @@ export interface UpdateLeaveRequest {
 }
 
 export interface ApproveLeaveRequest {
-  approvedBy: string;
-  approverType: EmployeeType;
   status: LeaveStatus.APPROVED | LeaveStatus.REJECTED;
   comments?: string;
   overridePaidStatus?: boolean;
