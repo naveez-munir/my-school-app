@@ -11,6 +11,7 @@ export interface UserRole {
 export interface DecodedToken {
   userId?: string;
   sub: string;
+  name?: string;
   role?: string;
   isSuperAdmin?: boolean;
   isAdmin?: boolean;
@@ -136,4 +137,71 @@ export const storeAuthData = (
 export const logout = (): void => {
   localStorage.removeItem('authData');
   window.location.href = '/login';
+};
+
+export const isAdminRole = (role?: string): boolean => {
+  const adminRoles = [
+    UserRoleEnum.SUPER_ADMIN,
+    UserRoleEnum.TENANT_ADMIN,
+    UserRoleEnum.ADMIN,
+    UserRoleEnum.PRINCIPAL
+  ];
+  return !!role && adminRoles.includes(role as UserRoleEnum);
+};
+
+export const getUserName = (): string | null => {
+  try {
+    const authData = getAuthData();
+    if (!authData?.token) return null;
+
+    const decodedToken = jwtDecode<DecodedToken>(authData.token);
+    return decodedToken.name || null;
+  } catch (error) {
+    console.error('Error getting user name from token:', error);
+    return null;
+  }
+};
+
+export const getTenantName = (): string | null => {
+  const authData = getAuthData();
+  return authData?.tenantName || null;
+};
+
+export const getAllowedRoles = (): UserRoleEnum[] => {
+  const userRole = getUserRole();
+
+  switch (userRole?.role) {
+    case UserRoleEnum.SUPER_ADMIN:
+      return Object.values(UserRoleEnum).filter(
+        role => role !== UserRoleEnum.TENANT_ADMIN
+      );
+
+    case UserRoleEnum.TENANT_ADMIN:
+      return Object.values(UserRoleEnum).filter(
+        role => role !== UserRoleEnum.SUPER_ADMIN && role !== UserRoleEnum.TENANT_ADMIN
+      );
+
+    case UserRoleEnum.ADMIN:
+      return [
+        UserRoleEnum.TEACHER,
+        UserRoleEnum.STUDENT,
+        UserRoleEnum.PARENT,
+        UserRoleEnum.ACCOUNTANT,
+        UserRoleEnum.LIBRARIAN,
+        UserRoleEnum.DRIVER,
+        UserRoleEnum.SECURITY,
+        UserRoleEnum.CLEANER,
+        UserRoleEnum.GUARDIAN,
+      ];
+
+    case UserRoleEnum.PRINCIPAL:
+      return [
+        UserRoleEnum.TEACHER,
+        UserRoleEnum.STUDENT,
+        UserRoleEnum.PARENT,
+      ];
+
+    default:
+      return [];
+  }
 };
