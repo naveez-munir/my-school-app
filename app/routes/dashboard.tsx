@@ -1,13 +1,22 @@
 import { useEffect, useState } from 'react';
-import { Menu, Bell } from 'lucide-react';
 import { Outlet, useNavigate } from 'react-router';
 import { getUserRole, getAuthData } from '~/utils/auth';
 import Sidebar from '~/components/common/ui/menu/components/sidebar/Sidebar';
+import { Header } from '~/components/common/ui/Header';
 
 export default function DashboardLayout() {
-  const [isSidebarOpen, setSidebarOpen] = useState(true);
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
-  const [userName, setUserName] = useState('User');
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
+    // Sync with sidebar's localStorage state
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('sidebar-collapsed');
+      if (saved !== null) {
+        return saved === 'true';
+      }
+    }
+    return true;
+  });
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -17,50 +26,49 @@ export default function DashboardLayout() {
       return;
     }
     const role = getUserRole();
-    setUserRole(role?.role as string );
-    setUserName('John Doe');
+    setUserRole(role?.role as string);
   }, [navigate]);
+
+  // Listen for sidebar collapse state changes
+  useEffect(() => {
+    const handleStorageChange = () => {
+      if (typeof window !== 'undefined') {
+        const saved = localStorage.getItem('sidebar-collapsed');
+        setIsSidebarCollapsed(saved === 'true');
+      }
+    };
+
+    // Listen for storage events (from other tabs/windows)
+    window.addEventListener('storage', handleStorageChange);
+
+    // Poll for changes in the same tab (since storage event doesn't fire in same tab)
+    const interval = setInterval(handleStorageChange, 100);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">
-
       <Sidebar
-        isOpen={isSidebarOpen} 
+        isOpen={isSidebarOpen}
         onClose={() => setSidebarOpen(false)}
         userRole={userRole as string}
       />
 
-      <div className="lg:ml-64 min-h-screen flex flex-col">
-        <header className="bg-white shadow-sm border-b sticky top-0 z-10">
-          <div className="flex items-center justify-between p-4">
-            <button 
-              onClick={() => setSidebarOpen(true)}
-              className="lg:hidden"
-            >
-              <Menu size={24} color='black'/>
-            </button>
-            
-            <div className="flex items-center gap-4">
-              <button className="p-2 hover:bg-gray-100 rounded-full relative">
-                <Bell size={20} color='black'/>
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-              </button>
-              
-              <div className="flex items-center gap-3">
-                <div className="hidden md:block">
-                  <p className="text-sm font-medium">{userName}</p>
-                  <p className="text-xs text-gray-700">{'Test name or role base name'}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </header>
+      <div
+        className={`min-h-screen flex flex-col transition-all duration-300
+          ${isSidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'}
+        `}
+      >
+        <Header onMenuClick={() => setSidebarOpen(true)} />
 
-        <main className="flex-1 p-4 overflow-auto bg-gray-50">
+        <main className="flex-1 p-2 sm:p-4 lg:p-6 overflow-auto bg-gray-50">
           <Outlet />
         </main>
       </div>
     </div>
   );
 }
-//TODO need to refactor this
