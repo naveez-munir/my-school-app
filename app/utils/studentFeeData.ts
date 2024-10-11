@@ -19,3 +19,8 @@ export const quarterOptions = {
   '3': 'Quarter 3',
   '4': 'Quarter 4'
 };
+
+export const months = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
+];
