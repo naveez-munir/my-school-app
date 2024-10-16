@@ -4,6 +4,7 @@ import { FeeCategorySection } from '~/components/Fee/feeCategory';
 import { FeePaymentSection } from '~/components/Fee/feePayment/FeePaymentSection';
 import { FeeStructureSection } from '~/components/Fee/feeStructure';
 import { StudentDiscountSection } from '~/components/Fee/studentDiscount/Index';
+import { StudentFeeSection } from '~/components/Fee/studentFee/Index';
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -26,7 +27,8 @@ export default function DailyDiary() {
   if (action === "discount") {
     return <StudentDiscountSection />;
   }
-  return <div>
-    <h1> Student fee management </h1>
-  </div>;
+  if (action === "fee") {
+    return <StudentFeeSection />;
+  }
+  return <StudentFeeSection />;
 }
