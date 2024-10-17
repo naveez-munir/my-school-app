@@ -1,13 +1,13 @@
-import type { Route } from "../+types";
+import type { Route } from "./+types";
 import { StaffSection } from '~/components/staff/StaffSection';
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Daily diary Management" },
-    { name: "description", content: "Manage school Daily Diary" },
+    { title: "Staff Management" },
+    { name: "description", content: "Manage staff members" },
   ];
 }
 
-export default function StaffDetail() {
+export default function Staff() {
   return <StaffSection />;
 }
