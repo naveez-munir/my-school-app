@@ -19,7 +19,7 @@ export default function StudentDetail() {
   if (id === 'leave') {
     return <StudentLeavesTable />
   }
-  if (id === 'dairy') {
+  if (id === 'daily-diary') {
     return <StudentDailyDiaryDashboard />
   }
   if(id === 'exams') {
