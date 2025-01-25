@@ -1,0 +1,52 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="512" height="512" rx="115" fill="#3b82f6"/>
+  
+  <!-- School Building -->
+  <g transform="translate(256, 256)">
+    <!-- Main Building -->
+    <rect x="-120" y="-80" width="240" height="160" fill="white" rx="8"/>
+    
+    <!-- Roof -->
+    <path d="M-140 -80 L0 -140 L140 -80 Z" fill="#1e40af"/>
+    
+    <!-- Flag Pole -->
+    <rect x="-8" y="-180" width="16" height="100" fill="#1e40af"/>
+    
+    <!-- Flag -->
+    <path d="M8 -180 L8 -150 L60 -165 Z" fill="#ef4444"/>
+    
+    <!-- Windows Row 1 -->
+    <rect x="-90" y="-50" width="40" height="40" fill="#3b82f6" rx="4"/>
+    <rect x="-30" y="-50" width="40" height="40" fill="#3b82f6" rx="4"/>
+    <rect x="30" y="-50" width="40" height="40" fill="#3b82f6" rx="4"/>
+    
+    <!-- Windows Row 2 -->
+    <rect x="-90" y="10" width="40" height="40" fill="#3b82f6" rx="4"/>
+    <rect x="-30" y="10" width="40" height="40" fill="#3b82f6" rx="4"/>
+    <rect x="30" y="10" width="40" height="40" fill="#3b82f6" rx="4"/>
+    
+    <!-- Door -->
+    <rect x="-20" y="30" width="40" height="50" fill="#1e40af" rx="4"/>
+    <circle cx="10" cy="55" r="3" fill="#fbbf24"/>
+    
+    <!-- Book Icon Overlay -->
+    <g transform="translate(-180, -120)">
+      <rect x="0" y="0" width="60" height="45" fill="#fbbf24" rx="4"/>
+      <line x1="30" y1="0" x2="30" y2="45" stroke="#1e40af" stroke-width="3"/>
+      <line x1="10" y1="15" x2="25" y2="15" stroke="#1e40af" stroke-width="2"/>
+      <line x1="35" y1="15" x2="50" y2="15" stroke="#1e40af" stroke-width="2"/>
+      <line x1="10" y1="25" x2="25" y2="25" stroke="#1e40af" stroke-width="2"/>
+      <line x1="35" y1="25" x2="50" y2="25" stroke="#1e40af" stroke-width="2"/>
+    </g>
+    
+    <!-- Graduation Cap Icon -->
+    <g transform="translate(140, -120)">
+      <path d="M0 -10 L-25 0 L0 10 L25 0 Z" fill="#fbbf24"/>
+      <rect x="-3" y="10" width="6" height="20" fill="#fbbf24"/>
+      <circle cx="0" cy="30" r="5" fill="#ef4444"/>
+      <path d="M25 0 L25 15 Q25 20 20 22" stroke="#fbbf24" stroke-width="3" fill="none"/>
+    </g>
+  </g>
+</svg>
+
