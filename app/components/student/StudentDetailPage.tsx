@@ -199,7 +199,7 @@ export function StudentDetailPage({stId} : {stId?:string}) {
                 key={tab.key}
                 className={({ selected }) =>
                   classNames(
-                    'whitespace-nowrap py-2 sm:py-3 lg:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm outline-none',
+                    'whitespace-nowrap py-2 sm:py-3 lg:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm outline-none cursor-pointer',
                     selected
                       ? 'border-blue-500 text-blue-600'
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
