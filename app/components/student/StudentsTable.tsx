@@ -1,9 +1,10 @@
 import { createColumnHelper } from '@tanstack/react-table';
 import { useState, useMemo } from 'react';
-import { ChevronDown, ChevronUp, Eye, Trash2 } from 'lucide-react';
+import { Eye, Trash2 } from 'lucide-react';
 import type { StudentResponse, StudentsTableProps, TableMetaType } from '~/types/student';
 import { ClassSelector } from '~/components/common/ClassSelector';
 import { GenericDataTable } from '~/components/common/table/GenericDataTable';
+import { SortableColumnHeader } from '~/components/common/table/TableHelpers';
 
 const columnHelper = createColumnHelper<StudentResponse>();
 
@@ -21,16 +22,7 @@ export function StudentsTable({
 
   const columns = useMemo(() => [
   columnHelper.accessor('name', {
-    header: ({ column }) => (
-      <div className="flex items-center cursor-pointer" onClick={() => column.toggleSorting()}>
-        <span>Student Name</span>
-        {column.getIsSorted() === 'asc' ? (
-          <ChevronUp className="ml-1 h-4 w-4" />
-        ) : column.getIsSorted() === 'desc' ? (
-          <ChevronDown className="ml-1 h-4 w-4" />
-        ) : null}
-      </div>
-    ),
+    header: ({ column }) => <SortableColumnHeader column={column} title="Student Name" />,
     cell: (info) => (
       <div className="flex items-center space-x-3">
         {info.row.original.photoUrl ? (
@@ -53,16 +45,7 @@ export function StudentsTable({
     ),
   }),
   columnHelper.accessor('rollNumber', {
-    header: ({ column }) => (
-      <div className="flex items-center cursor-pointer" onClick={() => column.toggleSorting()}>
-        <span>Roll No</span>
-        {column.getIsSorted() === 'asc' ? (
-          <ChevronUp className="ml-1 h-4 w-4" />
-        ) : column.getIsSorted() === 'desc' ? (
-          <ChevronDown className="ml-1 h-4 w-4" />
-        ) : null}
-      </div>
-    ),
+    header: ({ column }) => <SortableColumnHeader column={column} title="Roll No" />,
     cell: (info) => (
       <div className="text-gray-500">
         {info.getValue()}
@@ -70,16 +53,7 @@ export function StudentsTable({
     ),
   }),
   columnHelper.accessor('className', {
-    header: ({ column }) => (
-      <div className="flex items-center cursor-pointer" onClick={() => column.toggleSorting()}>
-        <span>Class</span>
-        {column.getIsSorted() === 'asc' ? (
-          <ChevronUp className="ml-1 h-4 w-4" />
-        ) : column.getIsSorted() === 'desc' ? (
-          <ChevronDown className="ml-1 h-4 w-4" />
-        ) : null}
-      </div>
-    ),
+    header: ({ column }) => <SortableColumnHeader column={column} title="Class" />,
     cell: (info) => (
       <div className="text-gray-500">
         {info.getValue()}
@@ -87,16 +61,7 @@ export function StudentsTable({
     ),
   }),
   columnHelper.accessor('guardianName', {
-    header: ({ column }) => (
-      <div className="flex items-center cursor-pointer" onClick={() => column.toggleSorting()}>
-        <span>Guardian</span>
-        {column.getIsSorted() === 'asc' ? (
-          <ChevronUp className="ml-1 h-4 w-4" />
-        ) : column.getIsSorted() === 'desc' ? (
-          <ChevronDown className="ml-1 h-4 w-4" />
-        ) : null}
-      </div>
-    ),
+    header: ({ column }) => <SortableColumnHeader column={column} title="Guardian" />,
     cell: (info) => (
       <div className="text-gray-500">
         {info.getValue()}
