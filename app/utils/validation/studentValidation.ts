@@ -11,6 +11,8 @@ import {
   addressValidator,
 } from "./commonValidators";
 
+const CNIC_MISMATCH_ERROR = "Guardian CNIC cannot be the same as student CNIC";
+
 /**
  * Student Validation Schemas
  *
@@ -43,15 +45,23 @@ export const guardianSchema = z.object({
   relationship: z.nativeEnum(GuardianRelationship, {
     required_error: "Relationship is required",
   }),
-  phone: phoneValidator, // Changed from optionalPhoneValidator to phoneValidator (REQUIRED to match backend)
+  phone: phoneValidator,
   email: optionalEmailValidator.nullable(),
 });
 
-export const createStudentSchema = basicInfoSchema.extend({
+const createStudentBaseSchema = basicInfoSchema.extend({
   guardian: guardianSchema,
 });
 
-export const updateStudentSchema = createStudentSchema.partial();
+export const createStudentSchema = createStudentBaseSchema.refine(
+  (data) => data.cniNumber !== data.guardian.cniNumber,
+  {
+    message: CNIC_MISMATCH_ERROR,
+    path: ["guardian", "cniNumber"],
+  }
+);
+
+export const updateStudentSchema = createStudentBaseSchema.partial();
 
 // Update Personal Info Schema - for editing personal information
 export const updatePersonalInfoSchema = z.object({
