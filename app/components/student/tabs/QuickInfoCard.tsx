@@ -1,13 +1,6 @@
 import { User, MapPin, Calendar } from 'lucide-react';
 import { formatUserFriendlyDate } from '~/utils/dateUtils';
-
-interface QuickInfoCardProps {
-  student: {
-    cniNumber: string;
-    dateOfBirth: string;
-    admissionDate: string;
-  };
-}
+import type { QuickInfoCardProps } from '~/types/student';
 
 export function QuickInfoCard({ student }: QuickInfoCardProps) {
   const quickInfoItems = [
