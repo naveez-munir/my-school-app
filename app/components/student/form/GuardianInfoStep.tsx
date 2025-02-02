@@ -1,11 +1,12 @@
-import { useEffect } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useEffect, useMemo } from "react";
+import { useForm, Controller, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { GuardianRelationship } from "~/types/student";
 import type { GuardianInfoStepProps } from "~/types/student";
 import { guardianSchema, type GuardianFormData } from "~/utils/validation/studentValidation";
 import { TextInput } from "~/components/common/form/inputs/TextInput";
 import { SelectInput } from "~/components/common/form/inputs/SelectInput";
+import { FormStepActions } from "~/components/common/form/FormStepActions";
 
 export function GuardianInfoStep({
   data,
@@ -32,11 +33,26 @@ export function GuardianInfoStep({
     defaultValues: getInitialFormData(),
   });
 
+  const guardianCni = useWatch({
+    control,
+    name: "cniNumber",
+  });
+
+  const cniMismatchError = useMemo(() => {
+    if (guardianCni && data.cniNumber && guardianCni === data.cniNumber) {
+      return "Guardian CNIC cannot be the same as student CNIC";
+    }
+    return null;
+  }, [guardianCni, data.cniNumber]);
+
   useEffect(() => {
     reset(getInitialFormData());
   }, [data, reset]);
 
   const onSubmit = (validatedData: GuardianFormData) => {
+    if (cniMismatchError) {
+      return;
+    }
     onComplete({ guardian: validatedData });
   };
 
@@ -75,7 +91,10 @@ export function GuardianInfoStep({
               />
             )}
           />
-          {errors.cniNumber && (
+          {cniMismatchError && (
+            <p className="mt-1 text-sm text-red-600">{cniMismatchError}</p>
+          )}
+          {!cniMismatchError && errors.cniNumber && (
             <p className="mt-1 text-sm text-red-600">{errors.cniNumber.message}</p>
           )}
         </div>
@@ -139,21 +158,13 @@ export function GuardianInfoStep({
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 pt-4 sm:pt-5 lg:pt-6 border-t">
-        <button
-          type="button"
-          onClick={onBack}
-          className="px-3 py-1.5 sm:px-4 sm:py-2 border rounded-md text-xs sm:text-sm text-gray-700 hover:bg-gray-50 cursor-pointer"
-        >
-          Previous
-        </button>
-        <button
-          type="submit"
-          className="px-3 py-1.5 sm:px-4 sm:py-2 bg-blue-600 text-white rounded-md text-xs sm:text-sm hover:bg-blue-700 cursor-pointer"
-        >
-          Next
-        </button>
-      </div>
+      <FormStepActions
+        onBack={onBack}
+        backLabel="Previous"
+        nextLabel="Next"
+        isDisabled={!!cniMismatchError}
+        isFirstStep={false}
+      />
     </form>
   );
 }
