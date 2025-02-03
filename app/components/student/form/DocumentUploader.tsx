@@ -1,16 +1,6 @@
-import { useState, useRef } from 'react';
-import { File, Upload, Loader, Download, Image, FileText, X } from 'lucide-react';
-import { useFileUpload } from '~/hooks/useFileQueries';
-import toast from 'react-hot-toast';
-
-interface DocumentUploaderProps {
-  currentDocumentUrl?: string;
-  documentType?: string;
-  onDocumentChange: (url: string) => void;
-  folder?: string;
-  label?: string;
-  accept?: string;
-}
+import { File, Upload, Loader, Download, FileText, X } from 'lucide-react';
+import { useFileUploadWithPreview } from '~/hooks/useFileUploadWithPreview';
+import type { DocumentUploaderProps } from '~/types/student';
 
 export function DocumentUploader({
   currentDocumentUrl,
@@ -20,15 +10,27 @@ export function DocumentUploader({
   label = 'Upload Document',
   accept = "image/*,.pdf,.doc,.docx"
 }: DocumentUploaderProps) {
-  const [documentUrl, setDocumentUrl] = useState<string | undefined>(currentDocumentUrl);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const { uploadFileAsync, isPending } = useFileUpload();
+  const {
+    fileUrl: documentUrl,
+    isPending,
+    fileInputRef,
+    handleFileChange,
+    handleRemove
+  } = useFileUploadWithPreview({
+    initialUrl: currentDocumentUrl,
+    folder,
+    onUploadSuccess: onDocumentChange,
+    enablePreview: false,
+    uploadingMessage: 'Uploading document...',
+    successMessage: 'Document uploaded successfully',
+    errorMessage: 'Failed to upload document. Please try again.'
+  });
 
   const getDocumentType = (url: string): 'image' | 'pdf' | 'other' => {
     if (!url) return 'other';
 
     const extension = url.split('.').pop()?.toLowerCase() || '';
-    
+
     if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(extension)) {
       return 'image';
     } else if (extension === 'pdf') {
@@ -37,33 +39,9 @@ export function DocumentUploader({
     return 'other';
   };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    try {
-      const toastId = toast.loading('Uploading document...');
-      const result = await uploadFileAsync({ file, folder });
-
-      setDocumentUrl(result.url);
-      onDocumentChange(result.url);
-      
-      toast.success('Document uploaded successfully', { id: toastId });
-    } catch (error) {
-      console.error('Error uploading document:', error);
-      toast.error('Failed to upload document. Please try again.', { 
-        duration: 4000 
-      });
-      setDocumentUrl(currentDocumentUrl);
-    }
-  };
-
   const handleRemoveDocument = () => {
-    setDocumentUrl(undefined);
+    handleRemove();
     onDocumentChange('');
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
   };
 
   const docType = documentUrl ? getDocumentType(documentUrl) : 'other';
