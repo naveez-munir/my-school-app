@@ -1,65 +1,27 @@
-import { useState, useRef, useEffect } from 'react';
 import { Upload, X, Loader } from 'lucide-react';
-import { useFileUpload } from '~/hooks/useFileQueries';
-import toast from 'react-hot-toast';
-
-interface PhotoUploadProps {
-  currentPhoto?: string;
-  onPhotoChange: (url: string) => void;
-  folder?: string;
-}
+import { useFileUploadWithPreview } from '~/hooks/useFileUploadWithPreview';
+import type { PhotoUploadProps } from '~/types/student';
 
 export function PhotoUpload({ currentPhoto, onPhotoChange, folder = 'photos' }: PhotoUploadProps) {
-  const [preview, setPreview] = useState<string | undefined>(currentPhoto);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const { uploadFileAsync, isPending } = useFileUpload();
-  const [toastId, setToastId] = useState<string | null>(null);
-
-  useEffect(() => {
-    setPreview(currentPhoto);
-  }, [currentPhoto]);
-
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setPreview(reader.result as string);
-    };
-    reader.readAsDataURL(file);
-
-    try {
-      const id = toast.loading('Uploading photo...');
-      setToastId(id);
-      
-      const result = await uploadFileAsync({ file, folder });
-
-      onPhotoChange(result.url);
-      
-      toast.success('Photo uploaded successfully', { id });
-      setToastId(null);
-    } catch (error) {
-      console.error('Error uploading photo:', error);
-      if (toastId) {
-        toast.error('Failed to upload photo. Please try again.', { id: toastId });
-        setToastId(null);
-      }
-
-      if (currentPhoto) {
-        setPreview(currentPhoto);
-      } else {
-        setPreview(undefined);
-      }
-    }
-  };
+  const {
+    preview,
+    isPending,
+    fileInputRef,
+    handleFileChange,
+    handleRemove
+  } = useFileUploadWithPreview({
+    initialUrl: currentPhoto,
+    folder,
+    onUploadSuccess: onPhotoChange,
+    enablePreview: true,
+    uploadingMessage: 'Uploading photo...',
+    successMessage: 'Photo uploaded successfully',
+    errorMessage: 'Failed to upload photo. Please try again.'
+  });
 
   const handleRemovePhoto = () => {
-    setPreview(undefined);
+    handleRemove();
     onPhotoChange('');
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
   };
 
   return (
