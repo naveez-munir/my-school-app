@@ -9,7 +9,7 @@ export function meta({}: Route.MetaArgs) {
 
 export default function DashboardIndex() {
   return (
-    <div>
+    <div className="text-gray-700">
       <h2 className="text-xl font-semibold mb-4">Welcome to your Dashboard</h2>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {/* Add dashboard widgets/cards here */}
