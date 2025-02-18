@@ -6,12 +6,20 @@ export interface Subject {
   updatedAt: string;
 }
 
-export interface CreateSubjectDto {
+export interface SubjectDto {
   subjectName: string;
   subjectCode: string;
 }
+export type CreateSubjectDto = SubjectDto;
+export type UpdateSubjectDto = Partial<SubjectDto>;
 
-export interface UpdateSubjectDto {
-  subjectName?: string;
-  subjectCode?: string;
+export interface SubjectFiltersProps {
+  onSearch: (filters: Partial<SubjectDto>) => void;
+}
+
+export interface SubjectModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (data: SubjectDto) => void;
+  initialData?: SubjectDto;
 }

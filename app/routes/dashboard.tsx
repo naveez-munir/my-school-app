@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 
 type MenuItem = {
-  name: 'home' | 'students' | 'teachers' | 'courses' | 'schedule' | 'attendance' | 'settings';
+  name: 'home' | 'students' | 'teachers' | 'courses' | 'management' | 'attendance' | 'settings';
   label: string;
   path: string;
 };
@@ -23,7 +23,7 @@ const MENU_ITEMS: MenuItem[] = [
   { name: 'students', label: 'Students', path: '/dashboard/students' },
   { name: 'teachers', label: 'Teachers', path: '/dashboard/teachers' },
   { name: 'courses', label: 'Courses', path: '/dashboard/courses' },
-  { name: 'schedule', label: 'Schedule', path: '/dashboard/schedule' },
+  { name: 'management', label: 'management', path: '/dashboard/management' },
   { name: 'attendance', label: 'Attendance', path: '/dashboard/attendance' },
 ];
 
@@ -37,7 +37,7 @@ export default function DashboardLayout() {
       students: Users,
       teachers: Users,
       courses: BookOpen,
-      schedule: Calendar,
+      management: Calendar,
       attendance: ClipboardCheck,
       settings: Settings
     };
@@ -81,7 +81,7 @@ export default function DashboardLayout() {
             onClick={() => setSidebarOpen(false)}
             className="lg:hidden"
           >
-            <X size={24} />
+            <X size={24} color='black' />
           </button>
         </div>
 
@@ -118,7 +118,7 @@ export default function DashboardLayout() {
               onClick={() => setSidebarOpen(true)}
               className="lg:hidden"
             >
-              <Menu size={24} />
+              <Menu size={24} color='black'/>
             </button>
             
             <div className="flex items-center gap-4">
