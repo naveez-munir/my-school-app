@@ -1,8 +1,12 @@
-import type { CreateSubjectDto, UpdateSubjectDto } from "~/types/subject";
+import type { CreateSubjectDto, SubjectFilters, UpdateSubjectDto } from "~/types/subject";
 import api from "./api";
 
 export const subjectApi = {
-  getAll: async (params?: { subjectName?: string; subjectCode?: string }) => {
+  getAll: async (params?: { 
+    name?: string; 
+    subjectCode?: string;
+    skip?: number;
+    limit?: number}) => {
     const response = await api.get('/subjects', { params });
     return response.data;
   },

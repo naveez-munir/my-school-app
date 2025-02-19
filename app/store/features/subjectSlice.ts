@@ -1,33 +1,19 @@
-import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { subjectApi } from '~/services/subjectApi';
-import type { CreateSubjectDto, Subject, UpdateSubjectDto } from '~/types/subject';
+import type { CreateSubjectDto, SubjectState, UpdateSubjectDto } from '~/types/subject';
 
-// State interface
-interface SubjectState {
-  subjects: Subject[];
-  currentSubject: Subject | null;
-  loading: boolean;
-  error: string | null;
-  filters: {
-    subjectName?: string;
-    subjectCode?: string;
-  };
-}
-
-// Initial state
 const initialState: SubjectState = {
   subjects: [],
   currentSubject: null,
   loading: false,
-  error: null,
-  filters: {},
+  error: null
 };
 
-// Async thunks
+// Simplified to fetch all subjects at once
 export const fetchSubjects = createAsyncThunk(
   'subjects/fetchAll',
-  async (filters: { subjectName?: string; subjectCode?: string } = {}) => {
-    const response = await subjectApi.getAll(filters);
+  async () => {
+    const response = await subjectApi.getAll();
     return response;
   }
 );
@@ -64,20 +50,13 @@ export const deleteSubject = createAsyncThunk(
   }
 );
 
-// Slice
 const subjectSlice = createSlice({
   name: 'subjects',
   initialState,
   reducers: {
-    setFilters: (state, action: PayloadAction<Partial<SubjectState['filters']>>) => {
-      state.filters = { ...state.filters, ...action.payload };
-    },
-    clearFilters: (state) => {
-      state.filters = {};
-    },
     clearCurrentSubject: (state) => {
       state.currentSubject = null;
-    },
+    }
   },
   extraReducers: (builder) => {
     builder
@@ -116,7 +95,7 @@ const subjectSlice = createSlice({
       })
       .addCase(createSubject.fulfilled, (state, action) => {
         state.loading = false;
-        state.subjects.push(action.payload);
+        state.subjects = [...state.subjects, action.payload];
       })
       .addCase(createSubject.rejected, (state, action) => {
         state.loading = false;
@@ -130,10 +109,9 @@ const subjectSlice = createSlice({
       })
       .addCase(updateSubject.fulfilled, (state, action) => {
         state.loading = false;
-        const index = state.subjects.findIndex(subject => subject._id === action.payload._id);
-        if (index !== -1) {
-          state.subjects[index] = action.payload;
-        }
+        state.subjects = state.subjects.map(subject => 
+          subject._id === action.payload._id ? action.payload : subject
+        );
       })
       .addCase(updateSubject.rejected, (state, action) => {
         state.loading = false;
@@ -156,8 +134,6 @@ const subjectSlice = createSlice({
   },
 });
 
+export const { clearCurrentSubject } = subjectSlice.actions;
 
-export const { setFilters, clearFilters, clearCurrentSubject } = subjectSlice.actions;
-
-
-export default subjectSlice.reducer;
+export default subjectSlice.reducer; 
