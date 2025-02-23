@@ -5,11 +5,11 @@ import {
   updateClass, 
   fetchClassById 
 } from '~/store/features/classSlice';
-import { fetchTeachers } from '~/store/features/teacherSlice';
 import { fetchSubjects } from '~/store/features/subjectSlice';
 import { ClassForm } from './ClassForm';
-import type { CreateClassDto } from '~/types/class';
+import type { Class, CreateClassDto } from '~/types/class';
 import { useNavigate, useParams } from 'react-router';
+import { TeacherAssignmentSection } from './TeacherAssignmentSection';
 
 export function CreateEditClass() {
   const { id } = useParams();
@@ -17,15 +17,12 @@ export function CreateEditClass() {
   const dispatch = useAppDispatch();
   
   const { currentClass, loading: classLoading } = useAppSelector((state) => state.classes);
-  const { teachers, loading: teachersLoading } = useAppSelector((state) => state.teachers);
   const { subjects, loading: subjectsLoading } = useAppSelector((state) => state.subjects);
-  useEffect(() => {
-    // Load teachers and subjects for dropdowns
-    dispatch(fetchTeachers());
-    dispatch(fetchSubjects());
+  const { teachers } = useAppSelector((state) => state.teachers);
 
-    // If editing, fetch class details
+  useEffect(() => {
     if (id) {
+      dispatch(fetchSubjects());
       dispatch(fetchClassById(id));
     }
   }, [dispatch, id]);
@@ -43,7 +40,9 @@ export function CreateEditClass() {
     }
   };
 
-  if (teachersLoading || subjectsLoading || (id && classLoading)) {
+  const isLoading = (id && classLoading) || (id && subjectsLoading);
+
+  if (isLoading) {
     return (
       <div className="p-4 sm:p-6 md:p-8">
         <div className="animate-pulse space-y-4">
@@ -62,7 +61,10 @@ export function CreateEditClass() {
           {id ? 'Edit Class' : 'Create New Class'}
         </h1>
         <p className="mt-1 text-sm text-gray-500">
-          {id ? 'Update class information' : 'Add a new class to the system'}
+          {id 
+            ? 'Update basic class information. Teacher assignments can be managed from the class details page.' 
+            : 'Create a new class with basic information. Teachers can be assigned after creation.'
+          }
         </p>
       </div>
 
@@ -72,10 +74,17 @@ export function CreateEditClass() {
           <ClassForm
             initialData={currentClass || undefined}
             onSubmit={handleSubmit}
-            teachers={teachers}
             subjects={subjects}
             isLoading={classLoading}
+            mode={id ? 'edit' : 'create'}
           />
+          {id && 
+            <TeacherAssignmentSection
+              classData={currentClass as Class}
+              teachers={teachers}
+              isLoading={classLoading}
+            />
+          }
         </div>
       </div>
     </div>
