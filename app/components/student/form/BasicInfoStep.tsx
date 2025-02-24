@@ -1,5 +1,8 @@
-// components/form/BasicInfoStep.tsx
 import { useState, useEffect } from 'react';
+import { DateInput } from '~/components/common/DateInput';
+import { CustomSelect } from '~/components/common/SelectType2';
+import { TextArea } from '~/components/common/TextArea';
+import { TextInput } from '~/components/common/TextInput';
 import { Gender, BloodGroup, GradeLevel } from '~/types/student';
 import type { CreateStudentDto} from '~/types/student';
 
@@ -16,6 +19,7 @@ export function BasicInfoStep({ data, onComplete, onBack }: BasicInfoStepProps) 
       lastName: data.lastName || '',
       cniNumber: data.cniNumber || '',
       dateOfBirth: data.dateOfBirth || '',
+      admissionDate: data.admissionDate || '',
       gender: data.gender || Gender.Male,
       bloodGroup: data.bloodGroup || undefined,
       phone: data.phone || '',
@@ -36,54 +40,41 @@ export function BasicInfoStep({ data, onComplete, onBack }: BasicInfoStepProps) 
     e.preventDefault();
     onComplete(formData);
   };
+  const handleChange = (field: keyof typeof formData, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
 
   return (
     <form onSubmit={handleSubmit} className="p-6 space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700">First Name</label>
-          <input
-            type="text"
-            required
-            value={formData.firstName}
-            onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
-          />
-        </div>
+        <TextInput
+          label="First Name"
+          value={formData.firstName}
+          onChange={(value) => handleChange('firstName', value)}
+          required
+        />
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Last Name</label>
-          <input
-            type="text"
-            required
-            value={formData.lastName}
-            onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
-          />
-        </div>
+        <TextInput
+          label="Last Name"
+          value={formData.lastName}
+          onChange={(value) => handleChange('lastName', value)}
+          required
+        />
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700">CNI Number</label>
-          <input
-            type="text"
-            required
-            value={formData.cniNumber}
-            onChange={(e) => setFormData(prev => ({ ...prev, cniNumber: e.target.value }))}
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
-          />
-        </div>
+        <TextInput
+          label="CNI Number"
+          value={formData.cniNumber}
+          onChange={(value) => handleChange('cniNumber', value)}
+          required
+        />
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Date of Birth</label>
-          <input
-            type="date"
-            required
-            value={formData.dateOfBirth}
-            onChange={(e) => setFormData(prev => ({ ...prev, dateOfBirth: e.target.value }))}
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
-          />
-        </div>
-
+        <DateInput
+          label="Date of Birth"
+          value={formData.dateOfBirth}
+          onChange={(value) => handleChange('dateOfBirth', value)}
+          required
+        />
+        {/* TODO we need to use the custom select over here as well */}
         <div>
           <label className="block text-sm font-medium text-gray-700">Gender</label>
           <select
@@ -97,63 +88,45 @@ export function BasicInfoStep({ data, onComplete, onBack }: BasicInfoStepProps) 
           </select>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Blood Group</label>
-          <select
-            value={formData.bloodGroup}
-            onChange={(e) => setFormData(prev => ({ 
-              ...prev, 
-              bloodGroup: e.target.value as BloodGroup 
-            }))}
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
-          >
-            <option value="">Select Blood Group</option>
-            {Object.values(BloodGroup).map(group => (
-              <option key={group} value={group}>{group}</option>
-            ))}
-          </select>
-        </div>
+        <CustomSelect<BloodGroup>
+          label="Blood Group"
+          value={formData.bloodGroup || ''}
+          onChange={(value) => setFormData(prev => ({ ...prev, bloodGroup: value as BloodGroup }))}
+          options={Object.values(BloodGroup)}
+          placeholder="Select Blood Group"
+          required
+        />
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Phone</label>
-          <input
-            type="tel"
-            value={formData.phone}
-            onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
-          />
-        </div>
+        <TextInput
+          label="Phone"
+          value={formData.phone}
+          onChange={(value) => handleChange('phone', value)}
+          type="tel"
+        />
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Email</label>
-          <input
-            type="email"
-            value={formData.email}
-            onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
-          />
-        </div>
+        <TextInput
+          label="Email"
+          value={formData.email}
+          onChange={(value) => handleChange('email', value)}
+          type="email"
+        />
 
         <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700">Address</label>
-          <textarea
+          <TextArea
+            label="Address"
             value={formData.address}
-            onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
+            onChange={(value) => handleChange('address', value)}
             rows={3}
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Roll Number</label>
-          <input
-            type="text"
-            value={formData.rollNumber}
-            onChange={(e) => setFormData(prev => ({ ...prev, rollNumber: e.target.value }))}
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
-          />
-        </div>
-
+        <DateInput
+          label="Admission Date"
+          value={formData.admissionDate}
+          onChange={(value) => handleChange('admissionDate', value)}
+          required
+        />
+        {/*TODO need to convert this to use the common component */}
         <div>
           <label className="block text-sm font-medium text-gray-700">Grade Level</label>
           <select

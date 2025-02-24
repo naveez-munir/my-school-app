@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { SubjectDto, SubjectModalProps } from '~/types/subject';
+import { TextInput } from '../common/TextInput';
+import { FormActions } from '../common/FormActions';
 
 export function SubjectModal({ isOpen, onClose, onSubmit, initialData }: SubjectModalProps) {
   const [formData, setFormData] = useState<SubjectDto>(initialData || {
@@ -27,43 +29,29 @@ export function SubjectModal({ isOpen, onClose, onSubmit, initialData }: Subject
           onSubmit(formData);
         }}>
           <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Subject Name</label>
-              <input
-                type="text"
-                required
-                value={formData.subjectName}
-                onChange={(e) => setFormData(prev => ({ ...prev, subjectName: e.target.value }))}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-500"
-              />
-            </div>
+            <TextInput
+              label="Subject Name"
+              value={formData.subjectName}
+              onChange={(value) => setFormData(prev => ({ ...prev, subjectName: value }))}
+              required
+              placeholder="Enter subject name"
+            />
             
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Subject Code</label>
-              <input
-                type="text"
-                required
-                value={formData.subjectCode}
-                onChange={(e) => setFormData(prev => ({ ...prev, subjectCode: e.target.value }))}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-500"
-              />
-            </div>
+            <TextInput
+              label="Subject Code"
+              value={formData.subjectCode}
+              onChange={(value) => setFormData(prev => ({ ...prev, subjectCode: value }))}
+              required
+              placeholder="Enter subject code"
+            />
           </div>
 
-          <div className="mt-6 flex justify-end space-x-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 border rounded-md bg-blue-600 text-white hover:bg-blue-700"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-            >
-              {initialData ? 'Update' : 'Create'}
-            </button>
+          <div className="mt-6">
+            <FormActions
+              mode={initialData ? 'edit' : 'create'}
+              entityName="Subject"
+              onCancel={onClose}
+            />
           </div>
         </form>
       </div>
