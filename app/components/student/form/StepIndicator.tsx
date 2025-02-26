@@ -67,3 +67,8 @@ export function StepIndicator({ steps, currentStep, onStepClick }: StepIndicator
     </nav>
   );
 }
+
+
+//TODO convert this section like the we have for teacher
+//we need to add the support for class section as well while creating the student or editing
+// while creating the student we will allow the user to add minimum info at the start and then latter can add details as well

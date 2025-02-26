@@ -52,6 +52,24 @@ export enum ExitStatus {
   None = 'None'
 }
 
+// Enhanced Document type for the Documents tab
+export interface StudentDocument {
+  documentType: string;
+  documentUrl: string;
+  uploadDate?: string | Date;
+}
+
+// Possible document types for dropdown
+export enum DocumentType {
+  BirthCertificate = 'Birth Certificate',
+  CNIC = 'CNIC',
+  PreviousSchoolRecords = 'Previous School Records',
+  MedicalRecords = 'Medical Records',
+  VaccinationRecords = 'Vaccination Records',
+  TransferCertificate = 'Transfer Certificate',
+  Other = 'Other'
+}
+
 export interface Guardian {
   name: string;
   cniNumber: string;
@@ -82,8 +100,25 @@ export interface Student {
   exitStatus?: ExitStatus;
   exitDate?: string; // ISO date string
   exitRemarks?: string;
+  documents?: StudentDocument[];
+  attendancePercentage?: number;
   createdAt: string;
   updatedAt: string;
+}
+
+// For the Attendance tab
+export interface AttendanceRecord {
+  date: string;
+  status: 'Present' | 'Absent' | 'Late' | 'Excused';
+  remark?: string;
+}
+
+export interface AttendanceStats {
+  present: number;
+  absent: number;
+  late: number;
+  excused: number;
+  percentage: number;
 }
 
 // DTOs for API requests
@@ -104,6 +139,12 @@ export interface CreateStudentDto {
   rollNumber?: string;
   enrollmentDate: string; // ISO date string
   admissionDate: string; // ISO date string
+  documents?: StudentDocument[];
+  attendancePercentage?: number;
+  status?: StudentStatus;
+  exitStatus?: ExitStatus;
+  exitDate?: string;
+  exitRemarks?: string;
 }
 
 export interface UpdateStudentDto extends Partial<CreateStudentDto> {
@@ -188,9 +229,48 @@ export interface StudentResponse {
   id: string,
   name: string,
   gradeLevel: string,
-  className: string ,
+  className: string,
   guardianName: string,
   photoUrl: string,
   status: boolean,
   rollNumber: string
 }
+
+// Component props interfaces for form steps
+export interface BasicInfoStepProps {
+  data: Partial<CreateStudentDto>;
+  onComplete: (data: Partial<CreateStudentDto>) => void;
+  onBack: () => void;
+}
+
+export interface GuardianInfoStepProps {
+  data: Partial<CreateStudentDto>;
+  onComplete: (data: Partial<CreateStudentDto>) => void;
+  onBack: () => void;
+}
+
+export interface AcademicInfoStepProps {
+  data: Partial<CreateStudentDto>;
+  onComplete: (data: Partial<CreateStudentDto>) => void;
+  onBack: () => void;
+}
+
+export interface DocumentsStepProps {
+  data: Partial<CreateStudentDto>;
+  onComplete: (data: Partial<CreateStudentDto>) => void;
+  onBack: () => void;
+  isLastStep?: boolean;
+}
+
+export interface AttendanceRecordsProps {
+  data: Partial<CreateStudentDto>;
+  onBack: () => void;
+  studentId?: string;
+}
+
+// For the PhotoUpload component
+export interface PhotoUploadProps {
+  currentPhoto?: string;
+  onPhotoChange: (url: string) => void;
+}
+

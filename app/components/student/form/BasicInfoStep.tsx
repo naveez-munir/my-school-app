@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { DateInput } from '~/components/common/DateInput';
-import { CustomSelect } from '~/components/common/SelectType2';
-import { TextArea } from '~/components/common/TextArea';
-import { TextInput } from '~/components/common/TextInput';
+import { DateInput } from '~/components/common/form/inputs/DateInput';
+import { SelectInput } from '~/components/common/form/inputs/SelectInput';
+import { TextArea } from '~/components/common/form/inputs/TextArea';
+import { TextInput } from '~/components/common/form/inputs/TextInput';
 import { Gender, BloodGroup, GradeLevel } from '~/types/student';
 import type { CreateStudentDto} from '~/types/student';
 
@@ -74,25 +74,20 @@ export function BasicInfoStep({ data, onComplete, onBack }: BasicInfoStepProps) 
           onChange={(value) => handleChange('dateOfBirth', value)}
           required
         />
-        {/* TODO we need to use the custom select over here as well */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Gender</label>
-          <select
-            value={formData.gender}
-            onChange={(e) => setFormData(prev => ({ ...prev, gender: e.target.value as Gender }))}
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
-          >
-            {Object.values(Gender).map(gender => (
-              <option key={gender} value={gender}>{gender}</option>
-            ))}
-          </select>
-        </div>
+        <SelectInput<typeof Gender>
+         label="Gender"
+         value={formData.gender}
+         onChange={(value) => setFormData(prev => ({ ...prev, gender: value }))}
+         options={Gender}
+         placeholder="Select Gender"
+         required
+        />
 
-        <CustomSelect<BloodGroup>
+        <SelectInput<typeof BloodGroup>
           label="Blood Group"
-          value={formData.bloodGroup || ''}
-          onChange={(value) => setFormData(prev => ({ ...prev, bloodGroup: value as BloodGroup }))}
-          options={Object.values(BloodGroup)}
+          value={formData.bloodGroup}
+          onChange={(value) => setFormData(prev => ({ ...prev, bloodGroup: value }))}
+          options={BloodGroup}
           placeholder="Select Blood Group"
           required
         />
@@ -126,21 +121,14 @@ export function BasicInfoStep({ data, onComplete, onBack }: BasicInfoStepProps) 
           onChange={(value) => handleChange('admissionDate', value)}
           required
         />
-        {/*TODO need to convert this to use the common component */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Grade Level</label>
-          <select
-            value={formData.gradeLevel}
-            onChange={(e) => setFormData(prev => ({ ...prev, gradeLevel: e.target.value }))}
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
-            required
-          >
-            <option value="">Select Grade</option>
-            {Object.values(GradeLevel).map(grade => (
-              <option key={grade} value={grade}>{grade}</option>
-            ))}
-          </select>
-        </div>
+        <SelectInput<typeof GradeLevel>
+          label="Grade Level"
+          value={formData.gradeLevel as GradeLevel}
+          onChange={(value) => setFormData(prev => ({ ...prev, gradeLevel: value }))}
+          options={GradeLevel}
+          placeholder="Select Blood Group"
+          required
+        />
       </div>
 
       <div className="flex justify-end space-x-3 pt-6 border-t">

@@ -1,5 +1,7 @@
 // components/form/GuardianInfoStep.tsx
 import { useState } from 'react';
+import { SelectInput } from '~/components/common/form/inputs/SelectInput';
+import { TextInput } from '~/components/common/form/inputs/TextInput';
 import { GuardianRelationship } from '~/types/student';
 import type { CreateStudentDto } from '~/types/student';
 
@@ -28,77 +30,57 @@ export function GuardianInfoStep({ data, onComplete, onBack }: GuardianInfoStepP
   return (
     <form onSubmit={handleSubmit} className="p-6 space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Guardian Name</label>
-          <input
-            type="text"
-            required
-            value={formData.guardian.name}
-            onChange={(e) => setFormData(prev => ({
-              ...prev,
-              guardian: { ...prev.guardian, name: e.target.value }
-            }))}
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 "
-          />
-        </div>
+        <TextInput 
+         label='Guardian Name'
+         value={formData.guardian.name}
+         onChange={(value) => setFormData(prev => ({
+           ...prev,
+           guardian: { ...prev.guardian, name: value }
+         }))}
+         required
+        />
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700">CNI Number</label>
-          <input
-            type="text"
-            required
-            value={formData.guardian.cniNumber}
-            onChange={(e) => setFormData(prev => ({
-              ...prev,
-              guardian: { ...prev.guardian, cniNumber: e.target.value }
-            }))}
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 "
-          />
-        </div>
+        <TextInput 
+          label='CNI Number'
+          value={formData.guardian.cniNumber}
+          onChange={(value) => setFormData(prev => ({
+            ...prev,
+            guardian: { ...prev.guardian, cniNumber: value }
+          }))}
+          required
+        />
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Relationship</label>
-          <select
-            value={formData.guardian.relationship}
-            onChange={(e) => setFormData(prev => ({
-              ...prev,
-              guardian: { ...prev.guardian, relationship: e.target.value as GuardianRelationship }
-            }))}
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 "
-            required
-          >
-            {Object.values(GuardianRelationship).map(rel => (
-              <option key={rel} value={rel}>{rel}</option>
-            ))}
-          </select>
-        </div>
+        <SelectInput<typeof GuardianRelationship>
+          label="Relationship"
+          value={formData.guardian.relationship}
+          onChange={(value) => setFormData(prev => ({
+            ...prev,
+            guardian: { ...prev.guardian, relationship: value }
+          }))}
+          options={GuardianRelationship}
+          placeholder="Select Relationship"
+          required
+        />
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Phone</label>
-          <input
-            type="tel"
-            required
-            value={formData.guardian.phone}
-            onChange={(e) => setFormData(prev => ({
-              ...prev,
-              guardian: { ...prev.guardian, phone: e.target.value }
-            }))}
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 "
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Email</label>
-          <input
-            type="email"
-            value={formData.guardian.email}
-            onChange={(e) => setFormData(prev => ({
-              ...prev,
-              guardian: { ...prev.guardian, email: e.target.value }
-            }))}
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 "
-          />
-        </div>
+        <TextInput 
+         label='Phone'
+         value={formData.guardian.phone}
+         onChange={(value) => setFormData(prev => ({
+           ...prev,
+           guardian: { ...prev.guardian, phone: value }
+         }))}
+         type='tel'
+         required
+        />
+        <TextInput 
+         label='Email'
+         value={formData.guardian.email}
+         onChange={(value) => setFormData(prev => ({
+           ...prev,
+           guardian: { ...prev.guardian, email: value }
+         }))}
+         type='email'
+        />
       </div>
 
       <div className="flex justify-end space-x-3 pt-6 border-t">
