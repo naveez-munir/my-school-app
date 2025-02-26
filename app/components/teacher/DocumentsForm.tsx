@@ -1,5 +1,8 @@
 import { Plus, X, Upload } from 'lucide-react';
 import type { Document } from '~/types/teacher';
+import { TextInput } from '../common/form/inputs/TextInput';
+import { DateInput } from '../common/form/inputs/DateInput';
+import { FileInput } from '../common/form/inputs/FileInput';
 
 interface DocumentsFormProps {
   data: Document[];
@@ -38,19 +41,21 @@ export function DocumentsForm({ data = [], onUpdate }: DocumentsFormProps) {
           </button>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Document Type*</label>
-              <input
-                type="text"
-                value={document.documentType}
-                onChange={(e) => handleChange(index, 'documentType', e.target.value)}
-                className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2"
-                required
-                placeholder="e.g., CV, Certificate, ID Card"
-              />
-            </div>
+            <TextInput 
+              label='Document Type'
+              required
+              value={document.documentType}
+              onChange={(value) => handleChange(index, 'documentType', value)}
+              placeholder='e.g., CV, Certificate, ID Card'
+            />
 
-            <div>
+            <DateInput 
+              label='Upload Date'
+              value={document.uploadDate ? new Date(document.uploadDate).toISOString().split('T')[0] : ''}
+              onChange={(value) => handleChange(index, 'uploadDate', new Date(value))}
+              required
+            />
+            {/* <div>
               <label className="block text-sm font-medium text-gray-700">Document URL*</label>
               <div className="mt-1 flex items-center">
                 <input
@@ -67,18 +72,17 @@ export function DocumentsForm({ data = [], onUpdate }: DocumentsFormProps) {
                   <Upload className="h-4 w-4" />
                 </button>
               </div>
-            </div>
+            </div> */}
+            <FileInput
+              value={document.documentUrl}
+              onChange={(fileInfo) => {
+                console.log('>>>>>>', fileInfo)
+                // This might be just a filename or potentially a partial path in dev
+                handleChange(index, 'documentUrl', fileInfo);
+              }}
+              required
+            />
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Upload Date*</label>
-              <input
-                type="date"
-                value={document.uploadDate ? new Date(document.uploadDate).toISOString().split('T')[0] : ''}
-                onChange={(e) => handleChange(index, 'uploadDate', new Date(e.target.value))}
-                className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2"
-                required
-              />
-            </div>
           </div>
         </div>
       ))}

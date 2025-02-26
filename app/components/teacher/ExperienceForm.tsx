@@ -1,5 +1,8 @@
 import { Plus, X } from 'lucide-react';
 import type { Experience } from '~/types/teacher';
+import { TextInput } from '../common/form/inputs/TextInput';
+import { DateInput } from '../common/form/inputs/DateInput';
+import { TextArea } from '../common/form/inputs/TextArea';
 
 interface ExperienceFormProps {
   data: Experience[];
@@ -41,56 +44,37 @@ export function ExperienceForm({ data = [], onUpdate }: ExperienceFormProps) {
           </button>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Institution*</label>
-              <input
-                type="text"
-                value={experience.institution}
-                onChange={(e) => handleChange(index, 'institution', e.target.value)}
-                className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Position*</label>
-              <input
-                type="text"
-                value={experience.position}
-                onChange={(e) => handleChange(index, 'position', e.target.value)}
-                className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">From Date*</label>
-              <input
-                type="date"
-                value={experience.fromDate ? new Date(experience.fromDate).toISOString().split('T')[0] : ''}
-                onChange={(e) => handleChange(index, 'fromDate', new Date(e.target.value))}
-                className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">To Date</label>
-              <input
-                type="date"
-                value={experience.toDate ? new Date(experience.toDate).toISOString().split('T')[0] : ''}
-                onChange={(e) => handleChange(index, 'toDate', new Date(e.target.value))}
-                className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2"
-              />
-            </div>
+            <TextInput 
+              label='Institution'
+              value={experience.institution}
+              onChange={(value) => handleChange(index, 'institution', value)}
+              required
+            />
+            <TextInput 
+             label='Position'
+             value={experience.position}
+             onChange={(value) => handleChange(index, 'position', value)}
+             required
+            />
+            <DateInput 
+             label='From Date'
+             value={experience.fromDate ? new Date(experience.fromDate).toISOString().split('T')[0] : ''}
+             onChange={(value) => handleChange(index, 'fromDate', new Date(value))}
+             required
+            />
+            <DateInput 
+             label='To Date'
+             value={experience.toDate ? new Date(experience.toDate).toISOString().split('T')[0] : ''}
+             onChange={(value) => handleChange(index, 'toDate', new Date(value))}
+             required
+            />
 
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700">Description</label>
-              <textarea
-                value={experience.description}
-                onChange={(e) => handleChange(index, 'description', e.target.value)}
-                rows={3}
-                className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2"
+              <TextArea 
+               label='Description'
+               value={experience.description || ''}
+               onChange={(value) => handleChange(index, 'description', value)}
+               rows={3}
               />
             </div>
 

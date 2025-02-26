@@ -35,7 +35,7 @@ export function TeacherForm({
     address: initialData?.address,
     leavingDate: initialData?.leavingDate,
     subjects: initialData?.subjects || [],
-    classTeacherOf: initialData?.classTeacherOf,
+    classTeacherOf: initialData?.classTeacherOf?._id,
     educationHistory: initialData?.educationHistory || [],
     experience: initialData?.experience || [],
     documents: initialData?.documents || []

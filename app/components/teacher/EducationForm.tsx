@@ -1,5 +1,6 @@
 import { Plus, X } from 'lucide-react';
 import type { EducationHistory } from '~/types/teacher';
+import { TextInput } from '../common/form/inputs/TextInput';
 
 interface EducationFormProps {
   data: EducationHistory[];
@@ -47,38 +48,26 @@ export function EducationForm({ data = [], qualification = [], onUpdate }: Educa
           </button>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Degree*</label>
-              <input
-                type="text"
-                value={education.degree}
-                onChange={(e) => handleChange(index, 'degree', e.target.value)}
-                className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2"
-                required
-              />
-            </div>
+            <TextInput 
+             label='Degree'
+             value={education.degree}
+             onChange={(value) => handleChange(index, 'degree',value)}
+             required
+            />
+            <TextInput 
+              label='Institution'
+              value={education.institution}
+              onChange={(value) => handleChange(index, 'institution', value)}
+              required
+            />
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Institution*</label>
-              <input
-                type="text"
-                value={education.institution}
-                onChange={(e) => handleChange(index, 'institution', e.target.value)}
-                className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Year*</label>
-              <input
-                type="number"
-                value={education.year}
-                onChange={(e) => handleChange(index, 'year', parseInt(e.target.value))}
-                className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2"
-                required
-              />
-            </div>
+            <TextInput 
+             label='Year'
+             value={education.year.toString()}
+             onChange={(value) => handleChange(index, 'year', parseInt(value))}
+             type='number'
+             required
+            />
 
             <div>
               <label className="block text-sm font-medium text-gray-700">Certificate URL</label>
