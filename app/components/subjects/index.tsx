@@ -1,38 +1,56 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { SubjectsSkeleton } from "./SubjectsSkeleton";
 import { SubjectModal } from "./SubjectModal";
 import type { Subject, SubjectDto } from "~/types/subject";
-import { useAppDispatch, useAppSelector } from "~/store/hooks";
-import { createSubject, deleteSubject, fetchSubjects, updateSubject } from "~/store/features/subjectSlice";
+import { useSubjects, useCreateSubject, useUpdateSubject, useDeleteSubject } from "~/hooks/useSubjectQueries";
 import { SubjectsTable } from "./SubjectsTable";
 
 export const SubjectSection = () => {
-  const dispatch = useAppDispatch();
-  const { subjects, loading, error } = useAppSelector((state) => state.subjects);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
 
-  useEffect(() => {
-    // Fetch all subjects at once since we're doing client-side pagination
-    dispatch(fetchSubjects());
-  }, [dispatch]);
+  // React Query hooks
+  const { 
+    data: subjects = [], 
+    isLoading, 
+    error 
+  } = useSubjects();
+  
+  const createSubjectMutation = useCreateSubject();
+  const updateSubjectMutation = useUpdateSubject();
+  const deleteSubjectMutation = useDeleteSubject();
 
   const handleCreate = async (data: SubjectDto) => {
-    await dispatch(createSubject(data));
-    setIsModalOpen(false);
+    try {
+      await createSubjectMutation.mutateAsync(data);
+      setIsModalOpen(false);
+    } catch (err) {
+      console.error("Error creating subject:", err);
+    }
   };
 
   const handleUpdate = async (data: SubjectDto) => {
     if (editingSubject) {
-      await dispatch(updateSubject({ id: editingSubject._id, data }));
-      setIsModalOpen(false);
-      setEditingSubject(null);
+      try {
+        await updateSubjectMutation.mutateAsync({ 
+          id: editingSubject._id, 
+          data 
+        });
+        setIsModalOpen(false);
+        setEditingSubject(null);
+      } catch (err) {
+        console.error("Error updating subject:", err);
+      }
     }
   };
 
   const handleDelete = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this course?')) {
-      await dispatch(deleteSubject(id));
+      try {
+        await deleteSubjectMutation.mutateAsync(id);
+      } catch (err) {
+        console.error("Error deleting subject:", err);
+      }
     }
   };
 
@@ -53,10 +71,10 @@ export const SubjectSection = () => {
         </button>
       </div>
 
-      {loading ? (
+      {isLoading ? (
         <SubjectsSkeleton />
       ) : error ? (
-        <div className="bg-red-50 text-red-700 p-4 rounded-lg">{error}</div>
+        <div className="bg-red-50 text-red-700 p-4 rounded-lg">{(error as Error).message}</div>
       ) : (
         <SubjectsTable
           data={subjects}
@@ -76,6 +94,7 @@ export const SubjectSection = () => {
         }}
         onSubmit={editingSubject ? handleUpdate : handleCreate}
         initialData={editingSubject || undefined}
+        isSubmitting={createSubjectMutation.isPending || updateSubjectMutation.isPending}
       />
     </div>
   );

@@ -21,7 +21,8 @@ export interface SubjectModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: SubjectDto) => void;
-  initialData?: SubjectDto;
+  initialData?: Subject;
+  isSubmitting?: boolean;
 }
 
 export interface SubjectFilters {

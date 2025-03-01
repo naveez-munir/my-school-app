@@ -12,6 +12,7 @@ import {
 import type { Subject, SubjectsTableProps, TableMetaType } from '~/types/subject';
 import { useState, useMemo } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
+import { TextInput } from '../common/form/inputs/TextInput';
 
 const fuzzyFilter: FilterFn<Subject> = (row, columnId, filterValue: string) => {
   const value = row.getValue(columnId) as string;
@@ -134,16 +135,12 @@ export function SubjectsTable({
       {/* TODO we need to refactor this code */}
       <div className="bg-white p-4 rounded-lg shadow">
         <div className="grid gap-4 md:grid-cols-2">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Search</label>
-            <input
-              type="text"
-              value={globalFilter ?? ''}
-              onChange={(e) => setGlobalFilter(e.target.value)}
-              placeholder="Search all columns..."
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-500"
-            />
-          </div>
+          <TextInput
+            label="Search"
+            value={globalFilter ?? ''}
+            onChange={(value) => setGlobalFilter(value)}
+            placeholder="Search all columns..."
+          />
           <div className="flex items-end">
             <select
               value={pagination.pageSize}
