@@ -1,67 +1,42 @@
 import { useEffect, useState } from "react";
-import { useAppDispatch, useAppSelector } from "~/store/hooks";
-import { fetchStudentById, createStudent, updateStudent } from "~/store/features/studentSlice";
 import type { CreateStudentDto } from "~/types/student";
 import { useNavigate, useParams } from "react-router";
 import { GuardianInfoStep } from "./form/GuardianInfoStep";
 import { DocumentsStep } from "./form/DocumentsStep";
 import { BasicInfoStep } from "./form/BasicInfoStep";
 import { AcademicInfoStep } from "./form/AcademicInfoStep";
-import { AttendanceRecordsStep } from "./form/AttendanceRecordsStep";
+import { useStudent, useCreateStudent, useUpdateStudent } from "~/hooks/useStudentQueries";
 
 type FormTab = 'basic' | 'guardian' | 'academic' | 'documents';
 
 export function StudentFormPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
-  const { currentStudent, loading } = useAppSelector((state) => state.students);
+  
+  // React Query hooks
+  const { data: currentStudent, isLoading: loading } = useStudent(id || '');
+  const createStudentMutation = useCreateStudent();
+  const updateStudentMutation = useUpdateStudent();
   
   const [activeTab, setActiveTab] = useState<FormTab>('basic');
   const [formData, setFormData] = useState<Partial<CreateStudentDto>>({});
-  const [formProgress, setFormProgress] = useState({
-    basic: false,
-    guardian: false,
-    academic: false,
-    documents: false,
-    // attendance: true // Always true because it's view-only
-  });
-
-  useEffect(() => {
-    if (id) {
-      dispatch(fetchStudentById(id));
-    }
-  }, [id, dispatch]);
 
   useEffect(() => {
     if (currentStudent && id) {
       setFormData(currentStudent);
-      // If editing an existing student, consider all steps completed
-      setFormProgress({
-        basic: true,
-        guardian: true,
-        academic: true,
-        documents: true,
-      });
     }
   }, [currentStudent, id]);
 
-  const tabs: Array<{ id: FormTab; label: string; isImplemented: boolean }> = [
-    { id: 'basic', label: 'Basic Info', isImplemented: true },
-    { id: 'guardian', label: 'Guardian', isImplemented: true },
-    { id: 'academic', label: 'Academic', isImplemented: true },
-    { id: 'documents', label: 'Documents', isImplemented: true }
+  const tabs: Array<{ id: FormTab; label: string }> = [
+    { id: 'basic', label: 'Basic Info' },
+    { id: 'guardian', label: 'Guardian' },
+    { id: 'academic', label: 'Academic' },
+    { id: 'documents', label: 'Documents' }
   ];
 
   const handleStepComplete = (stepData: Partial<CreateStudentDto>) => {
     const updatedFormData = { ...formData, ...stepData };
     setFormData(updatedFormData);
-    
-    // Mark current tab as completed
-    setFormProgress(prev => ({
-      ...prev,
-      [activeTab]: true
-    }));
     
     // Navigate to next tab or submit form
     const currentTabIndex = tabs.findIndex(tab => tab.id === activeTab);
@@ -78,9 +53,9 @@ export function StudentFormPage() {
   const handleSubmit = async (finalFormData = formData) => {
     try {
       if (id) {
-        await dispatch(updateStudent({ id, data: finalFormData }));
+        await updateStudentMutation.mutateAsync({ id, data: finalFormData });
       } else {
-        await dispatch(createStudent(finalFormData as CreateStudentDto));
+        await createStudentMutation.mutateAsync(finalFormData as CreateStudentDto);
       }
       navigate('/dashboard/students');
     } catch (error) {
@@ -91,25 +66,6 @@ export function StudentFormPage() {
   // Function to handle back button in form steps
   const handleBack = (previousTab: FormTab) => {
     setActiveTab(previousTab);
-  };
-
-  // Check if a tab should be clickable (only if previous tabs are completed)
-  const isTabClickable = (tabId: FormTab) => {
-    
-    // Basic is always clickable
-    if (tabId === 'basic') return true;
-    
-    // For subsequent tabs, previous ones must be completed
-    const tabOrder = ['basic', 'guardian', 'academic', 'documents'];
-    const tabIndex = tabOrder.indexOf(tabId);
-    
-    for (let i = 0; i < tabIndex; i++) {
-      if (!formProgress[tabOrder[i] as keyof typeof formProgress]) {
-        return false;
-      }
-    }
-    
-    return true;
   };
 
   return (
@@ -130,14 +86,12 @@ export function StudentFormPage() {
             <button
               key={tab.id}
               type="button"
-              onClick={() => isTabClickable(tab.id) && setActiveTab(tab.id)}
-              disabled={!isTabClickable(tab.id)}
+              onClick={() => setActiveTab(tab.id)}
               className={`
                 py-4 px-1 border-b-2 text-sm font-medium whitespace-nowrap
                 ${activeTab === tab.id
                   ? 'border-blue-500 text-blue-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}
-                ${!isTabClickable(tab.id) && 'opacity-50 cursor-not-allowed'}
               `}
             >
               {tab.label}

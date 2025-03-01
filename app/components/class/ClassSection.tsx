@@ -1,28 +1,25 @@
-import { useEffect, useState } from "react";
 import { ClassesSkeleton } from "./ClassesSkeleton";
 import { ClassesTable } from "./ClassTable";
 import type { ClassResponse } from "~/types/class";
-import { useAppDispatch, useAppSelector } from "~/store/hooks";
-import { 
-  createClass, 
-  deleteClass, 
-  fetchClasses, 
-  updateClass 
-} from "~/store/features/classSlice";
+import { useClasses, useDeleteClass } from "~/hooks/useClassQueries";
 import { useNavigate } from "react-router";
 
 export function ClassSection() {
-  const dispatch = useAppDispatch();
-  const { classes, loading, error } = useAppSelector((state) => state.classes);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    dispatch(fetchClasses());
-  }, [dispatch]);
+  
+  // Fetch classes with React Query
+  const { 
+    data: classes = [], 
+    isLoading, 
+    error 
+  } = useClasses();
+  
+  // Delete class mutation
+  const deleteClassMutation = useDeleteClass();
 
   const handleDelete = async(id: string) => {
     //TODO: Add confirmation prompt before deletion
-    await dispatch(deleteClass(id));
+    await deleteClassMutation.mutateAsync(id);
   };
 
   const handleEdit = (classItem: ClassResponse) => {
@@ -49,11 +46,11 @@ export function ClassSection() {
 
       {/* Main Content */}
       <div className="bg-white rounded-lg shadow">
-        {loading ? (
+        {isLoading ? (
           <ClassesSkeleton />
         ) : error ? (
           <div className="p-4 bg-red-50 text-red-700 rounded-lg">
-            {error}
+            {(error as Error).message}
           </div>
         ) : (
           <ClassesTable

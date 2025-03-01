@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import GenericCombobox from '~/components/common/form/inputs/Select';
-import { useAppSelector } from '~/store/hooks';
+import { useClasses } from '~/hooks/useClassQueries';
 import type { ClassResponse } from '~/types/class';
 
 interface ClassSelectorProps {
@@ -21,9 +21,8 @@ export function ClassSelector({
   placeholder = 'Select or enter class',
   className = ''
 }: ClassSelectorProps) {
-  const { classes, loading } = useAppSelector((state) => state.classes);
-  const [selectedClass, setSelectedClass] = useState<ClassResponse | null>(null);
-  console.log('>>>>>>>>>class', value)
+  const { data: classes = [], isLoading: loading } = useClasses();
+  const [selectedClass, setSelectedClass] = useState<ClassResponse | null>(null)
   useEffect(() => {
     if (value && classes.length > 0) {
       const matchingClass = classes.find(c => c.id === value);

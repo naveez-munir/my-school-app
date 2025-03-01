@@ -1,23 +1,20 @@
-import React, { useEffect } from 'react';
-import { useSelector } from 'react-redux';
+import React from 'react';
 import { useNavigate, useParams } from 'react-router';
-import { fetchExamById, updateExamStatus } from '~/store/features/examSlice';
-import { useAppDispatch } from '~/store/hooks';
-import type { RootState } from '~/store/store';
+import { useExam, useUpdateExamStatus } from '~/hooks/useExamQueries';
 
 const ExamDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { currentExam, loading, error } = useSelector((state: RootState) => state.exams);
+  
+  const { 
+    data: currentExam, 
+    isLoading, 
+    error 
+  } = useExam(id || '');
+  
+  const updateStatusMutation = useUpdateExamStatus();
 
-  useEffect(() => {
-    if (id) {
-      dispatch(fetchExamById(id));
-    }
-  }, [dispatch, id]);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
@@ -28,7 +25,7 @@ const ExamDetail: React.FC = () => {
   if (error) {
     return (
       <div className="p-4 bg-red-50 text-red-500 rounded-md">
-        Error: {error}
+        Error: {(error as Error).message}
       </div>
     );
   }
@@ -57,7 +54,7 @@ const ExamDetail: React.FC = () => {
 
   const handleStatusChange = (status: 'Scheduled' | 'Ongoing' | 'Completed' | 'ResultDeclared') => {
     if (id) {
-      dispatch(updateExamStatus({ id, status }));
+      updateStatusMutation.mutate({ id, status });
     }
   };
 

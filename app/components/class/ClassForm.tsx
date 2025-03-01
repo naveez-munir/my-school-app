@@ -1,8 +1,12 @@
 import { useState } from 'react';
-import { Listbox, ListboxButton, ListboxOptions, ListboxOption } from '@headlessui/react';
-import { ChevronsUpDown, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import type { Subject } from '~/types/subject';
 import type { Class, CreateClassDto } from '~/types/class';
+import GenericCombobox from '../common/form/inputs/Select';
+import { TextInput } from '../common/form/inputs/TextInput';
+import { FormActions } from '../common/form/FormActions';
+import { GradeLevel } from '~/types/student';
+import { SelectInput } from '../common/form/inputs/SelectInput';
 
 interface ClassFormProps {
   initialData?: Class;
@@ -50,9 +54,11 @@ export function ClassForm({
     handleChange('classSubjects', updatedSubjects);
   };
 
-  const handleAddSubject = (subjectId: string) => {
-    const updatedSubjects = [...(formData.classSubjects || []), subjectId];
-    handleChange('classSubjects', updatedSubjects);
+  const handleAddSubject = (subject: Subject | null) => {
+    if (subject) { // Check if subject is not null
+      const updatedSubjects = [...(formData.classSubjects || []), subject._id];
+      handleChange('classSubjects', updatedSubjects);
+    }
   };
 
   const validateForm = () => {
@@ -75,49 +81,29 @@ export function ClassForm({
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Basic Information */}
       <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Class Name*
-          </label>
-          <input
-            type="text"
-            value={formData.className}
-            onChange={(e) => handleChange('className', e.target.value)}
-            className={`mt-1 block w-full rounded-md border ${
-              errors.className ? 'border-red-500' : 'border-gray-300'
-            } shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2`}
-            placeholder="Enter class name"
-          />
-          {errors.className && (
-            <p className="mt-1 text-sm text-red-600">{errors.className}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Section
-          </label>
-          <input
-            type="text"
-            value={formData.classSection}
-            onChange={(e) => handleChange('classSection', e.target.value)}
-            className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2"
-            placeholder="Enter section"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Grade Level
-          </label>
-          <input
-            type="text"
-            value={formData.classGradeLevel}
-            onChange={(e) => handleChange('classGradeLevel', e.target.value)}
-            className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2"
-            placeholder="Enter grade level"
-          />
-        </div>
+        <TextInput
+          label="Class Name"
+          value={formData.className}
+          onChange={(value) => handleChange('className', value)}
+          error={errors.className}
+          required
+          placeholder="Enter class name"
+        />
+        <TextInput
+          label="Section"
+          value={formData.classSection || ''}
+          onChange={(value) => handleChange('classSection', value)}
+          error={errors.className}
+          placeholder="Enter class name"
+        />
+        <SelectInput<typeof GradeLevel>
+          label="Grade Level"
+          value={formData.classGradeLevel as GradeLevel}
+          onChange={(value) => handleChange('classGradeLevel', value)}
+          options={GradeLevel}
+          placeholder="Select Grade Level"
+          required
+        />
       </div>
 
       {/* Subjects Section */}
@@ -145,64 +131,24 @@ export function ClassForm({
               </div>
             ))}
           </div>
-
-          {/* Subject Selection Dropdown */}
           {availableSubjects.length > 0 && (
-            <Listbox
-              value=""
+            <GenericCombobox<Subject>
+              items={availableSubjects}
+              value={null}
               onChange={handleAddSubject}
-            >
-              <div className="relative mt-1">
-                <ListboxButton className="relative w-full cursor-pointer rounded-md border border-gray-300 bg-white py-2 pl-3 pr-10 text-left shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
-                  <span className="block truncate text-gray-500">
-                    Add subjects...
-                  </span>
-                  <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                    <ChevronsUpDown className="h-4 w-4 text-gray-400" />
-                  </span>
-                </ListboxButton>
-                <ListboxOptions className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-                  {availableSubjects.map((subject) => (
-                    <ListboxOption
-                      key={subject._id}
-                      value={subject._id}
-                      className={({ active }) =>
-                        `relative cursor-pointer select-none py-2 pl-3 pr-9 ${
-                          active ? 'bg-blue-100 text-blue-900' : 'text-gray-900'
-                        }`
-                      }
-                    >
-                      {({ selected }) => (
-                        <span className={`block truncate ${selected ? 'font-semibold' : 'font-normal'}`}>
-                          {subject.subjectName}
-                        </span>
-                      )}
-                    </ListboxOption>
-                  ))}
-                </ListboxOptions>
-              </div>
-            </Listbox>
+              displayKey="subjectName"
+              valueKey="_id"
+              placeholder="Add subjects..."
+            />
           )}
         </div>
       )}
 
-      {/* Form Actions */}
-      <div className="flex justify-end space-x-4">
-        <button
-          type="button"
-          onClick={() => window.history.back()}
-          className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-        >
-          {isLoading ? 'Saving...' : mode === 'edit' ? 'Update Class' : 'Create Class'}
-        </button>
-      </div>
+      <FormActions
+        isLoading={isLoading}
+        mode={mode}
+        entityName="Class"
+      />
     </form>
   );
 }

@@ -1,46 +1,52 @@
-import { useEffect } from 'react';
-import { useAppDispatch, useAppSelector } from '~/store/hooks';
-import { 
-  createClass, 
-  updateClass, 
-  fetchClassById 
-} from '~/store/features/classSlice';
-import { fetchSubjects } from '~/store/features/subjectSlice';
-import { ClassForm } from './ClassForm';
-import type { Class, CreateClassDto } from '~/types/class';
 import { useNavigate, useParams } from 'react-router';
+import { useClass } from '~/hooks/useClassQueries';
+import { useSubjects } from '~/hooks/useSubjectQueries';
+import { useTeachers } from '~/hooks/useTeacherQueries';
+import { useCreateClass, useUpdateClass } from '~/hooks/useClassQueries';
+import { ClassForm } from './ClassForm';
 import { TeacherAssignmentSection } from './TeacherAssignmentSection';
+import type { Class, CreateClassDto } from '~/types/class';
 
 export function CreateEditClass() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
   
-  const { currentClass, loading: classLoading } = useAppSelector((state) => state.classes);
-  const { subjects, loading: subjectsLoading } = useAppSelector((state) => state.subjects);
-  const { teachers } = useAppSelector((state) => state.teachers);
+  const { data: currentClass, isLoading: classLoading } = useClass(id || '');
+  const { data: subjects = [], isLoading: subjectsLoading } = useSubjects();
+  const { data: teachers = [], isLoading: teachersLoading } = useTeachers();
+  
+  const createClassMutation = useCreateClass();
+  const updateClassMutation = useUpdateClass();
 
-  useEffect(() => {
+  const handleSubmit = (data: CreateClassDto) => {
     if (id) {
-      dispatch(fetchSubjects());
-      dispatch(fetchClassById(id));
-    }
-  }, [dispatch, id]);
-
-  const handleSubmit = async (data: CreateClassDto) => {
-    try {
-      if (id) {
-        await dispatch(updateClass({ id, data })).unwrap();
-      } else {
-        await dispatch(createClass(data)).unwrap();
-      }
-      navigate('/dashboard/classes');
-    } catch (error) {
-      console.error('Failed to save class:', error);
+      updateClassMutation.mutate(
+        { id, data }, 
+        {
+          onSuccess: () => {
+            navigate('/dashboard/classes');
+          },
+          onError: (error) => {
+            console.error('Failed to update class:', error);
+          }
+        }
+      );
+    } else {
+      createClassMutation.mutate(
+        data, 
+        {
+          onSuccess: () => {
+            navigate('/dashboard/classes');
+          },
+          onError: (error) => {
+            console.error('Failed to create class:', error);
+          }
+        }
+      );
     }
   };
 
-  const isLoading = (id && classLoading) || (id && subjectsLoading);
+  const isLoading = (id && classLoading) || (id && subjectsLoading) || (id && teachersLoading);
 
   if (isLoading) {
     return (
@@ -75,7 +81,7 @@ export function CreateEditClass() {
             initialData={currentClass || undefined}
             onSubmit={handleSubmit}
             subjects={subjects}
-            isLoading={classLoading}
+            isLoading={createClassMutation.isPending || updateClassMutation.isPending}
             mode={id ? 'edit' : 'create'}
           />
           {id && 

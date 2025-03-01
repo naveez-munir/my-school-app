@@ -3,9 +3,9 @@ import api from "./api";
 
 export const examTypeApi = {
   getAll: async (activeOnly?: boolean) => {
-    const response = await api.get('/exam-types'
-      //  { params: activeOnly !== undefined ? { activeOnly } : {} }
-      );
+    const response = await api.get("/exam-types", {
+      params: activeOnly !== undefined ? { activeOnly } : {},
+    });
     return response.data;
   },
 
@@ -15,7 +15,7 @@ export const examTypeApi = {
   },
 
   create: async (data: CreateExamTypeDto) => {
-    const response = await api.post('/exam-types', data);
+    const response = await api.post("/exam-types", data);
     return response.data;
   },
 
@@ -32,5 +32,5 @@ export const examTypeApi = {
   toggleStatus: async (id: string) => {
     const response = await api.put(`/exam-types/${id}/toggle-status`);
     return response.data;
-  }
+  },
 };
