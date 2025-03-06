@@ -1,6 +1,4 @@
-import { useEffect } from 'react';
-import { useAppDispatch, useAppSelector } from '~/store/hooks';
-import { fetchTeacherById, updateTeacher } from '~/store/features/teacherSlice';
+import { useTeacher, useUpdateTeacher } from '~/hooks/useTeacherQueries';
 import { TeacherForm } from './TeacherForm';
 import type { CreateTeacherDto } from '~/types/teacher';
 import { useNavigate, useParams } from 'react-router';
@@ -8,19 +6,15 @@ import { useNavigate, useParams } from 'react-router';
 export function EditTeacher() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
-  const { currentTeacher, loading } = useAppSelector((state) => state.teachers);
-
-  useEffect(() => {
-    if (id) {
-      dispatch(fetchTeacherById(id));
-    }
-  }, [dispatch, id]);
+  
+  // React Query hooks
+  const { data: currentTeacher, isLoading: fetchLoading } = useTeacher(id || '');
+  const updateTeacherMutation = useUpdateTeacher();
 
   const handleSubmit = async (data: CreateTeacherDto) => {
     try {
       if (id) {
-        await dispatch(updateTeacher({ id, data })).unwrap();
+        await updateTeacherMutation.mutateAsync({ id, data });
         navigate('/dashboard/teachers');
       }
     } catch (error) {
@@ -28,7 +22,7 @@ export function EditTeacher() {
     }
   };
 
-  if (!currentTeacher) {
+  if (fetchLoading || !currentTeacher) {
     return <div>Loading...</div>;
   }
 
@@ -46,7 +40,7 @@ export function EditTeacher() {
           <TeacherForm
             initialData={currentTeacher}
             onSubmit={handleSubmit}
-            isLoading={loading}
+            isLoading={updateTeacherMutation.isPending}
           />
         </div>
       </div>

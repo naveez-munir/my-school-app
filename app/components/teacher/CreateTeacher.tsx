@@ -1,17 +1,15 @@
-import { useAppDispatch, useAppSelector } from '~/store/hooks';
-import { createTeacher } from '~/store/features/teacherSlice';
+import { useCreateTeacher } from '~/hooks/useTeacherQueries';
 import { TeacherForm } from './TeacherForm';
 import type { CreateTeacherDto } from '~/types/teacher';
 import { useNavigate } from 'react-router';
 
 export function CreateTeacher() {
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
-  const { loading } = useAppSelector((state) => state.teachers);
+  const createTeacherMutation = useCreateTeacher();
 
   const handleSubmit = async (data: CreateTeacherDto) => {
     try {
-      await dispatch(createTeacher(data)).unwrap();
+      await createTeacherMutation.mutateAsync(data);
       navigate('/dashboard/teachers');
     } catch (error) {
       console.error('Failed to create teacher:', error);
@@ -31,7 +29,7 @@ export function CreateTeacher() {
         <div className="p-4 sm:p-6">
           <TeacherForm
             onSubmit={handleSubmit}
-            isLoading={loading}
+            isLoading={createTeacherMutation.isPending}
           />
         </div>
       </div>

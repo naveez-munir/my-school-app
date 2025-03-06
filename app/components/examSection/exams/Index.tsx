@@ -1,33 +1,34 @@
-import React, { useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router';
 import type { ExamResponse } from '~/types/exam';
 import ExamsTable from './ExamsTable';
-import { useAppDispatch } from '~/store/hooks';
-import { useNavigate } from 'react-router';
-import type { RootState } from '~/store/store';
-import { deleteExam, fetchExams, updateExamStatus } from '~/store/features/examSlice';
+import { useExams, useDeleteExam, useUpdateExamStatus } from '~/hooks/useExamQueries';
 
 const ExamDashboard: React.FC = () => {
-  const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { exams, loading, error } = useSelector((state: RootState) => state.exams);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [examToDelete, setExamToDelete] = useState<string | null>(null);
   
-  useEffect(() => {
-    dispatch(fetchExams());
-  }, [dispatch]);
+  // React Query hooks
+  const { 
+    data: exams = [], 
+    isLoading, 
+    error 
+  } = useExams();
+  
+  const deleteExamMutation = useDeleteExam();
+  const updateStatusMutation = useUpdateExamStatus();
 
   const handleEdit = (exam: ExamResponse) => {
-    navigate(`/exams/edit/${exam.id}`);
+    navigate(`/dashboard/exams/${exam.id}/edit`);
   };
 
   const handleView = (exam: ExamResponse) => {
-    navigate(`/exams/${exam.id}`);
+    navigate(`/dashboard/exams/${exam.id}`);
   };
 
   const handleCreate = () => {
-    navigate('/exams/create');
+    navigate('/dashboard/exams/new');
   };
 
   const handleDeleteClick = (id: string) => {
@@ -37,7 +38,7 @@ const ExamDashboard: React.FC = () => {
 
   const confirmDelete = async () => {
     if (examToDelete) {
-      await dispatch(deleteExam(examToDelete));
+      await deleteExamMutation.mutateAsync(examToDelete);
       setShowDeleteModal(false);
       setExamToDelete(null);
     }
@@ -49,13 +50,13 @@ const ExamDashboard: React.FC = () => {
   };
 
   const handleStatusChange = (id: string, status: 'Scheduled' | 'Ongoing' | 'Completed' | 'ResultDeclared') => {
-    dispatch(updateExamStatus({ id, status }));
+    updateStatusMutation.mutate({ id, status });
   };
 
   if (error) {
     return (
       <div className="p-4 bg-red-50 text-red-500 rounded-md">
-        Error: {error}
+        Error: {(error as Error).message}
       </div>
     );
   }
@@ -72,7 +73,7 @@ const ExamDashboard: React.FC = () => {
         </button>
       </div>
 
-      {loading ? (
+      {isLoading ? (
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
         </div>
@@ -104,8 +105,9 @@ const ExamDashboard: React.FC = () => {
               <button
                 onClick={confirmDelete}
                 className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md"
+                disabled={deleteExamMutation.isPending}
               >
-                Delete
+                {deleteExamMutation.isPending ? 'Deleting...' : 'Delete'}
               </button>
             </div>
           </div>

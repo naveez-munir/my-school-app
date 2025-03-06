@@ -1,22 +1,18 @@
-import { useEffect, useState } from "react";
-import { useAppDispatch, useAppSelector } from "~/store/hooks";
 import { useNavigate } from "react-router";
-import { deleteTeacher, fetchTeachers } from "~/store/features/teacherSlice";
 import { TeacherTable } from "./TeacherTable";
 import type { TeacherResponse } from "~/types/teacher";
+import { useTeachers, useDeleteTeacher } from "~/hooks/useTeacherQueries";
 
 export function TeacherSection() {
-  const dispatch = useAppDispatch();
-  const { teachers, loading, error } = useAppSelector((state) => state.teachers);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    dispatch(fetchTeachers());
-  }, [dispatch]);
+  
+  // React Query hooks
+  const { data: teachers = [], isLoading: loading, error } = useTeachers();
+  const deleteTeacherMutation = useDeleteTeacher();
 
   const handleDelete = async(id: string) => {
     //TODO: Add confirmation prompt before deletion
-    await dispatch(deleteTeacher(id));
+    deleteTeacherMutation.mutate(id);
   };
 
   const handleEdit = (teacher: TeacherResponse) => {
@@ -47,7 +43,7 @@ export function TeacherSection() {
           <div><h4>Loading....</h4></div>
         ) : error ? (
           <div className="p-4 bg-red-50 text-red-700 rounded-lg">
-            {error}
+            {(error as Error).message || "An error occurred"}
           </div>
         ) : (
           <TeacherTable

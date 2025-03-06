@@ -1,21 +1,17 @@
-import { useEffect } from 'react';
-import { useAppDispatch, useAppSelector } from '~/store/hooks';
-import { fetchClassById } from '~/store/features/classSlice';
 import { useNavigate, useParams } from 'react-router';
+import { useClass } from '~/hooks/useClassQueries';
 
 export function ClassDetails() {
   const { id } = useParams();
-  const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { currentClass, loading, error } = useAppSelector((state) => state.classes);
+  
+  const { 
+    data: currentClass, 
+    isLoading, 
+    error 
+  } = useClass(id || '');
 
-  useEffect(() => {
-    if (id) {
-      dispatch(fetchClassById(id));
-    }
-  }, [dispatch, id]);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="p-4 sm:p-6 md:p-8">
         <div className="animate-pulse space-y-4">
@@ -33,7 +29,7 @@ export function ClassDetails() {
     return (
       <div className="p-4 sm:p-6 md:p-8">
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
-          {error}
+          {(error as Error).message}
         </div>
       </div>
     );

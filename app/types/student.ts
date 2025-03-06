@@ -229,6 +229,7 @@ export interface StudentResponse {
   id: string,
   name: string,
   gradeLevel: string,
+  classId: string,
   className: string,
   guardianName: string,
   photoUrl: string,

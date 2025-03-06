@@ -1,21 +1,16 @@
-import React, { useEffect, useState } from 'react';
-import { 
-  fetchExamTypes, 
-  deleteExamType,
-  toggleExamTypeStatus,
-  createExamType,
-  updateExamType,
-  clearCurrentExamType
-} from '~/store/features/examTypeSlice';
+import React, { useState } from 'react';
 import type { ExamType, CreateExamTypeDto, UpdateExamTypeDto } from '~/types/examType';
 import ExamTypesTable from './ExamTypesTable';
 import ExamTypeForm from './ExamTypeForm';
-import { useAppDispatch, useAppSelector } from '~/store/hooks';
+import { 
+  useExamTypes, 
+  useCreateExamType, 
+  useUpdateExamType, 
+  useDeleteExamType, 
+  useToggleExamTypeStatus 
+} from '~/hooks/useExamTypeQueries';
 
 const ExamTypeDashboard: React.FC = () => {
-  const dispatch = useAppDispatch();
-  const { examTypes, loading, error } = useAppSelector((state) => state.examTypes);
-  
   // Modal states
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showFormModal, setShowFormModal] = useState(false);
@@ -23,9 +18,17 @@ const ExamTypeDashboard: React.FC = () => {
   const [currentExamType, setCurrentExamType] = useState<ExamType | null>(null);
   const [activeOnly, setActiveOnly] = useState(false);
   
-  useEffect(() => {
-    dispatch(fetchExamTypes(activeOnly));
-  }, [dispatch, activeOnly]);
+  // React Query hooks
+  const { 
+    data: examTypes = [], 
+    isLoading, 
+    error 
+  } = useExamTypes(activeOnly);
+  
+  const createExamTypeMutation = useCreateExamType();
+  const updateExamTypeMutation = useUpdateExamType();
+  const deleteExamTypeMutation = useDeleteExamType();
+  const toggleStatusMutation = useToggleExamTypeStatus();
 
   const handleAddNew = () => {
     setCurrentExamType(null);
@@ -43,12 +46,12 @@ const ExamTypeDashboard: React.FC = () => {
   };
 
   const handleToggleStatus = (id: string) => {
-    dispatch(toggleExamTypeStatus(id));
+    toggleStatusMutation.mutate(id);
   };
 
   const confirmDelete = async () => {
     if (examTypeToDelete) {
-      await dispatch(deleteExamType(examTypeToDelete));
+      await deleteExamTypeMutation.mutateAsync(examTypeToDelete);
       setShowDeleteModal(false);
       setExamTypeToDelete(null);
     }
@@ -62,15 +65,14 @@ const ExamTypeDashboard: React.FC = () => {
   const handleFormSubmit = async (data: CreateExamTypeDto | UpdateExamTypeDto) => {
     try {
       if (currentExamType) {
-        await dispatch(updateExamType({ 
+        await updateExamTypeMutation.mutateAsync({ 
           id: currentExamType._id, 
           data: data as UpdateExamTypeDto 
-        }));
+        });
       } else {
-        await dispatch(createExamType(data as CreateExamTypeDto));
+        await createExamTypeMutation.mutateAsync(data as CreateExamTypeDto);
       }
       setShowFormModal(false);
-      dispatch(clearCurrentExamType());
     } catch (error) {
       console.error('Error saving exam type:', error);
     }
@@ -78,7 +80,6 @@ const ExamTypeDashboard: React.FC = () => {
 
   const handleCancelForm = () => {
     setShowFormModal(false);
-    dispatch(clearCurrentExamType());
   };
 
   const toggleActiveFilter = () => {
@@ -88,10 +89,14 @@ const ExamTypeDashboard: React.FC = () => {
   if (error) {
     return (
       <div className="p-4 bg-red-50 text-red-500 rounded-md">
-        Error: {error}
+        Error: {(error as Error).message}
       </div>
     );
   }
+
+  const isSubmitting = 
+    createExamTypeMutation.isPending || 
+    updateExamTypeMutation.isPending;
 
   return (
     <div className="container mx-auto py-6 px-4">
@@ -117,7 +122,7 @@ const ExamTypeDashboard: React.FC = () => {
         </div>
       </div>
 
-      {loading && examTypes.length === 0 ? (
+      {isLoading && examTypes.length === 0 ? (
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
         </div>
@@ -148,8 +153,9 @@ const ExamTypeDashboard: React.FC = () => {
               <button
                 onClick={confirmDelete}
                 className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md"
+                disabled={deleteExamTypeMutation.isPending}
               >
-                Delete
+                {deleteExamTypeMutation.isPending ? 'Deleting...' : 'Delete'}
               </button>
             </div>
           </div>
@@ -171,7 +177,7 @@ const ExamTypeDashboard: React.FC = () => {
               } : undefined}
               onSubmit={handleFormSubmit}
               onCancel={handleCancelForm}
-              isSubmitting={loading}
+              isSubmitting={isSubmitting}
             />
           </div>
         </div>

@@ -1,31 +1,21 @@
-import { useEffect, useState } from "react";
 import { StudentsSkeleton } from "./StudentsSkeleton";
-import { StudentFilter } from "./StudentFilter";
 import { StudentsTable } from "./StudentsTable";
-import type { Student, CreateStudentDto, StudentResponse } from "~/types/student";
-import { useAppDispatch, useAppSelector } from "~/store/hooks";
-import { 
-  createStudent, 
-  deleteStudent, 
-  fetchStudents, 
-  updateStudent 
-} from "~/store/features/studentSlice";
+import type { StudentResponse } from "~/types/student";
 import { useNavigate } from "react-router";
+import { 
+  useStudents, 
+  useDeleteStudent 
+} from "~/hooks/useStudentQueries";
 
 export function StudentSection() {
-  const dispatch = useAppDispatch();
-  const { students, loading, error } = useAppSelector((state) => state.students);
-  const [editingStudent, setEditingStudent] = useState<StudentResponse | null>(null);
+  const { data: students = [], isLoading: loading, error } = useStudents();
+  const deleteStudentMutation = useDeleteStudent();
 
   const navigate = useNavigate();
 
-  useEffect(() => {
-    dispatch(fetchStudents());
-  }, [dispatch]);
-
   const handleDelete = async(id: string) => {
     //TODO we need to add prompt take confirmation first
-    await dispatch(deleteStudent(id));
+    deleteStudentMutation.mutate(id);
   };
   const handleEdit = (student: StudentResponse) => {
     navigate(`/dashboard/students/${student.id}/edit`);
@@ -55,7 +45,7 @@ export function StudentSection() {
           <StudentsSkeleton />
         ) : error ? (
           <div className="p-4 bg-red-50 text-red-700 rounded-lg">
-            {error}
+            {(error as Error).message || "An error occurred"}
           </div>
         ) : (
           <StudentsTable
