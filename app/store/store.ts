@@ -1,13 +1,10 @@
 import { configureStore } from '@reduxjs/toolkit';
-import subjectsReducer from './features/subjectSlice';
-import studentReducer from './features/studentSlice';
-import teacherReducer from './features/teacherSlice';
+import classReducer from './features/classSlice';
+
 
 export const store = configureStore({
   reducer: {
-    subjects: subjectsReducer,
-    students: studentReducer,
-    teachers: teacherReducer,
+    classes: classReducer,
   },
 });
 

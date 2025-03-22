@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { EyeIcon, EyeOffIcon } from 'lucide-react';
 import { useNavigate } from 'react-router';
+import { TextInput } from '../common/form/inputs/TextInput';
 
 interface FormData {
   tenantName: string;
@@ -76,37 +77,19 @@ export const SignIn = () => {
 
           <form onSubmit={handleSubmit} className="mt-8 space-y-6">
             <div className="space-y-4">
-              <div>
-                <label htmlFor="tenantName" className="block text-sm font-medium text-gray-700">
-                  Tenant Name
-                </label>
-                <input
-                  id="tenantName"
-                  name="tenantName"
-                  type="text"
-                  required
-                  value={formData.tenantName}
-                  onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 text-gray-900 placeholder:text-gray-400"
-                  placeholder="Enter tenant name"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="identifier" className="block text-sm font-medium text-gray-700">
-                  Email or CNIC
-                </label>
-                <input
-                  id="identifier"
-                  name="identifier"
-                  type="text"
-                  required
-                  value={formData.identifier}
-                  onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 text-gray-900 placeholder:text-gray-400"
-                  placeholder="Enter identifier"
-                />
-              </div>
+              <TextInput 
+               label='School Name'
+               value={formData.tenantName}
+               onChange={(value) => setFormData({ ...formData, tenantName: value })}
+               required
+              />
+              <TextInput 
+               label='Email or CNIC'
+               value={formData.identifier}
+               onChange={(value) => setFormData({ ...formData, identifier: value })}
+               placeholder='Enter identifier'
+               required
+              />
 
               <div>
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700">

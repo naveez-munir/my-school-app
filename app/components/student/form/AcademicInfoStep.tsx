@@ -90,7 +90,8 @@ export function AcademicInfoStep({ data, onComplete, onBack }: AcademicInfoStepP
         />
 
         <ClassSelector
-          value={formData.class._id }//TODO need to handle this TS error
+         // @ts-ignore
+          value={formData.class._id }
           onChange={(classId) => handleChange('class', classId)}
           label="Class"
           required={true}

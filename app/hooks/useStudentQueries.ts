@@ -27,7 +27,7 @@ export const useStudentsByClass = (classId: string) => {
 export const useStudentsByGradeLevel = (gradeLevel: string) => {
   return useQuery({
     queryKey: [...baseStudentHooks.keys.lists(), 'gradeLevel', gradeLevel],
-    queryFn: () => studentApi.getByGradeLevel(gradeLevel),
+    queryFn: () => studentApi.getByClass(gradeLevel),
     enabled: !!gradeLevel
   });
 };

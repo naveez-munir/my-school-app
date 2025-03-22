@@ -36,6 +36,7 @@ export default [
     route("accounts/:action?", "routes/dashboard/account/index.tsx"),
     route("fee/:action?", "routes/dashboard/studentFee/index.tsx"),
     route("staff/:action?", "routes/dashboard/staff/index.tsx"),
+    route("leave/:action?", "routes/dashboard/leave/index.tsx"),
     route("exams/results/:id?/:action?", "routes/dashboard/exam/examResults.tsx"),
     route("daily-diary/new", "routes/dashboard/dailyDiary/new.tsx"),
     route("daily-diary/:id?/:action?", "routes/dashboard/dailyDiary/index.tsx"),

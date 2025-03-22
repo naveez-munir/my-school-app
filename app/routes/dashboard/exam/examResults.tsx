@@ -1,5 +1,6 @@
 import { useParams } from 'react-router';
 import type { Route } from "../+types";
+import { ExamResultSection } from '~/components/examSection/examResult/ExamResultSection';
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -9,18 +10,6 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function ExamResults() {
-  const { id, action } = useParams();
-  if (action === "new") {
-    return <h1>New </h1>;
-  }
 
-  if (id && action === "edit") {
-    return <h1>Edit</h1>;
-  }
-
-  if (id && !action) {
-    return <h1>Details</h1>;
-  }
-
-  return <h1>Exam dashboard</h1>;
+  return <ExamResultSection />
 }

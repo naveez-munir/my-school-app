@@ -42,7 +42,7 @@ export const createQueryHooks = <T, CreateDTO, UpdateDTO>(
   // Create a new entity
   const useCreateEntity = () => {
     const queryClient = useQueryClient();
-    
+
     return useMutation({
       mutationFn: (data: CreateDTO) => service.create(data),
       onSuccess: () => {
@@ -54,7 +54,7 @@ export const createQueryHooks = <T, CreateDTO, UpdateDTO>(
   // Update an existing entity
   const useUpdateEntity = () => {
     const queryClient = useQueryClient();
-    
+
     return useMutation({
       mutationFn: ({ id, data }: { id: string; data: UpdateDTO }) => 
         service.update(id, data),
@@ -68,7 +68,7 @@ export const createQueryHooks = <T, CreateDTO, UpdateDTO>(
   // Delete an entity
   const useDeleteEntity = () => {
     const queryClient = useQueryClient();
-    
+
     return useMutation({
       mutationFn: (id: string) => service.delete(id),
       onSuccess: (_data, id) => {

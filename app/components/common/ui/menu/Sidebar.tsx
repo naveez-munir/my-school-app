@@ -13,6 +13,17 @@ import {
   GraduationCap,
   FileText,
   Award,
+  Book,
+  Briefcase,
+  DollarSign,
+  CreditCard,
+  Clock,
+  FileSpreadsheet,
+  UserCheck,
+  ClipboardList,
+  Receipt,
+  PieChart,
+  ListChecks
 } from 'lucide-react';
 
 export type MenuItem = {
@@ -38,7 +49,18 @@ const icons = {
   settings: Settings,
   graduationCap: GraduationCap,
   fileText: FileText,
-  award: Award
+  award: Award,
+  book: Book,
+  briefcase: Briefcase,
+  dollarSign: DollarSign,
+  creditCard: CreditCard,
+  clock: Clock,
+  fileSpreadsheet: FileSpreadsheet,
+  userCheck: UserCheck,
+  clipboardList: ClipboardList,
+  receipt: Receipt,
+  pieChart: PieChart,
+  listChecks: ListChecks
 };
 
 // Define menu structure here for easy maintenance
@@ -74,6 +96,32 @@ const MENU_ITEMS: MenuItem[] = [
     icon: 'bookOpen'
   },
   { 
+    name: 'staffSection', 
+    label: 'Staff', 
+    path: '/dashboard/staff',
+    icon: 'briefcase',
+  },
+  { 
+    name: 'leaveSection', 
+    label: 'Leave Management', 
+    path: '/dashboard/leave',
+    icon: 'clock',
+    children: [
+      { 
+        name: 'staff-leave', 
+        label: 'Staff Leave', 
+        path: '/dashboard/leave/staff',
+        icon: 'userCheck'
+      },
+      { 
+        name: 'student-leave', 
+        label: 'Student Leave', 
+        path: '/dashboard/leave/student',
+        icon: 'users'
+      }
+    ]
+  },
+  { 
     name: 'exams', 
     label: 'Examination', 
     path: '/dashboard/exams',
@@ -100,6 +148,76 @@ const MENU_ITEMS: MenuItem[] = [
     ]
   },
   { 
+    name: 'feeSection', 
+    label: 'Fee Management', 
+    path: '/dashboard/fee',
+    icon: 'dollarSign',
+    children: [
+      { 
+        name: 'fee-category', 
+        label: 'Fee Category', 
+        path: '/dashboard/fee/category',
+        icon: 'fileSpreadsheet'
+      },
+      { 
+        name: 'fee-payment', 
+        label: 'Fee Payment', 
+        path: '/dashboard/fee/payment',
+        icon: 'creditCard'
+      },
+      { 
+        name: 'fee-structure', 
+        label: 'Fee Structure', 
+        path: '/dashboard/fee/structure',
+        icon: 'receipt'
+      },
+      { 
+        name: 'student-discount', 
+        label: 'Student Discount', 
+        path: '/dashboard/fee/discount',
+        icon: 'pieChart'
+      },
+      { 
+        name: 'student-fee', 
+        label: 'Student Fee', 
+        path: '/dashboard/fee/student',
+        icon: 'dollarSign'
+      }
+    ]
+  },
+  { 
+    name: 'accountSection', 
+    label: 'Accounts', 
+    path: '/dashboard/accounts',
+    icon: 'dollarSign',
+    children: [
+      { 
+        name: 'salary-structure', 
+        label: 'Salary Structure', 
+        path: '/dashboard/accounts/salary-structure',
+        icon: 'fileSpreadsheet'
+      },
+      { 
+        name: 'salary', 
+        label: 'Salary', 
+        path: '/dashboard/accounts/salary',
+        icon: 'creditCard'
+      },
+      { 
+        name: 'expenses', 
+        label: 'Expenses', 
+        path: '/dashboard/accounts/expenses',
+        icon: 'receipt'
+      },
+      { 
+        name: 'payment', 
+        label: 'Payment', 
+        path: '/dashboard/accounts/payment',
+        icon: 'dollarSign'
+      }
+    ]
+  },
+  { 
     name: 'management', 
     label: 'Management', 
     path: '/dashboard/management',
@@ -110,6 +228,18 @@ const MENU_ITEMS: MenuItem[] = [
     label: 'Attendance', 
     path: '/dashboard/attendance',
     icon: 'clipboardCheck'
+  },
+  { 
+    name: 'dailyDiary', 
+    label: 'Daily Diary', 
+    path: '/dashboard/daily-diary',
+    icon: 'book'
+  },
+  { 
+    name: 'subjects', 
+    label: 'Subjects', 
+    path: '/dashboard/subjects',
+    icon: 'bookOpen'
   },
 ];
 
@@ -252,7 +382,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         </div>
 
         {/* Main Menu */}
-        <nav className="p-4 space-y-1">
+        <nav className="p-4 space-y-1 overflow-y-auto h-[calc(100vh-140px)]">
           {MENU_ITEMS.map(renderMenuItem)}
         </nav>
         

@@ -259,6 +259,7 @@ export interface GetStudentFeesParams {
 export interface GetPendingFeesParams {
   academicYear?: string;
   classId?: MongoId;
+  month?: number;
 }
 
 export interface PendingFeesResult {
