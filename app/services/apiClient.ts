@@ -1,4 +1,23 @@
 import axios from 'axios';
+const getAuthData = () => {
+  try {
+    const authDataStr = localStorage.getItem('authData');
+    if (!authDataStr) return null;
+    
+    const authData = JSON.parse(authDataStr);
+    const now = new Date().getTime();
+
+    if (authData.expiry && now > authData.expiry) {
+      localStorage.removeItem('authData');
+      return null;
+    }
+    
+    return authData;
+  } catch (error) {
+    console.error('Error parsing auth data:', error);
+    return null;
+  }
+};
 
 export const createApiClient = (baseURL: string = 'http://localhost:3000') => {
   const api = axios.create({
@@ -8,15 +27,14 @@ export const createApiClient = (baseURL: string = 'http://localhost:3000') => {
     }
   });
 
-  // Add auth interceptor
   api.interceptors.request.use((config) => {
-    const token = localStorage.getItem('token');
-    const tenantName = localStorage.getItem('tenantName') || 'academy';
+    const authData = getAuthData();
     
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    if (authData?.token) {
+      config.headers.Authorization = `Bearer ${authData.token}`;
     }
-    config.headers['x-tenant-name'] = tenantName;
+    
+    config.headers['x-tenant-name'] = authData?.tenantName || 'academy';
     
     return config;
   });

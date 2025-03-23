@@ -22,8 +22,8 @@ export function BasicInfoStep({ data, onComplete, onBack }: BasicInfoStepProps) 
       admissionDate: data.admissionDate || '',
       gender: data.gender || Gender.Male,
       bloodGroup: data.bloodGroup || undefined,
-      phone: data.phone || '',
-      email: data.email || '',
+      phone: data.phone || null,
+      email: data.email || null,
       address: data.address || '',
       rollNumber: data.rollNumber || '',
       gradeLevel: data.gradeLevel || '',
@@ -94,14 +94,14 @@ export function BasicInfoStep({ data, onComplete, onBack }: BasicInfoStepProps) 
 
         <TextInput
           label="Phone"
-          value={formData.phone}
+          value={formData.phone || ''}
           onChange={(value) => handleChange('phone', value)}
           type="tel"
         />
 
         <TextInput
           label="Email"
-          value={formData.email}
+          value={formData.email || ''}
           onChange={(value) => handleChange('email', value)}
           type="email"
         />

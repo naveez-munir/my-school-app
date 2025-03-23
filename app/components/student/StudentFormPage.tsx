@@ -1,146 +1,161 @@
-import { useEffect, useState } from "react";
-import type { CreateStudentDto } from "~/types/student";
-import { useNavigate, useParams } from "react-router";
-import { GuardianInfoStep } from "./form/GuardianInfoStep";
-import { DocumentsStep } from "./form/DocumentsStep";
+import { useState } from "react";
+import { useNavigate } from "react-router";
+import { StepIndicator } from "./form/StepIndicator";
 import { BasicInfoStep } from "./form/BasicInfoStep";
-import { AcademicInfoStep } from "./form/AcademicInfoStep";
-import { useStudent, useCreateStudent, useUpdateStudent } from "~/hooks/useStudentQueries";
+import { GuardianInfoStep } from "./form/GuardianInfoStep";
+import { useCreateStudent } from "~/hooks/useStudentQueries";
+import type { CreateStudentDto } from "~/types/student";
+import { cleanFormData } from "~/utils/cleanFormData";
 
-type FormTab = 'basic' | 'guardian' | 'academic' | 'documents';
+type FormStep = 'basic' | 'guardian' | 'review';
 
 export function StudentFormPage() {
-  const { id } = useParams();
   const navigate = useNavigate();
-  
-  // React Query hooks
-  const { data: currentStudent, isLoading: loading } = useStudent(id || '');
   const createStudentMutation = useCreateStudent();
-  const updateStudentMutation = useUpdateStudent();
   
-  const [activeTab, setActiveTab] = useState<FormTab>('basic');
+  const [activeStep, setActiveStep] = useState<FormStep>('basic');
   const [formData, setFormData] = useState<Partial<CreateStudentDto>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    if (currentStudent && id) {
-      setFormData(currentStudent);
-    }
-  }, [currentStudent, id]);
-
-  const tabs: Array<{ id: FormTab; label: string }> = [
+  const steps = [
     { id: 'basic', label: 'Basic Info' },
-    { id: 'guardian', label: 'Guardian' },
-    { id: 'academic', label: 'Academic' },
-    { id: 'documents', label: 'Documents' }
+    { id: 'guardian', label: 'Guardian Info' },
+    { id: 'review', label: 'Review & Submit' }
   ];
 
   const handleStepComplete = (stepData: Partial<CreateStudentDto>) => {
     const updatedFormData = { ...formData, ...stepData };
     setFormData(updatedFormData);
     
-    // Navigate to next tab or submit form
-    const currentTabIndex = tabs.findIndex(tab => tab.id === activeTab);
-    
-    if (activeTab === 'documents') {
-      // If we're on the documents tab, it's the last editable step before submission
+    if (activeStep === 'basic') {
+      setActiveStep('guardian');
+    } else if (activeStep === 'guardian') {
+      setActiveStep('review');
+    } else if (activeStep === 'review') {
       handleSubmit(updatedFormData);
-    } else if (currentTabIndex < tabs.length - 1) {
-      // Go to next tab
-      setActiveTab(tabs[currentTabIndex + 1].id);
+    }
+  };
+
+  const handleStepSelect = (stepId: FormStep) => {
+    const currentIndex = steps.findIndex(s => s.id === activeStep);
+    const targetIndex = steps.findIndex(s => s.id === stepId);
+    
+    if (targetIndex <= currentIndex) {
+      setActiveStep(stepId);
     }
   };
 
   const handleSubmit = async (finalFormData = formData) => {
     try {
-      if (id) {
-        await updateStudentMutation.mutateAsync({ id, data: finalFormData });
-      } else {
-        await createStudentMutation.mutateAsync(finalFormData as CreateStudentDto);
-      }
-      navigate('/dashboard/students');
+      setIsSubmitting(true);
+      const cleanedData = cleanFormData(finalFormData) as CreateStudentDto;
+      console.log('Submitting data:', cleanedData);
+      const result = await createStudentMutation.mutateAsync(cleanedData as CreateStudentDto);
+      navigate(`/dashboard/students/${result.id}/details`);
     } catch (error) {
-      console.error('Failed to save student:', error);
+      console.error('Failed to create student:', error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  // Function to handle back button in form steps
-  const handleBack = (previousTab: FormTab) => {
-    setActiveTab(previousTab);
+  const handleBack = () => {
+    if (activeStep === 'guardian') {
+      setActiveStep('basic');
+    } else if (activeStep === 'review') {
+      setActiveStep('guardian');
+    } else {
+      navigate('/dashboard/students');
+    }
   };
+
+  // Create a ReviewStep component to show all the info before final submission
+  const ReviewStep = () => (
+    <div className="p-6 space-y-6">
+      <h3 className="text-lg font-medium">Review Student Information</h3>
+      
+      {/* Display basic info summary */}
+      <div className="border rounded-md p-4">
+        <h4 className="font-medium mb-2">Basic Information</h4>
+        <div className="grid grid-cols-2 gap-4">
+          <div><span className="text-gray-500">Name:</span> {formData.firstName} {formData.lastName}</div>
+          <div><span className="text-gray-500">CNI:</span> {formData.cniNumber}</div>
+          <div><span className="text-gray-500">DOB:</span> {formData.dateOfBirth}</div>
+          <div><span className="text-gray-500">Gender:</span> {formData.gender}</div>
+          <div><span className="text-gray-500">Grade:</span> {formData.gradeLevel}</div>
+          <div><span className="text-gray-500">Admission Date:</span> {formData.admissionDate}</div>
+        </div>
+      </div>
+      
+      {/* Display guardian info summary */}
+      <div className="border rounded-md p-4">
+        <h4 className="font-medium mb-2">Guardian Information</h4>
+        <div className="grid grid-cols-2 gap-4">
+          <div><span className="text-gray-500">Name:</span> {formData.guardian?.name}</div>
+          <div><span className="text-gray-500">CNI:</span> {formData.guardian?.cniNumber}</div>
+          <div><span className="text-gray-500">Relationship:</span> {formData.guardian?.relationship}</div>
+          <div><span className="text-gray-500">Phone:</span> {formData.guardian?.phone}</div>
+          <div><span className="text-gray-500">Email:</span> {formData.guardian?.email || 'N/A'}</div>
+        </div>
+      </div>
+      
+      <div className="flex justify-end space-x-3 pt-6 border-t">
+        <button
+          type="button"
+          onClick={handleBack}
+          className="px-4 py-2 border rounded-md text-gray-700 hover:bg-gray-50"
+        >
+          Previous
+        </button>
+        <button
+          type="button"
+          onClick={() => handleSubmit()}
+          disabled={isSubmitting}
+          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-blue-400"
+        >
+          {isSubmitting ? 'Submitting...' : 'Create Student'}
+        </button>
+      </div>
+    </div>
+  );
 
   return (
     <div className="max-w-4xl mx-auto py-8 px-4">
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-gray-900">
-          {id ? 'Edit Student' : 'Add New Student'}
-        </h1>
+        <h1 className="text-2xl font-semibold text-gray-900">Add New Student</h1>
         <p className="mt-2 text-sm text-gray-600">
-          Fill in the information below to {id ? 'update' : 'create'} a student record.
+          Enter the essential information to create a new student record. 
+          Additional details can be added after creation.
         </p>
       </div>
 
-      {/* Tab navigation */}
-      <div className="border-b border-gray-200">
-        <nav className="-mb-px flex space-x-8 overflow-x-auto">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setActiveTab(tab.id)}
-              className={`
-                py-4 px-1 border-b-2 text-sm font-medium whitespace-nowrap
-                ${activeTab === tab.id
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}
-              `}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </nav>
+      {/* Step indicator */}
+      <div className="mb-8">
+        <StepIndicator 
+          steps={steps} 
+          currentStep={activeStep}
+          onStepClick={handleStepSelect} 
+        />
       </div>
 
-      <div className="mt-8">
-        {loading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-          </div>
-        ) : (
-          <div className="bg-white shadow rounded-lg">
-            {activeTab === 'basic' && (
-              <BasicInfoStep
-                data={formData}
-                onComplete={handleStepComplete}
-                onBack={() => navigate('/dashboard/students')}
-              />
-            )}
-            
-            {activeTab === 'guardian' && (
-              <GuardianInfoStep
-                data={formData}
-                onComplete={handleStepComplete}
-                onBack={() => handleBack('basic')}
-              />
-            )}
-            
-            {activeTab === 'academic' && (
-              <AcademicInfoStep
-                data={formData}
-                onComplete={handleStepComplete}
-                onBack={() => handleBack('guardian')}
-              />
-            )}
-            
-            {activeTab === 'documents' && (
-              <DocumentsStep
-                data={formData}
-                onComplete={handleStepComplete}
-                onBack={() => handleBack('academic')}
-                isLastStep
-              />
-            )}
-          </div>
+      <div className="bg-white shadow rounded-lg">
+        {activeStep === 'basic' && (
+          <BasicInfoStep
+            data={formData}
+            onComplete={handleStepComplete}
+            onBack={handleBack}
+          />
         )}
+        
+        {activeStep === 'guardian' && (
+          <GuardianInfoStep
+            data={formData}
+            onComplete={handleStepComplete}
+            onBack={handleBack}
+          />
+        )}
+        
+        {activeStep === 'review' && <ReviewStep />}
       </div>
     </div>
   );

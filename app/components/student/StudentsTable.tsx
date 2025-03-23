@@ -15,12 +15,12 @@ import type { StudentResponse } from '~/types/student';
 
 interface StudentsTableProps {
   data: StudentResponse[];
-  onEdit: (student: StudentResponse) => void;
+  onView: (student: StudentResponse) => void;
   onDelete: (id: string) => void;
 }
 
 interface TableMetaType {
-  onEdit: (student: StudentResponse) => void;
+  onView: (student: StudentResponse) => void;
   onDelete: (id: string) => void;
 }
 
@@ -124,10 +124,10 @@ const columns = [
     cell: (info) => (
       <div className="flex justify-end space-x-4">
         <button
-          onClick={() => (info.table.options.meta as TableMetaType).onEdit(info.row.original)}
+          onClick={() => (info.table.options.meta as TableMetaType).onView(info.row.original)}
           className="text-blue-600 hover:text-blue-900 cursor-pointer"
         >
-          Edit
+          View
         </button>
         <button
           onClick={() => (info.table.options.meta as TableMetaType).onDelete(info.getValue())}
@@ -142,7 +142,7 @@ const columns = [
 
 export function StudentsTable({ 
   data, 
-  onEdit,
+  onView,
   onDelete 
 }: StudentsTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -171,7 +171,7 @@ export function StudentsTable({
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     meta: {
-      onEdit,
+      onView,
       onDelete,
     } as TableMetaType,
   });

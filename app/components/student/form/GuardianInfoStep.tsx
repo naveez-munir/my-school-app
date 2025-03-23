@@ -1,9 +1,7 @@
-// components/form/GuardianInfoStep.tsx
 import { useState } from 'react';
-import { SelectInput } from '~/components/common/form/inputs/SelectInput';
-import { TextInput } from '~/components/common/form/inputs/TextInput';
-import { GuardianRelationship } from '~/types/student';
+import { GuardianRelationship, type Guardian } from '~/types/student';
 import type { CreateStudentDto } from '~/types/student';
+import { GuardianFormFields } from './GuardianFormFields';
 
 interface GuardianInfoStepProps {
   data: Partial<CreateStudentDto>;
@@ -18,9 +16,22 @@ export function GuardianInfoStep({ data, onComplete, onBack }: GuardianInfoStepP
       cniNumber: data.guardian?.cniNumber || '',
       relationship: data.guardian?.relationship || GuardianRelationship.Father,
       phone: data.guardian?.phone || '',
-      email: data.guardian?.email || '',
-    }
+      email: data.guardian?.email || null,
+    } as Guardian
   });
+
+  const updateGuardianField = <K extends keyof Guardian>(
+    field: K, 
+    value: Guardian[K]
+  ) => {
+    setFormData(prev => ({
+      ...prev,
+      guardian: { 
+        ...prev.guardian, 
+        [field]: value 
+      }
+    }));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,59 +40,10 @@ export function GuardianInfoStep({ data, onComplete, onBack }: GuardianInfoStepP
 
   return (
     <form onSubmit={handleSubmit} className="p-6 space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <TextInput 
-         label='Guardian Name'
-         value={formData.guardian.name}
-         onChange={(value) => setFormData(prev => ({
-           ...prev,
-           guardian: { ...prev.guardian, name: value }
-         }))}
-         required
-        />
-
-        <TextInput 
-          label='CNI Number'
-          value={formData.guardian.cniNumber}
-          onChange={(value) => setFormData(prev => ({
-            ...prev,
-            guardian: { ...prev.guardian, cniNumber: value }
-          }))}
-          required
-        />
-
-        <SelectInput<typeof GuardianRelationship>
-          label="Relationship"
-          value={formData.guardian.relationship}
-          onChange={(value) => setFormData(prev => ({
-            ...prev,
-            guardian: { ...prev.guardian, relationship: value }
-          }))}
-          options={GuardianRelationship}
-          placeholder="Select Relationship"
-          required
-        />
-
-        <TextInput 
-         label='Phone'
-         value={formData.guardian.phone}
-         onChange={(value) => setFormData(prev => ({
-           ...prev,
-           guardian: { ...prev.guardian, phone: value }
-         }))}
-         type='tel'
-         required
-        />
-        <TextInput 
-         label='Email'
-         value={formData.guardian.email}
-         onChange={(value) => setFormData(prev => ({
-           ...prev,
-           guardian: { ...prev.guardian, email: value }
-         }))}
-         type='email'
-        />
-      </div>
+      <GuardianFormFields 
+        data={formData.guardian} 
+        onChange={updateGuardianField} 
+      />
 
       <div className="flex justify-end space-x-3 pt-6 border-t">
         <button
