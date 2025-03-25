@@ -1,35 +1,33 @@
-import { useState } from 'react';
-import { GuardianRelationship, type Guardian } from '~/types/student';
-import type { CreateStudentDto } from '~/types/student';
-import { GuardianFormFields } from './GuardianFormFields';
+import { useState } from "react";
+import { GuardianRelationship, type Guardian } from "~/types/student";
+import type { GuardianInfoStepProps } from "~/types/student";
+import { GuardianFormFields } from "./GuardianFormFields";
 
-interface GuardianInfoStepProps {
-  data: Partial<CreateStudentDto>;
-  onComplete: (data: Partial<CreateStudentDto>) => void;
-  onBack: () => void;
-}
-
-export function GuardianInfoStep({ data, onComplete, onBack }: GuardianInfoStepProps) {
+export function GuardianInfoStep({
+  data,
+  onComplete,
+  onBack,
+}: GuardianInfoStepProps) {
   const [formData, setFormData] = useState({
     guardian: {
-      name: data.guardian?.name || '',
-      cniNumber: data.guardian?.cniNumber || '',
+      name: data.guardian?.name || "",
+      cniNumber: data.guardian?.cniNumber || "",
       relationship: data.guardian?.relationship || GuardianRelationship.Father,
-      phone: data.guardian?.phone || '',
+      phone: data.guardian?.phone || "",
       email: data.guardian?.email || null,
-    } as Guardian
+    } as Guardian,
   });
 
   const updateGuardianField = <K extends keyof Guardian>(
-    field: K, 
+    field: K,
     value: Guardian[K]
   ) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      guardian: { 
-        ...prev.guardian, 
-        [field]: value 
-      }
+      guardian: {
+        ...prev.guardian,
+        [field]: value,
+      },
     }));
   };
 
@@ -40,9 +38,9 @@ export function GuardianInfoStep({ data, onComplete, onBack }: GuardianInfoStepP
 
   return (
     <form onSubmit={handleSubmit} className="p-6 space-y-6">
-      <GuardianFormFields 
-        data={formData.guardian} 
-        onChange={updateGuardianField} 
+      <GuardianFormFields
+        data={formData.guardian}
+        onChange={updateGuardianField}
       />
 
       <div className="flex justify-end space-x-3 pt-6 border-t">

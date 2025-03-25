@@ -6,6 +6,7 @@ import { GuardianInfoStep } from "./form/GuardianInfoStep";
 import { useCreateStudent } from "~/hooks/useStudentQueries";
 import type { CreateStudentDto } from "~/types/student";
 import { cleanFormData } from "~/utils/cleanFormData";
+import toast from 'react-hot-toast';
 
 type FormStep = 'basic' | 'guardian' | 'review';
 
@@ -51,9 +52,14 @@ export function StudentFormPage() {
       const cleanedData = cleanFormData(finalFormData) as CreateStudentDto;
       console.log('Submitting data:', cleanedData);
       const result = await createStudentMutation.mutateAsync(cleanedData as CreateStudentDto);
+      toast.success('Student record created successfully!');
       navigate(`/dashboard/students/${result.id}/details`);
     } catch (error) {
       console.error('Failed to create student:', error);
+      const errorMessage = error instanceof Error 
+      ? error.message 
+      : 'An unexpected error occurred while creating the student record';
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

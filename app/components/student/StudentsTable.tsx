@@ -11,18 +11,7 @@ import {
 } from '@tanstack/react-table';
 import { useState, useMemo } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import type { StudentResponse } from '~/types/student';
-
-interface StudentsTableProps {
-  data: StudentResponse[];
-  onView: (student: StudentResponse) => void;
-  onDelete: (id: string) => void;
-}
-
-interface TableMetaType {
-  onView: (student: StudentResponse) => void;
-  onDelete: (id: string) => void;
-}
+import type { StudentResponse, StudentsTableProps, TableMetaType } from '~/types/student';
 
 const fuzzyFilter: FilterFn<StudentResponse> = (row, columnId, filterValue: string) => {
   const value = row.getValue(columnId) as string;
