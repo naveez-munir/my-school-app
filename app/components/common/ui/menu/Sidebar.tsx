@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router'
 import { 
   ChevronDown, 
@@ -23,8 +23,11 @@ import {
   ClipboardList,
   Receipt,
   PieChart,
-  ListChecks
+  ListChecks,
+  Building,
+  Cog
 } from 'lucide-react';
+import { isSuperAdmin } from '~/utils/auth';
 
 export type MenuItem = {
   name: string;
@@ -32,6 +35,8 @@ export type MenuItem = {
   path: string;
   icon: keyof typeof icons;
   children?: MenuItem[];
+  showForSuperAdmin?: boolean;
+  hideForSuperAdmin?: boolean;
 };
 
 interface SidebarProps {
@@ -39,7 +44,7 @@ interface SidebarProps {
   onClose: () => void;
 }
 
-// Map of icon names to their components
+
 const icons = {
   home: Home,
   users: Users,
@@ -60,11 +65,35 @@ const icons = {
   clipboardList: ClipboardList,
   receipt: Receipt,
   pieChart: PieChart,
-  listChecks: ListChecks
+  listChecks: ListChecks,
+  building: Building,
+  cog: Cog
 };
 
-// Define menu structure here for easy maintenance
-const MENU_ITEMS: MenuItem[] = [
+const SUPER_ADMIN_MENU_ITEMS: MenuItem[] = [
+  { 
+    name: 'home', 
+    label: 'Dashboard', 
+    path: '/admin/dashboard',
+    icon: 'home'
+  },
+  { 
+    name: 'tenants', 
+    label: 'Tenants', 
+    path: '/admin/tenants',
+    icon: 'building',
+    showForSuperAdmin: true
+  },
+  { 
+    name: 'tenantConfig', 
+    label: 'Tenant Configuration', 
+    path: '/admin/tenant-config',
+    icon: 'cog',
+    showForSuperAdmin: true
+  }
+];
+
+const TENANT_MENU_ITEMS: MenuItem[] = [
   { 
     name: 'home', 
     label: 'Home', 
@@ -252,7 +281,6 @@ const SETTINGS_ITEMS: MenuItem[] = [
   }
 ];
 
-// Render an icon from our icon map with consistent sizing
 const renderIcon = (iconName: keyof typeof icons, isSubmenu = false) => {
   const IconComponent = icons[iconName];
   return <IconComponent size={isSubmenu ? 18 : 20} />;
@@ -262,6 +290,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({});
+  const [superAdmin, setSuperAdmin] = useState<boolean>(false);
+  useEffect(() => {
+    setSuperAdmin(isSuperAdmin());
+  }, []);
+
+  const getMenuItems = () => {
+    if (superAdmin) {
+      return SUPER_ADMIN_MENU_ITEMS;
+    }
+    return TENANT_MENU_ITEMS;
+  };
 
   const handleNavigation = (path: string) => {
     navigate(path);
@@ -278,7 +317,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     }));
   };
 
-  // Check if current path or any child path is active
   const isActive = (item: MenuItem): boolean => {
     if (location.pathname === item.path) {
       return true;
@@ -294,14 +332,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     return false;
   };
 
-  // Check if submenu should be expanded
   const isExpanded = (item: MenuItem): boolean => {
     if (expandedMenus[item.name]) {
       return true;
     }
     
     if (item.children) {
-      // Auto-expand if a child is active
       return item.children.some(child => 
         location.pathname === child.path || 
         (child.path !== '/dashboard/exams' && location.pathname.startsWith(child.path))
@@ -356,9 +392,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     );
   };
 
+  const menuItems = getMenuItems();
+  
   return (
     <>
-      {/* Mobile Sidebar Overlay */}
       {isOpen && (
         <div 
           className="fixed inset-0 bg-black bg-opacity-50 lg:hidden z-20"
@@ -372,7 +409,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0
       `}>
         <div className="flex items-center justify-between p-4 border-b pt-6">
-          <h2 className="text-xl font-bold text-blue-600">School Admin</h2>
+          <h2 className="text-xl font-bold text-blue-600">
+            {superAdmin ? 'Super Admin' : 'School Admin'}
+          </h2>
           <button 
             onClick={onClose}
             className="lg:hidden"
@@ -381,12 +420,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           </button>
         </div>
 
-        {/* Main Menu */}
         <nav className="p-4 space-y-1 overflow-y-auto h-[calc(100vh-140px)]">
-          {MENU_ITEMS.map(renderMenuItem)}
+          {menuItems.map(renderMenuItem)}
         </nav>
-        
-        {/* Settings Menu (Separated) */}
+
         <div className="p-4 pt-4 mt-2 border-t">
           {SETTINGS_ITEMS.map(renderMenuItem)}
         </div>

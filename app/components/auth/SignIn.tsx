@@ -1,15 +1,23 @@
 import { useState } from 'react';
-import { EyeIcon, EyeOffIcon, LogInIcon } from 'lucide-react';
 import { useNavigate } from 'react-router';
+import { LogInIcon } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { jwtDecode } from 'jwt-decode';
 import toast from 'react-hot-toast';
 import { TextInput } from '../common/form/inputs/TextInput';
+import { PasswordInput } from '../common/form/inputs/PasswordInput';
+import { storeAuthData, type DecodedToken } from '~/utils/auth';
 
-interface FormData {
-  tenantName: string;
-  identifier: string;
-  password: string;
-}
+const loginSchema = z.object({
+  tenantName: z.string().min(3, 'School name is required'),
+  identifier: z.string().min(6, 'Email or CNIC is required'),
+  password: z.string().min(6, 'Password must be at least 6 characters')
+});
+
+type LoginFormData = z.infer<typeof loginSchema>;
 
 interface LoginResponse {
   access_token?: string;
@@ -20,7 +28,7 @@ interface LoginResponse {
   message?: string | { message: string };
 }
 
-const loginUser = async (userData: FormData): Promise<LoginResponse> => {
+const loginUser = async (userData: LoginFormData): Promise<LoginResponse> => {
   const response = await fetch('http://localhost:3000/auth/login', {
     method: 'POST',
     headers: {
@@ -44,52 +52,71 @@ const loginUser = async (userData: FormData): Promise<LoginResponse> => {
 };
 
 export const SignIn = () => {
-  const [formData, setFormData] = useState<FormData>({
-    tenantName: '',
-    identifier: '',
-    password: ''
-  });
-  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [serverError, setServerError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { 
+    handleSubmit, 
+    formState: { errors },
+    setValue,
+    watch
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      tenantName: '',
+      identifier: '',
+      password: ''
+    }
+  });
+
+  const formValues = watch();
 
   const loginMutation = useMutation({
     mutationFn: loginUser,
     onSuccess: (data) => {
       const token = data.access_token || data.token || data.data?.token;
       if (token) {
-        const expirationDate = new Date();
-        expirationDate.setDate(expirationDate.getDate() + 1);
-        
-        const authData = {
-          token,
-          tenantName: formData.tenantName,
-          expiry: expirationDate.getTime()
-        };
-        
-        localStorage.setItem('authData', JSON.stringify(authData));
-        
-        toast.success('Successfully logged in!');
-        navigate('/dashboard');
+        try {
+          const decodedToken = jwtDecode<DecodedToken>(token);
+          storeAuthData(token, formValues.tenantName, {
+            isSuperAdmin: decodedToken.isSuperAdmin || false,
+            isAdmin: decodedToken.isAdmin || false,
+            role: decodedToken.role,
+            permissions: decodedToken.permissions || []
+          });
+          toast.success('Successfully logged in!');
+          if (decodedToken.isSuperAdmin) {
+            navigate('/admin/dashboard');
+          } else {
+            navigate('/dashboard');
+          }
+        } catch (error) {
+          console.error('Error decoding token:', error);
+          storeAuthData(token, formValues.tenantName);
+          navigate('/dashboard');
+        }
       } else {
-        toast.error('Authentication failed: No token received');
+        setServerError('Authentication failed: No token received');
       }
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'An unexpected error occurred. Please try again.');
+      setServerError(error.message || 'An unexpected error occurred. Please try again.');
     }
   });
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
-    e.preventDefault();
-    loginMutation.mutate(formData);
+  const onSubmit = (data: LoginFormData) => {
+    setServerError(null);
+    loginMutation.mutate(data);
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+  const handleInputChange = (field: keyof LoginFormData, value: string) => {
+    setValue(field, value, {
+      shouldValidate: true,
+      shouldDirty: true,
+      shouldTouch: true
+    });
+    if (serverError) {
+      setServerError(null);
+    }
   };
 
   return (
@@ -100,54 +127,46 @@ export const SignIn = () => {
           <p className="mt-2 text-sm text-gray-600">Please sign in to your account</p>
         </header>
 
-        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+        {serverError && (
+          <div className="rounded-md bg-red-50 p-4 mb-4">
+            <p className="text-sm text-red-700">{serverError}</p>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-6">
           <div className="space-y-4">
             <TextInput 
               label="School Name"
               name="tenantName"
-              value={formData.tenantName}
-              onChange={(value) => setFormData({ ...formData, tenantName: value })}
+              value={formValues.tenantName}
+              onChange={(value) => handleInputChange('tenantName', value)}
+              error={errors.tenantName?.message}
               required
             />
             
             <TextInput 
               label="Email or CNIC"
               name="identifier"
-              value={formData.identifier}
-              onChange={(value) => setFormData({ ...formData, identifier: value })}
-              placeholder="Enter identifier"
+              value={formValues.identifier}
+              onChange={(value) => handleInputChange('identifier', value)}
+              error={errors.identifier?.message}
+              placeholder="Enter email or CNIC"
               required
             />
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Password
-              </label>
-              <div className="relative mt-1">
-                <input
-                  id="password"
-                  name="password"
-                  type={showPassword ? "text" : "password"}
-                  required
-                  value={formData.password}
-                  onChange={handleChange}
-                  className="block w-full rounded-md border border-gray-300 px-3 py-2.5 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 text-gray-900 placeholder:text-gray-400"
-                  placeholder="Enter password"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
-                >
-                  {showPassword ? 
-                    <EyeOffIcon className="h-5 w-5" /> : 
-                    <EyeIcon className="h-5 w-5" />
-                  }
-                </button>
-              </div>
-              <div className="flex justify-end mt-1">
-                <a href="#" className="text-sm text-blue-600 hover:text-blue-800">Forgot password?</a>
-              </div>
+            <PasswordInput 
+              label="Password"
+              name="password"
+              value={formValues.password}
+              onChange={(value) => handleInputChange('password', value)}
+              error={errors.password?.message}
+              required
+            />
+            
+            <div className="flex justify-end">
+              <a href="#" className="text-sm text-blue-600 hover:text-blue-800">
+                Forgot password?
+              </a>
             </div>
           </div>
 
@@ -158,10 +177,6 @@ export const SignIn = () => {
           >
             {loginMutation.isPending ? (
               <span className="flex items-center gap-2">
-                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
                 Signing in...
               </span>
             ) : (
@@ -171,18 +186,8 @@ export const SignIn = () => {
               </span>
             )}
           </button>
-          
-          <div className="text-center mt-4">
-            <p className="text-sm text-gray-600">
-              Don't have an account?{" "}
-              <a href="#" className="font-medium text-blue-600 hover:text-blue-500">
-                Register here
-              </a>
-            </p>
-          </div>
         </form>
       </div>
     </main>
   );
 };
-//TODO move the login api call out of this component and also need to refactor the code

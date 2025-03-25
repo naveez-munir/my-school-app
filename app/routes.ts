@@ -18,7 +18,7 @@ export default [
       index("routes/dashboard/students/list.tsx"),
       route("new", "routes/dashboard/students/new.tsx"),
       route(":id", "routes/dashboard/students/detail.tsx"),
-      route(":id/edit", "routes/dashboard/students/edit.tsx"),
+      route(":id/edit/:action", "routes/dashboard/students/edit.tsx"),
     ]),
     // Class routes
     route("classes", "routes/dashboard/classes/classes.tsx", [

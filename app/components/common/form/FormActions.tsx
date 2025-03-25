@@ -10,7 +10,6 @@ export const FormActions = ({
   loadingText = 'Saving...',
   entityName = 'Item'
 }: FormActionsProps) => {
-  // Generate default submit text based on mode and entityName if not provided
   const defaultSubmitText = mode === 'edit' ? `Update ${entityName}` : `Create ${entityName}`;
   const finalSubmitText = submitText || defaultSubmitText;
 

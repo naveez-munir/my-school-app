@@ -1,4 +1,3 @@
-import React from 'react';
 import { Listbox, ListboxButton, ListboxOptions, ListboxOption } from '@headlessui/react';
 import { ChevronsUpDown } from 'lucide-react';
 
