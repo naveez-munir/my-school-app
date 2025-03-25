@@ -1,23 +1,5 @@
 import axios from 'axios';
-const getAuthData = () => {
-  try {
-    const authDataStr = localStorage.getItem('authData');
-    if (!authDataStr) return null;
-    
-    const authData = JSON.parse(authDataStr);
-    const now = new Date().getTime();
-
-    if (authData.expiry && now > authData.expiry) {
-      localStorage.removeItem('authData');
-      return null;
-    }
-    
-    return authData;
-  } catch (error) {
-    console.error('Error parsing auth data:', error);
-    return null;
-  }
-};
+import { getAuthData } from '~/utils/auth';
 
 export const createApiClient = (baseURL: string = 'http://localhost:3000') => {
   const api = axios.create({
