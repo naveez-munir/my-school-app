@@ -17,8 +17,8 @@ export function StudentSection() {
     //TODO we need to add prompt take confirmation first
     deleteStudentMutation.mutate(id);
   };
-  const handleEdit = (student: StudentResponse) => {
-    navigate(`/dashboard/students/${student.id}/edit`);
+  const handleView = (student: StudentResponse) => {
+    navigate(`/dashboard/students/${student.id}`);
   };
 
   return (
@@ -50,8 +50,8 @@ export function StudentSection() {
         ) : (
           <StudentsTable
             data={students}
-            onEdit={(student) => {
-              handleEdit(student);
+            onView={(student) => {
+              handleView(student);
             }}
             onDelete={handleDelete}
           />

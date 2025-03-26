@@ -10,7 +10,7 @@ export function meta({}: Route.MetaArgs) {
 export default function Settings() {
   return (
     <div>
-      <h2 className="text-xl font-semibold mb-4">Account Settings</h2>
+      <h2 className="text-xl font-semibold mb-4 text-gray-700 ">Account Settings</h2>
       {/* Add settings form/content here */}
     </div>
   );

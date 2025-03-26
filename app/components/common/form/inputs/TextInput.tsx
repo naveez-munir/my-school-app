@@ -4,6 +4,7 @@ export const TextInput = ({
   label,
   value,
   onChange,
+  name,
   error,
   required = false,
   placeholder = '',
@@ -18,6 +19,7 @@ export const TextInput = ({
       <input
         type={type}
         value={value}
+        name={name}
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
         className={`mt-1 block w-full rounded-md shadow-sm p-2 ${

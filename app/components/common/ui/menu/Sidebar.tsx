@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router'
 import { 
   ChevronDown, 
@@ -13,7 +13,21 @@ import {
   GraduationCap,
   FileText,
   Award,
+  Book,
+  Briefcase,
+  DollarSign,
+  CreditCard,
+  Clock,
+  FileSpreadsheet,
+  UserCheck,
+  ClipboardList,
+  Receipt,
+  PieChart,
+  ListChecks,
+  Building,
+  Cog
 } from 'lucide-react';
+import { isSuperAdmin } from '~/utils/auth';
 
 export type MenuItem = {
   name: string;
@@ -21,6 +35,8 @@ export type MenuItem = {
   path: string;
   icon: keyof typeof icons;
   children?: MenuItem[];
+  showForSuperAdmin?: boolean;
+  hideForSuperAdmin?: boolean;
 };
 
 interface SidebarProps {
@@ -28,7 +44,7 @@ interface SidebarProps {
   onClose: () => void;
 }
 
-// Map of icon names to their components
+
 const icons = {
   home: Home,
   users: Users,
@@ -38,11 +54,46 @@ const icons = {
   settings: Settings,
   graduationCap: GraduationCap,
   fileText: FileText,
-  award: Award
+  award: Award,
+  book: Book,
+  briefcase: Briefcase,
+  dollarSign: DollarSign,
+  creditCard: CreditCard,
+  clock: Clock,
+  fileSpreadsheet: FileSpreadsheet,
+  userCheck: UserCheck,
+  clipboardList: ClipboardList,
+  receipt: Receipt,
+  pieChart: PieChart,
+  listChecks: ListChecks,
+  building: Building,
+  cog: Cog
 };
 
-// Define menu structure here for easy maintenance
-const MENU_ITEMS: MenuItem[] = [
+const SUPER_ADMIN_MENU_ITEMS: MenuItem[] = [
+  { 
+    name: 'home', 
+    label: 'Dashboard', 
+    path: '/admin/dashboard',
+    icon: 'home'
+  },
+  { 
+    name: 'tenants', 
+    label: 'Tenants', 
+    path: '/admin/tenants',
+    icon: 'building',
+    showForSuperAdmin: true
+  },
+  { 
+    name: 'tenantConfig', 
+    label: 'Tenant Configuration', 
+    path: '/admin/tenant-config',
+    icon: 'cog',
+    showForSuperAdmin: true
+  }
+];
+
+const TENANT_MENU_ITEMS: MenuItem[] = [
   { 
     name: 'home', 
     label: 'Home', 
@@ -74,6 +125,32 @@ const MENU_ITEMS: MenuItem[] = [
     icon: 'bookOpen'
   },
   { 
+    name: 'staffSection', 
+    label: 'Staff', 
+    path: '/dashboard/staff',
+    icon: 'briefcase',
+  },
+  { 
+    name: 'leaveSection', 
+    label: 'Leave Management', 
+    path: '/dashboard/leave',
+    icon: 'clock',
+    children: [
+      { 
+        name: 'staff-leave', 
+        label: 'Staff Leave', 
+        path: '/dashboard/leave/staff',
+        icon: 'userCheck'
+      },
+      { 
+        name: 'student-leave', 
+        label: 'Student Leave', 
+        path: '/dashboard/leave/student',
+        icon: 'users'
+      }
+    ]
+  },
+  { 
     name: 'exams', 
     label: 'Examination', 
     path: '/dashboard/exams',
@@ -100,6 +177,76 @@ const MENU_ITEMS: MenuItem[] = [
     ]
   },
   { 
+    name: 'feeSection', 
+    label: 'Fee Management', 
+    path: '/dashboard/fee',
+    icon: 'dollarSign',
+    children: [
+      { 
+        name: 'fee-category', 
+        label: 'Fee Category', 
+        path: '/dashboard/fee/category',
+        icon: 'fileSpreadsheet'
+      },
+      { 
+        name: 'fee-payment', 
+        label: 'Fee Payment', 
+        path: '/dashboard/fee/payment',
+        icon: 'creditCard'
+      },
+      { 
+        name: 'fee-structure', 
+        label: 'Fee Structure', 
+        path: '/dashboard/fee/structure',
+        icon: 'receipt'
+      },
+      { 
+        name: 'student-discount', 
+        label: 'Student Discount', 
+        path: '/dashboard/fee/discount',
+        icon: 'pieChart'
+      },
+      { 
+        name: 'student-fee', 
+        label: 'Student Fee', 
+        path: '/dashboard/fee/student',
+        icon: 'dollarSign'
+      }
+    ]
+  },
+  { 
+    name: 'accountSection', 
+    label: 'Accounts', 
+    path: '/dashboard/accounts',
+    icon: 'dollarSign',
+    children: [
+      { 
+        name: 'salary-structure', 
+        label: 'Salary Structure', 
+        path: '/dashboard/accounts/salary-structure',
+        icon: 'fileSpreadsheet'
+      },
+      { 
+        name: 'salary', 
+        label: 'Salary', 
+        path: '/dashboard/accounts/salary',
+        icon: 'creditCard'
+      },
+      { 
+        name: 'expenses', 
+        label: 'Expenses', 
+        path: '/dashboard/accounts/expenses',
+        icon: 'receipt'
+      },
+      { 
+        name: 'payment', 
+        label: 'Payment', 
+        path: '/dashboard/accounts/payment',
+        icon: 'dollarSign'
+      }
+    ]
+  },
+  { 
     name: 'management', 
     label: 'Management', 
     path: '/dashboard/management',
@@ -110,6 +257,18 @@ const MENU_ITEMS: MenuItem[] = [
     label: 'Attendance', 
     path: '/dashboard/attendance',
     icon: 'clipboardCheck'
+  },
+  { 
+    name: 'dailyDiary', 
+    label: 'Daily Diary', 
+    path: '/dashboard/daily-diary',
+    icon: 'book'
+  },
+  { 
+    name: 'subjects', 
+    label: 'Subjects', 
+    path: '/dashboard/subjects',
+    icon: 'bookOpen'
   },
 ];
 
@@ -122,7 +281,6 @@ const SETTINGS_ITEMS: MenuItem[] = [
   }
 ];
 
-// Render an icon from our icon map with consistent sizing
 const renderIcon = (iconName: keyof typeof icons, isSubmenu = false) => {
   const IconComponent = icons[iconName];
   return <IconComponent size={isSubmenu ? 18 : 20} />;
@@ -132,6 +290,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({});
+  const [superAdmin, setSuperAdmin] = useState<boolean>(false);
+  useEffect(() => {
+    setSuperAdmin(isSuperAdmin());
+  }, []);
+
+  const getMenuItems = () => {
+    if (superAdmin) {
+      return SUPER_ADMIN_MENU_ITEMS;
+    }
+    return TENANT_MENU_ITEMS;
+  };
 
   const handleNavigation = (path: string) => {
     navigate(path);
@@ -148,7 +317,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     }));
   };
 
-  // Check if current path or any child path is active
   const isActive = (item: MenuItem): boolean => {
     if (location.pathname === item.path) {
       return true;
@@ -164,14 +332,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     return false;
   };
 
-  // Check if submenu should be expanded
   const isExpanded = (item: MenuItem): boolean => {
     if (expandedMenus[item.name]) {
       return true;
     }
     
     if (item.children) {
-      // Auto-expand if a child is active
       return item.children.some(child => 
         location.pathname === child.path || 
         (child.path !== '/dashboard/exams' && location.pathname.startsWith(child.path))
@@ -226,9 +392,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     );
   };
 
+  const menuItems = getMenuItems();
+  
   return (
     <>
-      {/* Mobile Sidebar Overlay */}
       {isOpen && (
         <div 
           className="fixed inset-0 bg-black bg-opacity-50 lg:hidden z-20"
@@ -242,7 +409,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0
       `}>
         <div className="flex items-center justify-between p-4 border-b pt-6">
-          <h2 className="text-xl font-bold text-blue-600">School Admin</h2>
+          <h2 className="text-xl font-bold text-blue-600">
+            {superAdmin ? 'Super Admin' : 'School Admin'}
+          </h2>
           <button 
             onClick={onClose}
             className="lg:hidden"
@@ -251,12 +420,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           </button>
         </div>
 
-        {/* Main Menu */}
-        <nav className="p-4 space-y-1">
-          {MENU_ITEMS.map(renderMenuItem)}
+        <nav className="p-4 space-y-1 overflow-y-auto h-[calc(100vh-140px)]">
+          {menuItems.map(renderMenuItem)}
         </nav>
-        
-        {/* Settings Menu (Separated) */}
+
         <div className="p-4 pt-4 mt-2 border-t">
           {SETTINGS_ITEMS.map(renderMenuItem)}
         </div>

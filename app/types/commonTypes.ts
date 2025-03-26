@@ -1,6 +1,7 @@
 export type BaseInputProps = {
   label: string;
   value: string;
+  name?: string;
   onChange: (value: string) => void;
   error?: string;
   required?: boolean;

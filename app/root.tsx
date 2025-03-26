@@ -12,6 +12,7 @@ import "./app.css";
 import { Provider } from "react-redux";
 import { store } from "./store/store";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from 'react-hot-toast';
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -57,6 +58,7 @@ export default function App() {
   return (
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>
+        <Toaster position="top-right" />
         <Outlet />
       </QueryClientProvider>
     </Provider>

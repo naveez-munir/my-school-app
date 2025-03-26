@@ -19,6 +19,7 @@ const initialState: StudentState = {
 export const fetchStudents = createAsyncThunk(
   'students/fetchAll',
   async (params?: SearchStudentDto) => {
+    console.log('>>>>>>>>>>>>>> redux call')
     const response = await studentApi.getAll(params);
     return response;
   }

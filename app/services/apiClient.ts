@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getAuthData } from '~/utils/auth';
 
 export const createApiClient = (baseURL: string = 'http://localhost:3000') => {
   const api = axios.create({
@@ -8,15 +9,14 @@ export const createApiClient = (baseURL: string = 'http://localhost:3000') => {
     }
   });
 
-  // Add auth interceptor
   api.interceptors.request.use((config) => {
-    const token = localStorage.getItem('token');
-    const tenantName = localStorage.getItem('tenantName') || 'academy';
+    const authData = getAuthData();
     
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    if (authData?.token) {
+      config.headers.Authorization = `Bearer ${authData.token}`;
     }
-    config.headers['x-tenant-name'] = tenantName;
+    
+    config.headers['x-tenant-name'] = authData?.tenantName || 'academy';
     
     return config;
   });
