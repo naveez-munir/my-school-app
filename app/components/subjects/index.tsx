@@ -4,6 +4,7 @@ import { SubjectModal } from "./SubjectModal";
 import toast from "react-hot-toast";
 import type { Subject, SubjectDto } from "~/types/subject";
 import { useSubjects, useCreateSubject, useUpdateSubject, useDeleteSubject } from "~/hooks/useSubjectQueries";
+import { useQueryClient } from '@tanstack/react-query';
 import { SubjectsTable } from "./SubjectsTable";
 import DeletePrompt from "../common/DeletePrompt";
 
@@ -12,6 +13,7 @@ export const SubjectSection = () => {
   const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
   const [deletePromptOpen, setDeletePromptOpen] = useState(false);
   const [subjectToDelete, setSubjectToDelete] = useState<string | null>(null);
+
 
   // React Query hooks
   const { 
@@ -23,12 +25,14 @@ export const SubjectSection = () => {
   const createSubjectMutation = useCreateSubject();
   const updateSubjectMutation = useUpdateSubject();
   const deleteSubjectMutation = useDeleteSubject();
+  const queryClient = useQueryClient();
 
   const handleCreate = async (data: SubjectDto) => {
     try {
       await createSubjectMutation.mutateAsync(data);
       setIsModalOpen(false);
       toast.success("Course created successfully");
+      queryClient.invalidateQueries({ queryKey: ['subjects'] });
     } catch (err) {
       handleError(err)
     }
@@ -48,6 +52,7 @@ export const SubjectSection = () => {
         setIsModalOpen(false);
         setEditingSubject(null);
         toast.success("Course updated successfully");
+        queryClient.invalidateQueries({ queryKey: ['subjects'] });
       } catch (err) {
          handleError(err)
       }
@@ -69,6 +74,7 @@ export const SubjectSection = () => {
       try {
         await deleteSubjectMutation.mutateAsync(subjectToDelete);
         toast.success("Course deleted successfully");
+        queryClient.invalidateQueries({ queryKey: ['subjects'] });
       } catch (err) {
         handleError(err)
       } finally {
