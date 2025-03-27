@@ -60,7 +60,7 @@ export const SubjectSection = () => {
   };
 
   const handleError = (err : any) => {
-    const errorMessage = err.response?.data?.message?.message || "some thing went wrong";
+    const errorMessage = err.response?.data?.message || "some thing went wrong";
     toast.error(errorMessage);
   }
 
