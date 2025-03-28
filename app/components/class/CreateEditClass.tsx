@@ -6,6 +6,7 @@ import { useCreateClass, useUpdateClass } from '~/hooks/useClassQueries';
 import { ClassForm } from './ClassForm';
 import { TeacherAssignmentSection } from './TeacherAssignmentSection';
 import type { Class, CreateClassDto } from '~/types/class';
+import toast from "react-hot-toast";
 
 export function CreateEditClass() {
   const { id } = useParams();
@@ -24,10 +25,11 @@ export function CreateEditClass() {
         { id, data }, 
         {
           onSuccess: () => {
+            toast.success("Class updated successfully");
             navigate('/dashboard/classes');
           },
           onError: (error) => {
-            console.error('Failed to update class:', error);
+            handleError(error)
           }
         }
       );
@@ -36,15 +38,21 @@ export function CreateEditClass() {
         data, 
         {
           onSuccess: () => {
+            toast.success("Class created successfully");
             navigate('/dashboard/classes');
           },
           onError: (error) => {
-            console.error('Failed to create class:', error);
+            handleError(error)
           }
         }
       );
     }
   };
+
+  const handleError = (err : any) => {
+    const errorMessage = err.response?.data?.message || "some thing went wrong";
+    toast.error(errorMessage);
+  }
 
   const isLoading = (id && classLoading) || (id && subjectsLoading) || (id && teachersLoading);
 

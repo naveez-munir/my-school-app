@@ -130,7 +130,7 @@ export function BasicInfoStep({
             setFormData((prev) => ({ ...prev, gradeLevel: value }))
           }
           options={GradeLevel}
-          placeholder="Select Blood Group"
+          placeholder="Select grade level"
           required
         />
       </div>

@@ -92,7 +92,11 @@ export interface Student {
   address?: string;
   guardian: Guardian;
   gradeLevel: string;
-  class?: string | null;
+  class?: {
+    _id: string,
+    className :  string,
+    classGradeLevel: string,
+  };
   rollNumber?: string;
   enrollmentDate: string;
   admissionDate: string;

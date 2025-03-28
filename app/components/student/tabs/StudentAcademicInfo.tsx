@@ -31,11 +31,11 @@ export function StudentAcademicInfo({student} : StudentDataProps) {
             <dl className="mt-2 space-y-3">
               <div>
                 <dt className="text-sm font-medium text-gray-500">Grade Level</dt>
-                <dd className="mt-1 text-sm text-gray-900">{student.gradeLevel}</dd>
+                <dd className="mt-1 text-sm text-gray-900">{student.class?.classGradeLevel}</dd>
               </div>
               <div>
                 <dt className="text-sm font-medium text-gray-500">Class</dt>
-                <dd className="mt-1 text-sm text-gray-900">{student.class || 'Not assigned'}</dd>
+                <dd className="mt-1 text-sm text-gray-900">{student.class?.className || 'Not assigned'}</dd>
               </div>
               <div>
                 <dt className="text-sm font-medium text-gray-500">Roll Number</dt>
