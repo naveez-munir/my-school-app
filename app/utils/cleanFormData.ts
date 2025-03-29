@@ -1,3 +1,5 @@
+import type { CreateTeacherDto } from "~/types/teacher";
+
 export function cleanFormData<T>(data: T): any {
   if (data === null || data === undefined) {
     return data;
@@ -34,4 +36,29 @@ export function cleanFormData<T>(data: T): any {
   }
   
   return result;
+}
+
+export function cleanTeacherData(data: CreateTeacherDto): CreateTeacherDto {
+  const cleanedData = { ...data };
+
+  if (cleanedData.classTeacherOf === '') {
+    delete cleanedData.classTeacherOf;
+  }
+
+  if (cleanedData.educationHistory && cleanedData.educationHistory.length > 0) {
+    // @ts-ignore
+    cleanedData.educationHistory = cleanedData.educationHistory.map(({ _id, ...rest }) => rest);
+  }
+
+  if (cleanedData.experience && cleanedData.experience.length > 0) {
+    // @ts-ignore
+    cleanedData.experience = cleanedData.experience.map(({ _id, ...rest }) => rest);
+  }
+
+  if (cleanedData.documents && cleanedData.documents.length > 0) {
+    // @ts-ignore
+    cleanedData.documents = cleanedData.documents.map(({ _id, ...rest }) => rest);
+  }
+
+  return cleanedData;
 }

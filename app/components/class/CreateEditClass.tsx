@@ -1,4 +1,5 @@
 import { useNavigate, useParams } from 'react-router';
+import { useState, useEffect } from 'react';
 import { useClass } from '~/hooks/useClassQueries';
 import { useSubjects } from '~/hooks/useSubjectQueries';
 import { useTeachers } from '~/hooks/useTeacherQueries';
@@ -8,11 +9,15 @@ import { TeacherAssignmentSection } from './TeacherAssignmentSection';
 import type { Class, CreateClassDto } from '~/types/class';
 import toast from "react-hot-toast";
 
+type TabType = 'basic-info' | 'teacher-assignment';
+
 export function CreateEditClass() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<TabType>('basic-info');
+
+  const { data: currentClass, isLoading: classLoading, refetch: refetchClass } = useClass(id || '');
   
-  const { data: currentClass, isLoading: classLoading } = useClass(id || '');
   const { data: subjects = [], isLoading: subjectsLoading } = useSubjects();
   const { data: teachers = [], isLoading: teachersLoading } = useTeachers();
   
@@ -26,10 +31,15 @@ export function CreateEditClass() {
         {
           onSuccess: () => {
             toast.success("Class updated successfully");
-            navigate('/dashboard/classes');
+            if (!id) {
+              navigate('/dashboard/classes');
+            } else if (activeTab === 'basic-info') {
+              setActiveTab('teacher-assignment');
+            }
+            refetchClass();
           },
           onError: (error) => {
-            handleError(error)
+            handleError(error);
           }
         }
       );
@@ -42,17 +52,23 @@ export function CreateEditClass() {
             navigate('/dashboard/classes');
           },
           onError: (error) => {
-            handleError(error)
+            handleError(error);
           }
         }
       );
     }
   };
 
-  const handleError = (err : any) => {
-    const errorMessage = err.response?.data?.message || "some thing went wrong";
+  const handleError = (err: any) => {
+    const errorMessage = err.response?.data?.message || "Something went wrong";
     toast.error(errorMessage);
-  }
+  };
+
+  const refreshClassData = () => {
+    if (id) {
+      refetchClass();
+    }
+  };
 
   const isLoading = (id && classLoading) || (id && subjectsLoading) || (id && teachersLoading);
 
@@ -76,29 +92,58 @@ export function CreateEditClass() {
         </h1>
         <p className="mt-1 text-sm text-gray-500">
           {id 
-            ? 'Update basic class information. Teacher assignments can be managed from the class details page.' 
+            ? 'Update class information and manage teacher assignments using the tabs below.' 
             : 'Create a new class with basic information. Teachers can be assigned after creation.'
           }
         </p>
       </div>
 
-      {/* Form Container */}
       <div className="bg-white rounded-lg shadow">
+        <div className="border-b border-gray-200">
+          <nav className="flex -mb-px">
+            <button
+              onClick={() => setActiveTab('basic-info')}
+              className={`py-4 px-6 text-sm font-medium flex items-center whitespace-nowrap ${
+                activeTab === 'basic-info'
+                  ? 'border-b-2 border-blue-500 text-blue-600'
+                  : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Basic Information
+            </button>
+            {id && (
+              <button
+                onClick={() => setActiveTab('teacher-assignment')}
+                className={`py-4 px-6 text-sm font-medium flex items-center whitespace-nowrap ${
+                  activeTab === 'teacher-assignment'
+                    ? 'border-b-2 border-blue-500 text-blue-600'
+                    : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Teacher Assignment
+              </button>
+            )}
+          </nav>
+        </div>
+
         <div className="p-4 sm:p-6">
-          <ClassForm
-            initialData={currentClass || undefined}
-            onSubmit={handleSubmit}
-            subjects={subjects}
-            isLoading={createClassMutation.isPending || updateClassMutation.isPending}
-            mode={id ? 'edit' : 'create'}
-          />
-          {id && 
+          {activeTab === 'basic-info' && (
+            <ClassForm
+              initialData={currentClass || undefined}
+              onSubmit={handleSubmit}
+              subjects={subjects}
+              isLoading={createClassMutation.isPending || updateClassMutation.isPending}
+              mode={id ? 'edit' : 'create'}
+            />
+          )}
+          {activeTab === 'teacher-assignment' && id && currentClass && (
             <TeacherAssignmentSection
               classData={currentClass as Class}
               teachers={teachers}
               isLoading={classLoading}
+              onRefresh={refreshClassData}
             />
-          }
+          )}
         </div>
       </div>
     </div>
