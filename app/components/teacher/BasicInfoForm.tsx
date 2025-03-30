@@ -85,6 +85,7 @@ export function BasicInfoForm({ data, onUpdate }: BasicInfoFormProps) {
         onChange={(classId) => onUpdate('classTeacherOf', classId)}
         label="Class"
         required={false}
+        disabled={true}
       />}
 
       <div className="col-span-2">
