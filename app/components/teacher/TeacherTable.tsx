@@ -65,14 +65,6 @@ export function createTeacherColumns(): ColumnDef<TeacherResponse, any>[] {
         </div>
       ),
     }),
-    columnHelper.accessor('email', {
-      header: ({ column }) => <SortableColumnHeader column={column} title="Email" />,
-      cell: (info) => (
-        <div className="text-sm text-gray-500">
-          {info.getValue() || '-'}
-        </div>
-      ),
-    }),
     columnHelper.accessor('phone', {
       header: ({ column }) => <SortableColumnHeader column={column} title="Phone" />,
       cell: (info) => (
