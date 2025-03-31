@@ -1,95 +1,41 @@
-import { 
-  useReactTable, 
-  getCoreRowModel, 
-  getPaginationRowModel,
-  getFilteredRowModel,
-  getSortedRowModel,
-  flexRender,
-  createColumnHelper,
-  type FilterFn,
-  type SortingState,
-} from '@tanstack/react-table';
-import type { StaffListResponse, EmploymentStatus } from '~/types/staff';
-import { useState, useMemo } from 'react';
-import { ChevronDown, ChevronUp, UserCog } from 'lucide-react';
-import { TextInput } from '~/components/common/form/inputs/TextInput';
-
-interface TableMetaType {
-  onEdit: (staff: StaffListResponse) => void;
-  onDelete: (id: string) => void;
-  onStatusChange: (id: string, status: EmploymentStatus) => void;
-}
+import { createColumnHelper, type ColumnDef } from '@tanstack/react-table';
+import type { StaffListResponse } from '~/types/staff';
+import { GenericDataTable } from '../common/table/GenericDataTable';
+import { SortableColumnHeader, createActionsColumn, type ActionButton } from '../common/table/TableHelpers';
+import { getEmploymentStatusColor } from '~/utils/employeeStatusColor';
 
 interface StaffTableProps {
   data: StaffListResponse[];
   onEdit: (staff: StaffListResponse) => void;
   onDelete: (id: string) => void;
-  onStatusChange: (id: string, status: EmploymentStatus) => void;
 }
 
-const fuzzyFilter: FilterFn<StaffListResponse> = (row, columnId, filterValue: string) => {
-  const value = row.getValue(columnId) as string;
-  if (!value) return false;
-  return value.toString().toLowerCase().includes(filterValue.toLowerCase());
-};
-
-const columnHelper = createColumnHelper<StaffListResponse>();
-
-export function StaffTable({ 
-  data, 
-  onEdit,
-  onDelete,
-  onStatusChange
-}: StaffTableProps) {
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [globalFilter, setGlobalFilter] = useState('');
-  const [pagination, setPagination] = useState({
-    pageIndex: 0,
-    pageSize: 10,
-  });
-
-  const columns = useMemo(() => [
+export function createStaffColumns(): ColumnDef<StaffListResponse, any>[] {
+  const columnHelper = createColumnHelper<StaffListResponse>();
+  const actions: ActionButton<StaffListResponse>[] = [
+    {
+      label: 'Edit',
+      onClick: (item, _, meta) => meta.onEdit?.(item),
+      color: 'blue'
+    },
+    {
+      label: 'Delete',
+      onClick: (_, id, meta) => meta.onDelete?.(id),
+      color: 'red'
+    }
+  ];
+  
+  return [
     columnHelper.accessor('name', {
-      header: ({ column }) => (
-        <div className="flex items-center cursor-pointer" onClick={() => column.toggleSorting()}>
-          <span>Name</span>
-          {column.getIsSorted() === 'asc' ? (
-            <ChevronUp className="ml-1 h-4 w-4" />
-          ) : column.getIsSorted() === 'desc' ? (
-            <ChevronDown className="ml-1 h-4 w-4" />
-          ) : null}
-        </div>
-      ),
+      header: ({ column }) => <SortableColumnHeader column={column} title="Name" />,
       cell: (info) => (
-        <div className="flex items-center">
-          {info.row.original.photoUrl ? (
-            <img 
-              src={info.row.original.photoUrl} 
-              alt={info.getValue()}
-              className="h-8 w-8 rounded-full mr-2"
-            />
-          ) : (
-            <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center mr-2">
-              <UserCog className="h-4 w-4 text-gray-500" />
-            </div>
-          )}
-          <div className="text-sm font-medium text-gray-900">
-            {info.getValue()}
-          </div>
+        <div className="text-sm font-medium text-gray-900">
+          {info.getValue()}
         </div>
       ),
     }),
     columnHelper.accessor('designation', {
-      header: ({ column }) => (
-        <div className="flex items-center cursor-pointer" onClick={() => column.toggleSorting()}>
-          <span>Designation</span>
-          {column.getIsSorted() === 'asc' ? (
-            <ChevronUp className="ml-1 h-4 w-4" />
-          ) : column.getIsSorted() === 'desc' ? (
-            <ChevronDown className="ml-1 h-4 w-4" />
-          ) : null}
-        </div>
-      ),
+      header: ({ column }) => <SortableColumnHeader column={column} title="Designation" />,
       cell: (info) => (
         <div className="text-sm text-gray-900">
           {info.getValue()}
@@ -97,32 +43,15 @@ export function StaffTable({
       ),
     }),
     columnHelper.accessor('department', {
-      header: ({ column }) => (
-        <div className="flex items-center cursor-pointer" onClick={() => column.toggleSorting()}>
-          <span>Department</span>
-          {column.getIsSorted() === 'asc' ? (
-            <ChevronUp className="ml-1 h-4 w-4" />
-          ) : column.getIsSorted() === 'desc' ? (
-            <ChevronDown className="ml-1 h-4 w-4" />
-          ) : null}
-        </div>
-      ),
+      header: ({ column }) => <SortableColumnHeader column={column} title="Department" />,
       cell: (info) => (
         <div className="text-sm text-gray-900">
           {info.getValue() || '—'}
         </div>
       ),
     }),
-    columnHelper.accessor('email', {
-      header: 'Email',
-      cell: (info) => (
-        <div className="text-sm text-gray-500">
-          {info.getValue() || '—'}
-        </div>
-      ),
-    }),
     columnHelper.accessor('phone', {
-      header: 'Phone',
+      header: ({ column }) => <SortableColumnHeader column={column} title="Phone" />,
       cell: (info) => (
         <div className="text-sm text-gray-500">
           {info.getValue() || '—'}
@@ -130,205 +59,36 @@ export function StaffTable({
       ),
     }),
     columnHelper.accessor('employmentStatus', {
-      header: ({ column }) => (
-        <div className="flex items-center cursor-pointer" onClick={() => column.toggleSorting()}>
-          <span>Status</span>
-          {column.getIsSorted() === 'asc' ? (
-            <ChevronUp className="ml-1 h-4 w-4" />
-          ) : column.getIsSorted() === 'desc' ? (
-            <ChevronDown className="ml-1 h-4 w-4" />
-          ) : null}
-        </div>
-      ),
+      header: ({ column }) => <SortableColumnHeader column={column} title="Status" />,
       cell: (info) => {
         const status = info.getValue();
-        let statusClass = '';
-        
-        switch(status) {
-          case 'Active':
-            statusClass = 'bg-green-100 text-green-800';
-            break;
-          case 'OnLeave':
-            statusClass = 'bg-yellow-100 text-yellow-800';
-            break;
-          case 'Terminated':
-            statusClass = 'bg-red-100 text-red-800';
-            break;
-          case 'Resigned':
-            statusClass = 'bg-gray-100 text-gray-800';
-            break;
-        }
-        
         return (
-          <span className={`px-2 py-1 text-xs rounded-full ${statusClass}`}>
+          <span className={`px-2 py-1 rounded-full text-xs ${getEmploymentStatusColor(status)}`}>
             {status === 'OnLeave' ? 'On Leave' : status}
           </span>
         );
       },
     }),
-    columnHelper.accessor('id', {
-      header: () => <div className="text-right">Actions</div>,
-      cell: (info) => (
-        <div className="flex justify-end space-x-3">
-          <select
-            value={info.row.original.employmentStatus}
-            onChange={(e) => (info.table.options.meta as TableMetaType).onStatusChange(
-              info.getValue(), 
-              e.target.value as EmploymentStatus
-            )}
-            className="text-sm border border-gray-300 rounded py-1 px-2 bg-white text-gray-600"
-          >
-            <option value="Active">Active</option>
-            <option value="OnLeave">On Leave</option>
-            <option value="Resigned">Resigned</option>
-            <option value="Terminated">Terminated</option>
-          </select>
-          <button
-            onClick={() => (info.table.options.meta as TableMetaType).onEdit(info.row.original)}
-            className="text-blue-600 hover:text-blue-900 cursor-pointer text-sm"
-          >
-            Edit
-          </button>
-          <button
-            onClick={() => (info.table.options.meta as TableMetaType).onDelete(info.getValue())}
-            className="text-red-600 hover:text-red-900 cursor-pointer text-sm"
-          >
-            Delete
-          </button>
-        </div>
-      ),
-    }),
-  ], []);
+    columnHelper.accessor('id', createActionsColumn<StaffListResponse>(actions)),
+  ];
+}
 
-  const tableData = useMemo(() => data, [data]);
-
-  const table = useReactTable({
-    data: tableData,
-    columns,
-    state: {
-      sorting,
-      globalFilter,
-      pagination,
-    },
-    onSortingChange: setSorting,
-    onPaginationChange: setPagination,
-    onGlobalFilterChange: setGlobalFilter,
-    globalFilterFn: fuzzyFilter,
-    getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    meta: {
-      onEdit,
-      onDelete,
-      onStatusChange
-    } as TableMetaType,
-  });
+export function StaffTable({ 
+  data, 
+  onEdit,
+  onDelete 
+}: StaffTableProps) {
+  const columns = createStaffColumns();
 
   return (
-    <div className="space-y-4">
-      <div className="bg-white p-4 rounded-lg shadow">
-        <div className="grid gap-4 md:grid-cols-2">
-          <TextInput
-            label="Search Staff"
-            value={globalFilter ?? ''}
-            onChange={(value) => setGlobalFilter(value)}
-            placeholder="Search by name, designation, department..."
-          />
-          <div className="flex items-end">
-            <select
-              value={pagination.pageSize}
-              onChange={e => {
-                table.setPageSize(Number(e.target.value));
-              }}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-500 cursor-pointer"
-            >
-              {[5, 10, 20, 30, 40, 50].map(pageSize => (
-                <option key={pageSize} value={pageSize}>
-                  Show {pageSize}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-lg shadow overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            {table.getHeaderGroups().map(headerGroup => (
-              <tr key={headerGroup.id}>
-                {headerGroup.headers.map(header => (
-                  <th 
-                    key={header.id}
-                    scope="col"
-                    className={`px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider
-                      ${header.id.includes('id') ? 'text-right' : 'text-left'}`}
-                  >
-                    {flexRender(
-                      header.column.columnDef.header,
-                      header.getContext()
-                    )}
-                  </th>
-                ))}
-              </tr>
-            ))}
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {table.getRowModel().rows.map(row => (
-              <tr key={row.id} className="hover:bg-gray-50">
-                {row.getVisibleCells().map(cell => (
-                  <td 
-                    key={cell.id} 
-                    className={`px-6 py-4 whitespace-nowrap
-                      ${cell.column.id.includes('id') ? 'text-right' : 'text-left'}`}
-                  >
-                    {flexRender(
-                      cell.column.columnDef.cell,
-                      cell.getContext()
-                    )}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        {table.getRowModel().rows.length === 0 && (
-          <div className="text-center py-8 text-gray-500">
-            No staff members found.
-          </div>
-        )}
-
-        {table.getRowModel().rows.length > 0 && (
-          <div className="px-6 py-3 flex items-center justify-between border-t">
-            <div className="flex-1 flex justify-between items-center">
-              <div>
-                <span className="text-sm text-gray-700">
-                  Page {table.getState().pagination.pageIndex + 1} of{' '}
-                  {table.getPageCount()} ({table.getFilteredRowModel().rows.length} total)
-                </span>
-              </div>
-              <div className="space-x-2">
-                <button
-                  onClick={() => table.previousPage()}
-                  disabled={!table.getCanPreviousPage()}
-                  className="px-3 py-1 border text-gray-500 rounded text-sm disabled:opacity-50 cursor-pointer"
-                >
-                  Previous
-                </button>
-                <button
-                  onClick={() => table.nextPage()}
-                  disabled={!table.getCanNextPage()}
-                  className="px-3 py-1 border text-gray-500 rounded text-sm disabled:opacity-50 cursor-pointer"
-                >
-                  Next
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
+    <GenericDataTable<StaffListResponse>
+      data={data}
+      columns={columns}
+      onEdit={onEdit}
+      onDelete={onDelete}
+      emptyStateMessage="No staff members found."
+      searchPlaceholder="Search by name, designation, department..."
+      idField="id"
+    />
   );
 }
