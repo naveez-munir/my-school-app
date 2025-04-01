@@ -1,3 +1,4 @@
+import type { CreateStaffRequest, UpdateStaffRequest } from "~/types/staff";
 import type { CreateTeacherDto } from "~/types/teacher";
 
 export function cleanFormData<T>(data: T): any {
@@ -61,4 +62,42 @@ export function cleanTeacherData(data: CreateTeacherDto): CreateTeacherDto {
   }
 
   return cleanedData;
+}
+
+type StaffDataType = CreateStaffRequest | UpdateStaffRequest;
+
+export function cleanStaffData(data: StaffDataType): StaffDataType {
+  const cleanedData = { ...data } as any;
+
+  Object.keys(cleanedData).forEach(key => {
+    if (cleanedData[key] === '') {
+      delete cleanedData[key];
+    }
+  });
+
+  if (cleanedData.educationHistory && cleanedData.educationHistory.length > 0) {
+    cleanedData.educationHistory = cleanedData.educationHistory.map((item: any) => {
+      const { _id, ...rest } = item;
+      return rest;
+    });
+  }
+
+  if (cleanedData.experience && cleanedData.experience.length > 0) {
+    cleanedData.experience = cleanedData.experience.map((item: any) => {
+      const { _id, ...rest } = item;
+      return rest;
+    });
+  }
+  if (cleanedData.documents && cleanedData.documents.length > 0) {
+    cleanedData.documents = cleanedData.documents.map((item: any) => {
+      const { _id, ...rest } = item;
+      return rest;
+    });
+  }
+  if (cleanedData.emergencyContact ) {
+    const { _id, ...rest } = cleanedData.emergencyContact;
+    cleanedData.emergencyContact = rest;
+  }
+
+  return cleanedData as StaffDataType;
 }
