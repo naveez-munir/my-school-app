@@ -3,23 +3,32 @@ import { ClassesTable } from "./ClassTable";
 import type { ClassResponse } from "~/types/class";
 import { useClasses, useDeleteClass } from "~/hooks/useClassQueries";
 import { useNavigate } from "react-router";
+import { useState } from "react";
+import toast from "react-hot-toast";
+import DeletePrompt from "../common/DeletePrompt";
 
 export function ClassSection() {
   const navigate = useNavigate();
-  
-  // Fetch classes with React Query
+  const [showDeletePrompt, setShowDeletePrompt] = useState<boolean>(false);
+  const [classToDelete, setClassToDelete] = useState<string>('');
+
   const { 
     data: classes = [], 
     isLoading, 
     error 
   } = useClasses();
-  
-  // Delete class mutation
+
   const deleteClassMutation = useDeleteClass();
 
-  const handleDelete = async(id: string) => {
-    //TODO: Add confirmation prompt before deletion
-    await deleteClassMutation.mutateAsync(id);
+  const handleDelete = async() => {
+    await deleteClassMutation.mutateAsync(classToDelete);
+    toast.success("Class deleted successfully");
+    setShowDeletePrompt(false);
+    setClassToDelete('');
+  };
+  const handleDeleteClick = (id: string) => {
+    setShowDeletePrompt(true);
+    setClassToDelete(id);
   };
 
   const handleEdit = (classItem: ClassResponse) => {
@@ -56,9 +65,15 @@ export function ClassSection() {
           <ClassesTable
             data={classes}
             onEdit={handleEdit}
-            onDelete={handleDelete}
+            onDelete={handleDeleteClick}
           />
         )}
+        <DeletePrompt
+          isOpen={showDeletePrompt}
+          onClose={() => setShowDeletePrompt(false)}
+          onConfirm={handleDelete}
+          itemName="class"
+        />
       </div>
     </div>
   );

@@ -1,26 +1,41 @@
 import { useState } from "react";
-import type { StaffListResponse, StaffDetailResponse, CreateStaffRequest, UpdateStaffRequest, EmploymentStatus } from "~/types/staff";
+import type { StaffListResponse, CreateStaffRequest, UpdateStaffRequest, EmploymentStatus } from "~/types/staff";
 import { 
   useStaffList, 
   useCreateStaff, 
   useUpdateStaff, 
   useDeleteStaff,
-  useUpdateStaffStatus
+  useUpdateStaffStatus,
+  useStaff
 } from "~/hooks/useStaffQueries";
 import { StaffSkeleton } from "./StaffSkeleton";
 import { StaffTable } from "./StaffTable";
 import { StaffModal } from "./StaffModal";
+import { cleanStaffData } from "~/utils/cleanFormData";
+import toast from "react-hot-toast";
+import DeletePrompt from "../common/DeletePrompt";
+import { getErrorMessage } from "~/utils/error";
 
 export const StaffSection = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingStaff, setEditingStaff] = useState<StaffDetailResponse | null>(null);
+  const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);
+  const [deletePrompt, setDeletePrompt] = useState<{
+    isOpen: boolean;
+    staffId: string | null;
+  }>({
+    isOpen: false,
+    staffId: null,
+  });
 
-  // React Query hooks
   const { 
     data: staffMembers = [], 
     isLoading, 
     error 
   } = useStaffList();
+
+  const {
+    data: staffDetail
+  } = useStaff(selectedStaffId || "");
   
   const createStaffMutation = useCreateStaff();
   const updateStaffMutation = useUpdateStaff();
@@ -29,49 +44,73 @@ export const StaffSection = () => {
 
   const handleCreate = async (data: CreateStaffRequest) => {
     try {
-      await createStaffMutation.mutateAsync(data);
+      const cleanedData = cleanStaffData(data);
+      await createStaffMutation.mutateAsync(cleanedData as CreateStaffRequest);
       setIsModalOpen(false);
+      toast.success("Staff member created successfully");
     } catch (err) {
+      toast.error(getErrorMessage(err));
       console.error("Error creating staff member:", err);
     }
   };
 
   const handleUpdate = async (data: UpdateStaffRequest) => {
-    if (editingStaff) {
+    if (selectedStaffId) {
       try {
+        const cleanedData = cleanStaffData(data);
         await updateStaffMutation.mutateAsync({ 
-          id: editingStaff.id, 
-          data 
+          id: selectedStaffId, 
+          data: cleanedData
         });
         setIsModalOpen(false);
-        setEditingStaff(null);
+        setSelectedStaffId(null);
+        toast.success("Staff member updated successfully");
       } catch (err) {
+        toast.error(getErrorMessage(err));
         console.error("Error updating staff member:", err);
       }
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this staff member?')) {
+    setDeletePrompt({
+      isOpen: true,
+      staffId: id,
+    });
+  };
+
+  const confirmDelete = async () => {
+    if (deletePrompt.staffId) {
       try {
-        await deleteStaffMutation.mutateAsync(id);
+        await deleteStaffMutation.mutateAsync(deletePrompt.staffId);
+        closeDeletePrompt();
+        toast.success("Staff member deleted successfully");
       } catch (err) {
+        toast.error(getErrorMessage(err));
         console.error("Error deleting staff member:", err);
       }
     }
   };
 
-  const handleStatusChange = async (staffId: string, status: EmploymentStatus) => {
-    try {
-      await updateStatusMutation.mutateAsync({ staffId, status });
-    } catch (err) {
-      console.error("Error updating staff status:", err);
-    }
+  const closeDeletePrompt = () => {
+    setDeletePrompt({
+      isOpen: false,
+      staffId: null,
+    });
   };
 
+  // const handleStatusChange = async (staffId: string, status: EmploymentStatus) => {
+  //   try {
+  //     await updateStatusMutation.mutateAsync({ staffId, status });
+  //     toast.success(`Status updated to ${status}`);
+  //   } catch (err) {
+  //     toast.error(getErrorMessage(err));
+  //     console.error("Error updating staff status:", err);
+  //   }
+  // };
+
   const handleEdit = (staff: StaffListResponse) => {
-    // Fetch detailed staff information when editing
-    setEditingStaff(staff as unknown as StaffDetailResponse); // This is a simplification, ideally you would fetch the full details
+    setSelectedStaffId(staff.id);
     setIsModalOpen(true);
   };
 
@@ -83,7 +122,7 @@ export const StaffSection = () => {
         </h2>
         <button
           onClick={() => {
-            setEditingStaff(null);
+            setSelectedStaffId(null);
             setIsModalOpen(true);
           }}
           className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
@@ -101,7 +140,6 @@ export const StaffSection = () => {
           data={staffMembers}
           onEdit={handleEdit}
           onDelete={handleDelete}
-          onStatusChange={handleStatusChange}
         />
       )}
 
@@ -109,17 +147,24 @@ export const StaffSection = () => {
         isOpen={isModalOpen}
         onClose={() => {
           setIsModalOpen(false);
-          setEditingStaff(null);
+          setSelectedStaffId(null);
         }}
         onSubmit={(data) => {
-          if (editingStaff) {
+          if (selectedStaffId) {
             handleUpdate(data as UpdateStaffRequest);
           } else {
             handleCreate(data as CreateStaffRequest);
           }
         }}
-        initialData={editingStaff || undefined}
+        initialData={staffDetail}
         isSubmitting={createStaffMutation.isPending || updateStaffMutation.isPending}
+      />
+
+      <DeletePrompt
+        isOpen={deletePrompt.isOpen}
+        onClose={closeDeletePrompt}
+        onConfirm={confirmDelete}
+        itemName={`staff member`}
       />
     </div>
   );

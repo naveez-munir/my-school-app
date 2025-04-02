@@ -19,7 +19,8 @@ export function ClassSelector({
   label = 'Class',
   required = false,
   placeholder = 'Select or enter class',
-  className = ''
+  className = '',
+  disabled = false
 }: ClassSelectorProps) {
   const { data: classes = [], isLoading: loading } = useClasses();
   const [selectedClass, setSelectedClass] = useState<ClassResponse | null>(null)
@@ -55,6 +56,7 @@ export function ClassSelector({
           displayKey="className" 
           valueKey="id"
           placeholder={placeholder}
+          disabled={disabled}
         />
       )}
     </div>

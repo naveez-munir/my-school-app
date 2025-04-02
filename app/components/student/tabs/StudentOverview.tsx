@@ -100,11 +100,11 @@ export function StudentOverview({student} : StudentDataProps) {
           <div className="space-y-2">
             <div>
               <span className="text-gray-500 text-sm">Grade Level:</span>
-              <p>{student.gradeLevel}</p>
+              <p>{student.class?.classGradeLevel}</p>
             </div>
             <div>
               <span className="text-gray-500 text-sm">Class:</span>
-              <p>{student.class || 'Not assigned'}</p>
+              <p>{student.class?.className || 'Not assigned'}</p>
             </div>
             <div>
               <span className="text-gray-500 text-sm">Roll Number:</span>

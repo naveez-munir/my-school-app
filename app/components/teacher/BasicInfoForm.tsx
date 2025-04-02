@@ -4,6 +4,7 @@ import { TextArea } from '../common/form/inputs/TextArea';
 import { SelectInput } from '../common/form/inputs/SelectInput';
 import { DateInput } from '../common/form/inputs/DateInput';
 import { ClassSelector } from '../common/ClassSelector';
+import { useParams } from 'react-router';
 
 interface BasicInfoFormProps {
   data: CreateTeacherDto;
@@ -11,11 +12,12 @@ interface BasicInfoFormProps {
 }
 
 export function BasicInfoForm({ data, onUpdate }: BasicInfoFormProps) {
+  const { id } = useParams();
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {/* Basic Information Fields */}
       <TextInput 
-       label='CNI Number*'
+       label='CNI Number'
        required
        value={data.cniNumber}
        onChange={(value) => onUpdate('cniNumber', value)}
@@ -31,14 +33,14 @@ export function BasicInfoForm({ data, onUpdate }: BasicInfoFormProps) {
       />
 
       <TextInput 
-       label='First Name*'
+       label='First Name'
        required
        value={data.firstName}
        onChange={(value) => onUpdate('firstName', value)}
       />
 
       <TextInput 
-       label='Last Name*'
+       label='Last Name'
        required
        value={data.lastName}
        onChange={(value) => onUpdate('lastName', value)}
@@ -65,25 +67,26 @@ export function BasicInfoForm({ data, onUpdate }: BasicInfoFormProps) {
         required
       />
       <DateInput 
-       label='Joining Date*'
+       label='Joining Date'
        value={data.joiningDate.toString()}
        onChange={(value) => onUpdate('joiningDate', new Date(value))}
        required
       />
       <SelectInput<typeof EmploymentStatus>
-        label="Employment Status*"
+        label="Employment Status"
         value={data.employmentStatus}
         onChange={(value) => onUpdate('employmentStatus', value)}
         options={EmploymentStatus}
         placeholder="Select Employee status"
         required
       />
-      <ClassSelector
+      {id && <ClassSelector
         value={data.classTeacherOf }
         onChange={(classId) => onUpdate('classTeacherOf', classId)}
         label="Class"
         required={false}
-      />
+        disabled={true}
+      />}
 
       <div className="col-span-2">
         <TextArea 

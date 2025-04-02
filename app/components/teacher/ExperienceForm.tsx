@@ -58,7 +58,9 @@ export function ExperienceForm({ data = [], onUpdate }: ExperienceFormProps) {
             />
             <DateInput 
              label='From Date'
-             value={experience.fromDate ? new Date(experience.fromDate).toISOString().split('T')[0] : ''}
+             value={experience.fromDate && !isNaN(new Date(experience.fromDate).getTime()) 
+              ? new Date(experience.fromDate).toISOString().split('T')[0] 
+              : ''}
              onChange={(value) => handleChange(index, 'fromDate', new Date(value))}
              required
             />

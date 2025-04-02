@@ -1,17 +1,7 @@
-import { 
-  useReactTable, 
-  getCoreRowModel, 
-  getPaginationRowModel,
-  getFilteredRowModel,
-  getSortedRowModel,
-  flexRender,
-  createColumnHelper,
-  type FilterFn,
-  type SortingState,
-} from '@tanstack/react-table';
-import { useState, useMemo } from 'react';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { createColumnHelper, type ColumnDef } from '@tanstack/react-table';
 import type { ClassResponse } from '~/types/class';
+import { GenericDataTable } from '../common/table/GenericDataTable';
+import { SortableColumnHeader, createActionsColumn, type ActionButton } from '../common/table/TableHelpers';
 
 interface ClassesTableProps {
   data: ClassResponse[];
@@ -19,290 +9,90 @@ interface ClassesTableProps {
   onDelete: (id: string) => void;
 }
 
-interface TableMetaType {
-  onEdit: (classItem: ClassResponse) => void;
-  onDelete: (id: string) => void;
+export function createClassColumns(): ColumnDef<ClassResponse, any>[] {
+  const columnHelper = createColumnHelper<ClassResponse>();
+  const actions: ActionButton<ClassResponse>[] = [
+    {
+      label: 'Edit',
+      onClick: (item, _, meta) => meta.onEdit?.(item),
+      color: 'blue'
+    },
+    {
+      label: 'Delete',
+      onClick: (_, id, meta) => meta.onDelete?.(id),
+      color: 'red'
+    }
+  ];
+  
+  return [
+    columnHelper.accessor('className', {
+      header: ({ column }) => <SortableColumnHeader column={column} title="Class Name" />,
+      cell: (info) => (
+        <div className="text-sm font-medium text-gray-900">
+          {info.getValue()}
+        </div>
+      ),
+    }),
+    columnHelper.accessor('classSection', {
+      header: ({ column }) => <SortableColumnHeader column={column} title="Section" />,
+      cell: (info) => (
+        <div className="text-sm text-gray-500">
+          {info.getValue()}
+        </div>
+      ),
+    }),
+    columnHelper.accessor('classGradeLevel', {
+      header: ({ column }) => <SortableColumnHeader column={column} title="Grade Level" />,
+      cell: (info) => (
+        <div className="text-sm text-gray-500">
+          {info.getValue()}
+        </div>
+      ),
+    }),
+    columnHelper.accessor('teacherName', {
+      header: ({ column }) => <SortableColumnHeader column={column} title="Teacher" />,
+      cell: (info) => (
+        <div className="text-sm text-gray-500">
+          {info.getValue() || '-'}
+        </div>
+      ),
+    }),
+    columnHelper.accessor('tempTeacherName', {
+      header: ({ column }) => <SortableColumnHeader column={column} title="Temporary Teacher" />,
+      cell: (info) => (
+        <div className="text-sm text-gray-500">
+          {info.getValue() || '-'}
+        </div>
+      ),
+    }),
+    columnHelper.accessor('subjectCount', {
+      header: ({ column }) => <SortableColumnHeader column={column} title="Subjects" />,
+      cell: (info) => (
+        <div className="text-sm text-gray-500">
+          {info.getValue()}
+        </div>
+      ),
+    }),
+    columnHelper.accessor('id', createActionsColumn<ClassResponse>(actions)),
+  ];
 }
-
-const fuzzyFilter: FilterFn<ClassResponse> = (row, columnId, filterValue: string) => {
-  const value = row.getValue(columnId) as string;
-  return value?.toLowerCase().includes(filterValue.toLowerCase());
-};
-
-const columnHelper = createColumnHelper<ClassResponse>();
-
-const columns = [
-  columnHelper.accessor('className', {
-    header: ({ column }) => (
-      <div className="flex items-center cursor-pointer" onClick={() => column.toggleSorting()}>
-        <span>Class Name</span>
-        {column.getIsSorted() === 'asc' ? (
-          <ChevronUp className="ml-1 h-4 w-4" />
-        ) : column.getIsSorted() === 'desc' ? (
-          <ChevronDown className="ml-1 h-4 w-4" />
-        ) : null}
-      </div>
-    ),
-    cell: (info) => (
-      <div className="text-sm font-medium text-gray-900">
-        {info.getValue()}
-      </div>
-    ),
-  }),
-  columnHelper.accessor('classSection', {
-    header: ({ column }) => (
-      <div className="flex items-center cursor-pointer" onClick={() => column.toggleSorting()}>
-        <span>Section</span>
-        {column.getIsSorted() === 'asc' ? (
-          <ChevronUp className="ml-1 h-4 w-4" />
-        ) : column.getIsSorted() === 'desc' ? (
-          <ChevronDown className="ml-1 h-4 w-4" />
-        ) : null}
-      </div>
-    ),
-    cell: (info) => (
-      <div className="text-sm text-gray-500">
-        {info.getValue()}
-      </div>
-    ),
-  }),
-  columnHelper.accessor('classGradeLevel', {
-    header: ({ column }) => (
-      <div className="flex items-center cursor-pointer" onClick={() => column.toggleSorting()}>
-        <span>Grade Level</span>
-        {column.getIsSorted() === 'asc' ? (
-          <ChevronUp className="ml-1 h-4 w-4" />
-        ) : column.getIsSorted() === 'desc' ? (
-          <ChevronDown className="ml-1 h-4 w-4" />
-        ) : null}
-      </div>
-    ),
-    cell: (info) => (
-      <div className="text-sm text-gray-500">
-        {info.getValue()}
-      </div>
-    ),
-  }),
-  columnHelper.accessor('teacherName', {
-    header: ({ column }) => (
-      <div className="flex items-center cursor-pointer" onClick={() => column.toggleSorting()}>
-        <span>Teacher</span>
-        {column.getIsSorted() === 'asc' ? (
-          <ChevronUp className="ml-1 h-4 w-4" />
-        ) : column.getIsSorted() === 'desc' ? (
-          <ChevronDown className="ml-1 h-4 w-4" />
-        ) : null}
-      </div>
-    ),
-    cell: (info) => (
-      <div className="text-sm text-gray-500">
-        {info.getValue() || '-'}
-      </div>
-    ),
-  }),
-  columnHelper.accessor('tempTeacherName', {
-    header: ({ column }) => (
-      <div className="flex items-center cursor-pointer" onClick={() => column.toggleSorting()}>
-        <span>Temporary Teacher</span>
-        {column.getIsSorted() === 'asc' ? (
-          <ChevronUp className="ml-1 h-4 w-4" />
-        ) : column.getIsSorted() === 'desc' ? (
-          <ChevronDown className="ml-1 h-4 w-4" />
-        ) : null}
-      </div>
-    ),
-    cell: (info) => (
-      <div className="text-sm text-gray-500">
-        {info.getValue() || '-'}
-      </div>
-    ),
-  }),
-  columnHelper.accessor('subjectCount', {
-    header: ({ column }) => (
-      <div className="flex items-center cursor-pointer" onClick={() => column.toggleSorting()}>
-        <span>Subjects</span>
-        {column.getIsSorted() === 'asc' ? (
-          <ChevronUp className="ml-1 h-4 w-4" />
-        ) : column.getIsSorted() === 'desc' ? (
-          <ChevronDown className="ml-1 h-4 w-4" />
-        ) : null}
-      </div>
-    ),
-    cell: (info) => (
-      <div className="text-sm text-gray-500">
-        {info.getValue()}
-      </div>
-    ),
-  }),
-  columnHelper.accessor('id', {
-    header: () => <div className="text-right">Actions</div>,
-    cell: (info) => (
-      <div className="flex justify-end space-x-4">
-        <button
-          onClick={() => (info.table.options.meta as TableMetaType).onEdit(info.row.original)}
-          className="text-blue-600 hover:text-blue-900 cursor-pointer"
-        >
-          Edit
-        </button>
-        <button
-          onClick={() => (info.table.options.meta as TableMetaType).onDelete(info.getValue())}
-          className="text-red-600 hover:text-red-900 cursor-pointer"
-        >
-          Delete
-        </button>
-      </div>
-    ),
-  }),
-];
 
 export function ClassesTable({ 
   data, 
   onEdit,
   onDelete 
 }: ClassesTableProps) {
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [globalFilter, setGlobalFilter] = useState('');
-  const [pagination, setPagination] = useState({
-    pageIndex: 0,
-    pageSize: 20,
-  });
-
-  const tableData = useMemo(() => data, [data]);
-
-  const table = useReactTable({
-    data: tableData,
-    columns,
-    state: {
-      sorting,
-      globalFilter,
-      pagination,
-    },
-    onSortingChange: setSorting,
-    onPaginationChange: setPagination,
-    onGlobalFilterChange: setGlobalFilter,
-    globalFilterFn: fuzzyFilter,
-    getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    meta: {
-      onEdit,
-      onDelete,
-    } as TableMetaType,
-  });
+  const columns = createClassColumns();
 
   return (
-    <div className="space-y-4">
-      <div className="bg-white p-4 rounded-lg shadow">
-        <div className="grid gap-4 md:grid-cols-2">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Search</label>
-            <input
-              type="text"
-              value={globalFilter ?? ''}
-              onChange={(e) => setGlobalFilter(e.target.value)}
-              placeholder="Search all columns..."
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-500"
-            />
-          </div>
-          <div className="flex items-end">
-            <select
-              value={pagination.pageSize}
-              onChange={e => {
-                table.setPageSize(Number(e.target.value));
-              }}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-500 cursor-pointer"
-            >
-              {[5, 10, 20, 30, 40, 50].map(pageSize => (
-                <option key={pageSize} value={pageSize}>
-                  Show {pageSize}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-lg shadow overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          {/* Table Header */}
-          <thead className="bg-gray-50">
-            {table.getHeaderGroups().map(headerGroup => (
-              <tr key={headerGroup.id}>
-                {headerGroup.headers.map(header => (
-                  <th 
-                    key={header.id}
-                    scope="col"
-                    className={`px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider
-                      ${header.id.includes('id') ? 'text-right' : 'text-left'}`}
-                  >
-                    {flexRender(
-                      header.column.columnDef.header,
-                      header.getContext()
-                    )}
-                  </th>
-                ))}
-              </tr>
-            ))}
-          </thead>
-          {/* Table Body */}
-          <tbody className="bg-white divide-y divide-gray-200">
-            {table.getRowModel().rows.map(row => (
-              <tr key={row.id} className="hover:bg-gray-50">
-                {row.getVisibleCells().map(cell => (
-                  <td 
-                    key={cell.id} 
-                    className={`px-6 py-4 whitespace-nowrap
-                      ${cell.column.id.includes('id') ? 'text-right' : 'text-left'}`}
-                  >
-                    {flexRender(
-                      cell.column.columnDef.cell,
-                      cell.getContext()
-                    )}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        {/* Empty State */}
-        {table.getRowModel().rows.length === 0 && (
-          <div className="text-center py-8 text-gray-500">
-            No classes found.
-          </div>
-        )}
-
-        {/* Pagination */}
-        {table.getRowModel().rows.length > 0 && (
-          <div className="px-6 py-3 flex items-center justify-between border-t">
-            <div className="flex-1 flex justify-between items-center">
-              <div>
-                <span className="text-sm text-gray-700">
-                  Page {table.getState().pagination.pageIndex + 1} of{' '}
-                  {table.getPageCount()} ({table.getFilteredRowModel().rows.length} total)
-                </span>
-              </div>
-              <div className="space-x-2">
-                <button
-                  onClick={() => table.previousPage()}
-                  disabled={!table.getCanPreviousPage()}
-                  className="px-3 py-1 border text-gray-500 rounded text-sm disabled:opacity-50 cursor-pointer"
-                >
-                  Previous
-                </button>
-                <button
-                  onClick={() => table.nextPage()}
-                  disabled={!table.getCanNextPage()}
-                  className="px-3 py-1 border text-gray-500 rounded text-sm disabled:opacity-50 cursor-pointer"
-                >
-                  Next
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
+    <GenericDataTable<ClassResponse>
+      data={data}
+      columns={columns}
+      onEdit={onEdit}
+      onDelete={onDelete}
+      emptyStateMessage="No classes found."
+      searchPlaceholder="Search classes..."
+      idField="id"
+    />
   );
 }

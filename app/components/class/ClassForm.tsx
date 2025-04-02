@@ -94,7 +94,7 @@ export function ClassForm({
           value={formData.classSection || ''}
           onChange={(value) => handleChange('classSection', value)}
           error={errors.className}
-          placeholder="Enter class name"
+          placeholder="A, B, C"
         />
         <SelectInput<typeof GradeLevel>
           label="Grade Level"

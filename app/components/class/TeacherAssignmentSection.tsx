@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { toast } from 'react-hot-toast'
 import { TeacherAssignmentCard } from './TeacherAssignmentCard'
 import type { TeacherResponse, Teacher } from '~/types/teacher'
 import type { Class } from '~/types/class'
@@ -8,88 +9,103 @@ import {
   useAssignTempTeacher, 
   useRemoveTempTeacher 
 } from '~/hooks/useClassQueries'
-import { TeacherSelector } from '../common/TeacherSelector'
+import { TeacherSelector } from '../common/TeacherSelector';
+import { useQueryClient } from '@tanstack/react-query'
 
 interface TeacherAssignmentSectionProps {
   classData: Class
   teachers: TeacherResponse[]
   isLoading?: boolean
+  onRefresh?: () => void
 }
 
 export function TeacherAssignmentSection({
   classData,
   teachers,
-  isLoading = false
+  isLoading = false,
+  onRefresh
 }: TeacherAssignmentSectionProps) {
+  const queryClient = useQueryClient();
   const [mainTeacherLoading, setMainTeacherLoading] = useState(false)
   const [tempTeacherLoading, setTempTeacherLoading] = useState(false)
   const [selectedMainTeacherId, setSelectedMainTeacherId] = useState('')
   const [selectedTempTeacherId, setSelectedTempTeacherId] = useState('')
 
-  // React Query mutations
   const assignTeacherMutation = useAssignTeacher();
   const removeTeacherMutation = useRemoveTeacher();
   const assignTempTeacherMutation = useAssignTempTeacher();
   const removeTempTeacherMutation = useRemoveTempTeacher();
+
 
   const handleTeacherAction = async (
     actionType: 'assign' | 'remove',
     teacherType: 'main' | 'temp',
     teacherId?: string
   ) => {
-    if (!classData._id) return
+    if (!classData._id) return;
     
-    const setLoading = teacherType === 'main' 
-      ? setMainTeacherLoading 
-      : setTempTeacherLoading
-
+    const setLoading = teacherType === 'main' ? setMainTeacherLoading : setTempTeacherLoading;
+    const actionText = actionType === 'assign' ? 'assigned to' : 'removed from';
+    const teacherTypeText = teacherType === 'main' ? 'Main' : 'Temporary';
+    const resetSelectedId = teacherType === 'main' ? setSelectedMainTeacherId : setSelectedTempTeacherId;
+    
     try {
-      setLoading(true)
+      setLoading(true);
+
+      const mutations = {
+        main: {
+          assign: () => assignTeacherMutation.mutateAsync({ classId: classData._id, teacherId: teacherId! }),
+          remove: () => removeTeacherMutation.mutateAsync(classData._id)
+        },
+        temp: {
+          assign: () => assignTempTeacherMutation.mutateAsync({ classId: classData._id, teacherId: teacherId! }),
+          remove: () => removeTempTeacherMutation.mutateAsync(classData._id)
+        }
+      };
       
+      if (actionType === 'assign' && !teacherId) return;
+
+      const result = await mutations[teacherType][actionType]();
+      console.log('Mutation result:', result);
+
       if (actionType === 'assign') {
-        if (!teacherId) return
-        if (teacherType === 'main') {
-          await assignTeacherMutation.mutateAsync({ classId: classData._id, teacherId });
-          setSelectedMainTeacherId('');
-        } else {
-          await assignTempTeacherMutation.mutateAsync({ classId: classData._id, teacherId });
-          setSelectedTempTeacherId('');
-        }
-      } else {
-        if (teacherType === 'main') {
-          await removeTeacherMutation.mutateAsync(classData._id);
-        } else {
-          await removeTempTeacherMutation.mutateAsync(classData._id);
-        }
+        resetSelectedId('');
       }
+
+      toast.success(`${teacherTypeText} teacher ${actionText} ${classData.className}`);
+      queryClient.invalidateQueries({queryKey: ['teachers']});
+      if (onRefresh) {
+        onRefresh();
+      }
+
     } catch (error) {
-      console.error(`Failed to ${actionType} ${teacherType} teacher:`, error)
+      console.error('Error in teacher action:', error);
+      toast.error(`Failed to ${actionText} ${teacherTypeText.toLowerCase()} teacher. Please try again.`);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
-  const getAvailableTeachers = (currentTeacher?: TeacherResponse) => {
-    return teachers.filter(teacher => 
-      teacher.id !== currentTeacher?.id &&
-      teacher.id !== classData.classTempTeacher?._id &&
-      teacher.id !== classData.classTeacher?._id
-    )
-  }
-
-  if (!classData || !teachers) {
+  if (!classData) {
     return <div className="p-4 text-gray-500">Loading class information...</div>
   }
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-lg font-medium text-gray-900">Teacher Assignments</h2>
+    <div className="space-y-6 bg-white rounded-lg p-6 shadow-sm border border-gray-100">
+      <h2 className="text-xl font-semibold text-gray-900 border-b pb-4">Teacher Assignments</h2>
       
       {/* Main Teacher Section */}
       <div className="space-y-4">
-        <label className="block text-sm font-medium text-gray-700">
-          Main Teacher
-        </label>
+        <div className="flex items-center justify-between">
+          <label className="text-sm font-medium text-gray-700">
+            Main Class Teacher
+          </label>
+          {classData.classTeacher && (
+            <span className="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded-full">
+              Primary Instructor
+            </span>
+          )}
+        </div>
         
         {classData.classTeacher ? (
           <TeacherAssignmentCard
@@ -99,33 +115,51 @@ export function TeacherAssignmentSection({
             variant="main"
           />
         ) : (
-          <div className="flex items-center space-x-4">
-            <div className="flex-grow">
-              <TeacherSelector
-                value={selectedMainTeacherId}
-                onChange={setSelectedMainTeacherId}
-                placeholder="Select main teacher"
-                className="w-full"
-              />
+          <div className="p-4 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+              <div className="md:col-span-2">
+                <TeacherSelector
+                  value={selectedMainTeacherId}
+                  onChange={setSelectedMainTeacherId}
+                  placeholder="Select a main teacher for this class"
+                  className="w-full"
+                />
+              </div>
+              <div>
+                <button
+                  onClick={() => handleTeacherAction('assign', 'main', selectedMainTeacherId)}
+                  className={`w-full px-4 py-2 rounded-lg text-white font-medium transition-colors ${
+                    selectedMainTeacherId 
+                      ? 'bg-blue-600 hover:bg-blue-700' 
+                      : 'bg-gray-400 cursor-not-allowed'
+                  }`}
+                  disabled={!selectedMainTeacherId || mainTeacherLoading || isLoading}
+                >
+                  {mainTeacherLoading ? 'Assigning...' : 'Assign as Main Teacher'}
+                </button>
+              </div>
             </div>
-            {selectedMainTeacherId && (
-              <button
-                onClick={() => handleTeacherAction('assign', 'main', selectedMainTeacherId)}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                disabled={mainTeacherLoading || isLoading}
-              >
-                {mainTeacherLoading ? 'Assigning...' : 'Assign'}
-              </button>
+            {!selectedMainTeacherId && (
+              <p className="mt-3 text-sm text-gray-500">
+                Select a teacher to assign as the main teacher for this class.
+              </p>
             )}
           </div>
         )}
       </div>
 
       {/* Temporary Teacher Section */}
-      <div className="space-y-4">
-        <label className="block text-sm font-medium text-gray-700">
-          Temporary Teacher
-        </label>
+      <div className="space-y-4 mt-8">
+        <div className="flex items-center justify-between">
+          <label className="text-sm font-medium text-gray-700">
+            Temporary Teacher
+          </label>
+          {classData.classTempTeacher && (
+            <span className="text-xs px-2 py-1 bg-amber-100 text-amber-800 rounded-full">
+              Substitute Instructor
+            </span>
+          )}
+        </div>
         
         {classData.classTempTeacher ? (
           <TeacherAssignmentCard
@@ -135,23 +169,34 @@ export function TeacherAssignmentSection({
             variant="temporary"
           />
         ) : (
-          <div className="flex items-center space-x-4">
-            <div className="flex-grow">
-              <TeacherSelector
-                value={selectedTempTeacherId}
-                onChange={setSelectedTempTeacherId}
-                placeholder="Select temporary teacher"
-                className="w-full"
-              />
+          <div className="p-4 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+              <div className="md:col-span-2">
+                <TeacherSelector
+                  value={selectedTempTeacherId}
+                  onChange={setSelectedTempTeacherId}
+                  placeholder="Select a temporary substitute teacher"
+                  className="w-full"
+                />
+              </div>
+              <div>
+                <button
+                  onClick={() => handleTeacherAction('assign', 'temp', selectedTempTeacherId)}
+                  className={`w-full px-4 py-2 rounded-lg text-white font-medium transition-colors ${
+                    selectedTempTeacherId 
+                      ? 'bg-amber-600 hover:bg-amber-700' 
+                      : 'bg-gray-400 cursor-not-allowed'
+                  }`}
+                  disabled={!selectedTempTeacherId || tempTeacherLoading || isLoading}
+                >
+                  {tempTeacherLoading ? 'Assigning...' : 'Assign as Temporary Teacher'}
+                </button>
+              </div>
             </div>
-            {selectedTempTeacherId && (
-              <button
-                onClick={() => handleTeacherAction('assign', 'temp', selectedTempTeacherId)}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                disabled={tempTeacherLoading || isLoading}
-              >
-                {tempTeacherLoading ? 'Assigning...' : 'Assign'}
-              </button>
+            {!selectedTempTeacherId && (
+              <p className="mt-3 text-sm text-gray-500">
+                Assign a temporary teacher who will substitute when the main teacher is unavailable.
+              </p>
             )}
           </div>
         )}

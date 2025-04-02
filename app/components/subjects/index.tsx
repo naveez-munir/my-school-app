@@ -1,13 +1,19 @@
 import { useState } from "react";
 import { SubjectsSkeleton } from "./SubjectsSkeleton";
 import { SubjectModal } from "./SubjectModal";
+import toast from "react-hot-toast";
 import type { Subject, SubjectDto } from "~/types/subject";
 import { useSubjects, useCreateSubject, useUpdateSubject, useDeleteSubject } from "~/hooks/useSubjectQueries";
+import { useQueryClient } from '@tanstack/react-query';
 import { SubjectsTable } from "./SubjectsTable";
+import DeletePrompt from "../common/DeletePrompt";
 
 export const SubjectSection = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
+  const [deletePromptOpen, setDeletePromptOpen] = useState(false);
+  const [subjectToDelete, setSubjectToDelete] = useState<string | null>(null);
+
 
   // React Query hooks
   const { 
@@ -19,37 +25,61 @@ export const SubjectSection = () => {
   const createSubjectMutation = useCreateSubject();
   const updateSubjectMutation = useUpdateSubject();
   const deleteSubjectMutation = useDeleteSubject();
+  const queryClient = useQueryClient();
 
   const handleCreate = async (data: SubjectDto) => {
     try {
       await createSubjectMutation.mutateAsync(data);
       setIsModalOpen(false);
+      toast.success("Course created successfully");
+      queryClient.invalidateQueries({ queryKey: ['subjects'] });
     } catch (err) {
-      console.error("Error creating subject:", err);
+      handleError(err)
     }
   };
 
   const handleUpdate = async (data: SubjectDto) => {
     if (editingSubject) {
       try {
+        const payLoad = {
+          subjectName: data.subjectName,
+          subjectCode: data.subjectCode
+        };
         await updateSubjectMutation.mutateAsync({ 
           id: editingSubject._id, 
-          data 
+          data: payLoad
         });
         setIsModalOpen(false);
         setEditingSubject(null);
+        toast.success("Course updated successfully");
+        queryClient.invalidateQueries({ queryKey: ['subjects'] });
       } catch (err) {
-        console.error("Error updating subject:", err);
+         handleError(err)
       }
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this course?')) {
+  const handleError = (err : any) => {
+    const errorMessage = err.response?.data?.message || "some thing went wrong";
+    toast.error(errorMessage);
+  }
+
+  const handleDeleteClick = (id: string) => {
+    setSubjectToDelete(id);
+    setDeletePromptOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (subjectToDelete) {
       try {
-        await deleteSubjectMutation.mutateAsync(id);
+        await deleteSubjectMutation.mutateAsync(subjectToDelete);
+        toast.success("Course deleted successfully");
+        queryClient.invalidateQueries({ queryKey: ['subjects'] });
       } catch (err) {
-        console.error("Error deleting subject:", err);
+        handleError(err)
+      } finally {
+        setDeletePromptOpen(false);
+        setSubjectToDelete(null);
       }
     }
   };
@@ -82,7 +112,7 @@ export const SubjectSection = () => {
             setEditingSubject(subject);
             setIsModalOpen(true);
           }}
-          onDelete={handleDelete}
+          onDelete={handleDeleteClick}
         />
       )}
 
@@ -95,6 +125,13 @@ export const SubjectSection = () => {
         onSubmit={editingSubject ? handleUpdate : handleCreate}
         initialData={editingSubject || undefined}
         isSubmitting={createSubjectMutation.isPending || updateSubjectMutation.isPending}
+      />
+
+      <DeletePrompt
+        isOpen={deletePromptOpen}
+        onClose={() => setDeletePromptOpen(false)}
+        onConfirm={confirmDelete}
+        itemName="course"
       />
     </div>
   );

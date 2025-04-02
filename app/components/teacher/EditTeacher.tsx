@@ -2,10 +2,13 @@ import { useTeacher, useUpdateTeacher } from '~/hooks/useTeacherQueries';
 import { TeacherForm } from './TeacherForm';
 import type { CreateTeacherDto } from '~/types/teacher';
 import { useNavigate, useParams } from 'react-router';
+import { cleanTeacherData } from '~/utils/cleanFormData';
+import { useQueryClient } from '@tanstack/react-query';
 
 export function EditTeacher() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   
   // React Query hooks
   const { data: currentTeacher, isLoading: fetchLoading } = useTeacher(id || '');
@@ -14,7 +17,9 @@ export function EditTeacher() {
   const handleSubmit = async (data: CreateTeacherDto) => {
     try {
       if (id) {
-        await updateTeacherMutation.mutateAsync({ id, data });
+        const cleanedData = cleanTeacherData(data);
+        await updateTeacherMutation.mutateAsync({ id, data: cleanedData });
+        queryClient.invalidateQueries({ queryKey: ['classes'] });
         navigate('/dashboard/teachers');
       }
     } catch (error) {

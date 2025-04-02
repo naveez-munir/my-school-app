@@ -2,14 +2,21 @@ import { useCreateTeacher } from '~/hooks/useTeacherQueries';
 import { TeacherForm } from './TeacherForm';
 import type { CreateTeacherDto } from '~/types/teacher';
 import { useNavigate } from 'react-router';
+import { useQueryClient } from '@tanstack/react-query';
 
 export function CreateTeacher() {
   const navigate = useNavigate();
   const createTeacherMutation = useCreateTeacher();
+  const queryClient = useQueryClient();
 
   const handleSubmit = async (data: CreateTeacherDto) => {
     try {
-      await createTeacherMutation.mutateAsync(data);
+      const submissionData = { ...data };
+      if (submissionData.classTeacherOf === '') {
+        delete submissionData.classTeacherOf;
+      }
+      await createTeacherMutation.mutateAsync(submissionData);
+      queryClient.invalidateQueries({ queryKey: ['classes'] });
       navigate('/dashboard/teachers');
     } catch (error) {
       console.error('Failed to create teacher:', error);
