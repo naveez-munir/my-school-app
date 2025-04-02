@@ -41,7 +41,7 @@ export function SelectInput<T extends Record<string, string>>({
               focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500`}
           >
             <span className={`block truncate ${!currentValue ? 'text-gray-400' : ''}`}>
-              {currentValue || placeholder || 'Select an option'}
+              {currentValue?.toLocaleUpperCase() || placeholder || 'Select an option'}
             </span>
             <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
               <ChevronsUpDown className="h-4 w-4 text-gray-400" />
@@ -65,7 +65,7 @@ export function SelectInput<T extends Record<string, string>>({
                         selected ? 'font-semibold' : 'font-normal'
                       }`}
                     >
-                      {option}
+                      {option.toLocaleUpperCase()}
                     </span>
                     {selected ? (
                       <span
