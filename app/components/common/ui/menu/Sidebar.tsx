@@ -25,9 +25,10 @@ import {
   PieChart,
   ListChecks,
   Building,
-  Cog
+  Cog,
+  LogOut
 } from 'lucide-react';
-import { isSuperAdmin } from '~/utils/auth';
+import { isSuperAdmin, logout } from '~/utils/auth';
 
 export type MenuItem = {
   name: string;
@@ -67,7 +68,8 @@ const icons = {
   pieChart: PieChart,
   listChecks: ListChecks,
   building: Building,
-  cog: Cog
+  cog: Cog,
+  logOut: LogOut
 };
 
 const SUPER_ADMIN_MENU_ITEMS: MenuItem[] = [
@@ -304,10 +306,18 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
   const handleNavigation = (path: string) => {
     navigate(path);
-    
+    handleMenuCLose();
+  };
+
+  const handleMenuCLose = () => {
     if (window.innerWidth < 1024) {
       onClose();
     }
+  }
+
+  const handleLogout = () => {
+    logout();
+    handleMenuCLose();
   };
 
   const toggleSubmenu = (name: string) => {
@@ -426,6 +436,16 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
         <div className="p-4 pt-4 mt-2 border-t">
           {SETTINGS_ITEMS.map(renderMenuItem)}
+
+          <div className="mt-2">
+            <button
+              onClick={handleLogout}
+              className="flex w-full items-center gap-3 p-3 rounded-lg transition-colors text-red-600 hover:bg-red-50 hover:text-red-700"
+            >
+              <LogOut size={20} />
+              <span>Logout</span>
+            </button>
+          </div>
         </div>
       </aside>
     </>
