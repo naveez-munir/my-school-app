@@ -4,21 +4,34 @@ import {
   DocumentType,
   type AddDocumentDto,
   type Student,
+  type UpdatePersonalInfoDto,
 } from "~/types/student";
 import { SelectInput } from "~/components/common/form/inputs/SelectInput";
 import { PhotoUpload } from "./PhotoUpload";
-import { useAddStudentDocument } from "~/hooks/useStudentQueries";
+import { DocumentUploader } from "./DocumentUploader";
+import { useAddStudentDocument, useUpdatePersonalInfo } from "~/hooks/useStudentQueries";
 import { useStudentForm } from "~/hooks/forms/useStudentForm";
 import { StudentFormLayout } from "./StudentFormLayout";
 import toast from "react-hot-toast";
 
 export function DocumentsForm() {
   const { id } = useParams<{ id: string }>();
-  const { student, isLoadingStudent } = useStudentForm<{}>({
-    initialDataMapper: () => ({}),
-    defaultData: {},
-    mutationHook: useAddStudentDocument,
-    entityName: "Student documents",
+  const {
+    student,
+    formData,
+    handleChange,
+    handleSubmit,
+    isLoadingStudent,
+    isPending: isPhotoUpdatePending,
+  } = useStudentForm<UpdatePersonalInfoDto>({
+    initialDataMapper: (student) => ({
+      photoUrl: student.photoUrl || "",
+    }),
+    defaultData: {
+      photoUrl: "",
+    },
+    mutationHook: useUpdatePersonalInfo,
+    entityName: "Student photo",
   });
 
   const addDocumentMutation = useAddStudentDocument();
@@ -51,6 +64,7 @@ export function DocumentsForm() {
         documentType: "",
         documentUrl: "",
       });
+      toast.success("Document added successfully", { id: toastId });
     } catch (error) {
       console.error("Failed to add document:", error);
       const errorMessage =
@@ -62,21 +76,26 @@ export function DocumentsForm() {
     }
   };
 
-  const handleRemoveDocument = (index: number) => {
-    console.log("Remove document at index:", index);
+  const handlePhotoChange = (url: string) => {
+    handleChange("photoUrl", url);
   };
 
-  const handleSubmit = (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
+  const handleDocumentUrlChange = (url: string) => {
+    setNewDocument(prev => ({ ...prev, documentUrl: url }));
+  };
+
+  const handleRemoveDocument = (index: number) => {
+    console.log("Remove document at index:", index);
+    toast.error("Document removal not implemented yet");
   };
 
   return (
     <StudentFormLayout
       student={student}
       isLoadingStudent={isLoadingStudent}
-      isSubmitting={isSubmitting}
+      isSubmitting={isPhotoUpdatePending || isSubmitting}
       title="Manage Student Documents"
-      description={`Update documents and photo for {studentName}.`}
+      description={`Update documents and photo for ${student?.firstName || ''} ${student?.lastName || ''}.`}
       onSubmit={handleSubmit}
       studentId={id}
     >
@@ -87,11 +106,9 @@ export function DocumentsForm() {
         </p>
         <div className="mt-4">
           <PhotoUpload
-            currentPhoto={student?.photoUrl || ""}
-            onPhotoChange={(url) => {
-              console.log("Update photo:", url);
-              toast.error("Photo update not implemented yet");
-            }}
+            currentPhoto={formData.photoUrl || ""}
+            onPhotoChange={handlePhotoChange}
+            folder={`students/${id}/profile`}
           />
         </div>
       </div>
@@ -104,97 +121,76 @@ export function DocumentsForm() {
         </p>
 
         {documents && documents.length > 0 && (
-          <div className="mt-4 border rounded-md overflow-hidden">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Document Type
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Upload Date
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Action
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {documents.map((doc, index) => (
-                  <tr key={index}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {doc.documentType}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {doc.uploadDate
-                        ? new Date(doc.uploadDate).toLocaleDateString()
-                        : "N/A"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveDocument(index)}
-                        className="text-red-600 hover:text-red-900"
-                      >
-                        Remove
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="mt-4 space-y-4">
+            {documents.map((doc, index) => (
+              <div key={index} className="border rounded-md p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="font-medium text-gray-800">{doc.documentType}</h4>
+                  <div>
+                    {doc.uploadDate && (
+                      <span className="text-sm text-gray-500 mr-4">
+                        Uploaded: {new Date(doc.uploadDate).toLocaleDateString()}
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveDocument(index)}
+                      className="text-red-600 hover:text-red-900 text-sm"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+                <DocumentUploader
+                  currentDocumentUrl={doc.documentUrl}
+                  documentType={doc.documentType}
+                  onDocumentChange={() => {}}
+                  folder={`students/${id}/documents`}
+                />
+              </div>
+            ))}
           </div>
         )}
 
-        <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <SelectInput<typeof DocumentType>
-            label="Document Type"
-            value={newDocument.documentType as DocumentType}
-            options={DocumentType}
-            onChange={(value) =>
-              setNewDocument((prev) => ({ ...prev, documentType: value }))
-            }
-            placeholder="Select document type"
-          />
-          <div>
-            <label
-              htmlFor="documentUrl"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Document URL/Path
-            </label>
-            <input
-              type="text"
-              id="documentUrl"
-              value={newDocument.documentUrl || ""}
-              onChange={(e) =>
-                setNewDocument((prev) => ({
-                  ...prev,
-                  documentUrl: e.target.value,
-                }))
+        <div className="mt-6 border rounded-md p-4 bg-gray-50">
+          <h4 className="font-medium text-gray-800 mb-4">Add New Document</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <SelectInput<typeof DocumentType>
+              label="Document Type"
+              value={newDocument.documentType as DocumentType}
+              options={DocumentType}
+              onChange={(value) =>
+                setNewDocument((prev) => ({ ...prev, documentType: value }))
               }
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              placeholder="URL or path to document"
+              placeholder="Select document type"
             />
+            
+            <div className="flex items-end">
+              <button
+                type="button"
+                onClick={handleAddDocument}
+                disabled={
+                  !newDocument.documentType ||
+                  !newDocument.documentUrl ||
+                  isSubmitting ||
+                  addDocumentMutation.isPending
+                }
+                className="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-700 disabled:bg-gray-400 disabled:cursor-not-allowed w-full"
+              >
+                {isSubmitting || addDocumentMutation.isPending
+                  ? "Adding..."
+                  : "Add Document"}
+              </button>
+            </div>
           </div>
-
-          <div className="flex items-end">
-            <button
-              type="button"
-              onClick={handleAddDocument}
-              disabled={
-                !newDocument.documentType ||
-                !newDocument.documentUrl ||
-                isSubmitting ||
-                addDocumentMutation.isPending
-              }
-              className="w-full px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
-            >
-              {isSubmitting || addDocumentMutation.isPending
-                ? "Adding..."
-                : "Add Document"}
-            </button>
-          </div>
+          
+          <DocumentUploader
+            currentDocumentUrl={newDocument.documentUrl}
+            documentType={newDocument.documentType || "Document"}
+            onDocumentChange={handleDocumentUrlChange}
+            folder={`students/${id}/documents`}
+            label="Upload Document"
+          />
         </div>
       </div>
     </StudentFormLayout>
