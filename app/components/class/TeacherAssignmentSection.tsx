@@ -11,6 +11,7 @@ import {
 } from '~/hooks/useClassQueries'
 import { TeacherSelector } from '../common/TeacherSelector';
 import { useQueryClient } from '@tanstack/react-query'
+import { getErrorMessage } from '~/utils/error'
 
 interface TeacherAssignmentSectionProps {
   classData: Class
@@ -79,8 +80,7 @@ export function TeacherAssignmentSection({
       }
 
     } catch (error) {
-      console.error('Error in teacher action:', error);
-      toast.error(`Failed to ${actionText} ${teacherTypeText.toLowerCase()} teacher. Please try again.`);
+      toast.error(getErrorMessage(error));
     } finally {
       setLoading(false);
     }
