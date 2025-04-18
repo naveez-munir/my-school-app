@@ -1,28 +1,16 @@
-import { useNavigate } from 'react-router';
-import type { Student } from '~/types/student';
-
-interface StudentDataProps {
-  student: Student;
-}
+import type { StudentDataProps } from '~/types/student';
+import { StudentSectionHeader } from './StudentSectionHeader';
+import { formatDate } from '~/utils/dateUtils';
 
 export function StudentAcademicInfo({student} : StudentDataProps) {
-  const navigate = useNavigate();
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString();
-  };
-
   return (
     <div className="bg-white shadow rounded-lg">
-      <div className="px-6 py-5 border-b border-gray-200 flex justify-between items-center">
-        <h3 className="text-lg font-medium leading-6 text-gray-900">Academic Information</h3>
-        <button 
-          onClick={() => navigate(`/dashboard/students/${student._id}/edit/academic`)}
-          className="px-3 py-1 text-sm border border-blue-500 text-blue-500 rounded-md hover:bg-blue-50"
-        >
-          Edit
-        </button>
-      </div>
+      <StudentSectionHeader
+        title="Academic Information" 
+        editPath="/edit/academic" 
+        studentId={student._id} 
+      />
+
       
       <div className="p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -1,18 +1,8 @@
-import { useNavigate } from 'react-router';
-import type { Student } from '~/types/student';
+import type { StudentDataProps } from '~/types/student';
+import { InfoCard } from './InfoCard';
+import { formatDate } from '~/utils/dateUtils';
 
-interface StudentDataProps {
-  student: Student;
-}
-
-export function StudentOverview({student} : StudentDataProps) {
-  const navigate = useNavigate();
-
-  // Format a date string
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString();
-  };
+export function StudentOverview({ student }: StudentDataProps) {
 
   return (
     <div className="bg-white shadow rounded-lg">
@@ -21,216 +11,89 @@ export function StudentOverview({student} : StudentDataProps) {
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6">
-        {/* Personal Information Summary */}
-        <div className="border rounded-lg p-5 space-y-4">
-          <div className="flex justify-between items-center">
-            <h4 className="font-medium text-gray-700">Personal Information</h4>
-            <button 
-              onClick={() => navigate(`/dashboard/students/${student._id}/edit/personal`)}
-              className="text-sm text-blue-600 hover:text-blue-800"
-            >
-              Edit
-            </button>
-          </div>
-          
-          <div className="space-y-2">
-            <div>
-              <span className="text-gray-500 text-sm">Name:</span>
-              <p className="font-medium">{student.firstName} {student.lastName}</p>
-            </div>
-            <div>
-              <span className="text-gray-500 text-sm">CNI Number:</span>
-              <p>{student.cniNumber}</p>
-            </div>
-            <div>
-              <span className="text-gray-500 text-sm">Date of Birth:</span>
-              <p>{formatDate(student.dateOfBirth)}</p>
-            </div>
-            <div>
-              <span className="text-gray-500 text-sm">Gender:</span>
-              <p>{student.gender}</p>
-            </div>
-            <div>
-              <span className="text-gray-500 text-sm">Blood Group:</span>
-              <p>{student.bloodGroup || 'Not specified'}</p>
-            </div>
-          </div>
-        </div>
-        
-        {/* Contact Information Summary */}
-        <div className="border rounded-lg p-5 space-y-4">
-          <div className="flex justify-between items-center">
-            <h4 className="font-medium text-gray-700">Contact Information</h4>
-            <button 
-              onClick={() => navigate(`/dashboard/students/${student._id}/edit/personal`)}
-              className="text-sm text-blue-600 hover:text-blue-800"
-            >
-              Edit
-            </button>
-          </div>
-          
-          <div className="space-y-2">
-            <div>
-              <span className="text-gray-500 text-sm">Phone:</span>
-              <p>{student.phone || 'Not provided'}</p>
-            </div>
-            <div>
-              <span className="text-gray-500 text-sm">Email:</span>
-              <p>{student.email || 'Not provided'}</p>
-            </div>
-            <div>
-              <span className="text-gray-500 text-sm">Address:</span>
-              <p>{student.address || 'Not provided'}</p>
-            </div>
-          </div>
-        </div>
-        
-        {/* Academic Information Summary */}
-        <div className="border rounded-lg p-5 space-y-4">
-          <div className="flex justify-between items-center">
-            <h4 className="font-medium text-gray-700">Academic Information</h4>
-            <button 
-              onClick={() => navigate(`/dashboard/students/${student._id}/edit/academic`)}
-              className="text-sm text-blue-600 hover:text-blue-800"
-            >
-              Edit
-            </button>
-          </div>
-          
-          <div className="space-y-2">
-            <div>
-              <span className="text-gray-500 text-sm">Grade Level:</span>
-              <p>{student.class?.classGradeLevel}</p>
-            </div>
-            <div>
-              <span className="text-gray-500 text-sm">Class:</span>
-              <p>{student.class?.className || 'Not assigned'}</p>
-            </div>
-            <div>
-              <span className="text-gray-500 text-sm">Roll Number:</span>
-              <p>{student.rollNumber || 'Not assigned'}</p>
-            </div>
-            <div>
-              <span className="text-gray-500 text-sm">Enrollment Date:</span>
-              <p>{formatDate(student.enrollmentDate)}</p>
-            </div>
-            <div>
-              <span className="text-gray-500 text-sm">Admission Date:</span>
-              <p>{formatDate(student.admissionDate)}</p>
-            </div>
-          </div>
-        </div>
-        
-        {/* Guardian Information Summary */}
-        <div className="border rounded-lg p-5 space-y-4">
-          <div className="flex justify-between items-center">
-            <h4 className="font-medium text-gray-700">Guardian Information</h4>
-            <button 
-              onClick={() => navigate(`/dashboard/students/${student._id}/edit/guardian`)}
-              className="text-sm text-blue-600 hover:text-blue-800"
-            >
-              Edit
-            </button>
-          </div>
-          
-          <div className="space-y-2">
-            <div>
-              <span className="text-gray-500 text-sm">Name:</span>
-              <p className="font-medium">{student.guardian.name}</p>
-            </div>
-            <div>
-              <span className="text-gray-500 text-sm">Relationship:</span>
-              <p>{student.guardian.relationship}</p>
-            </div>
-            <div>
-              <span className="text-gray-500 text-sm">CNI Number:</span>
-              <p>{student.guardian.cniNumber}</p>
-            </div>
-            <div>
-              <span className="text-gray-500 text-sm">Phone:</span>
-              <p>{student.guardian.phone || 'Not provided'}</p>
-            </div>
-            <div>
-              <span className="text-gray-500 text-sm">Email:</span>
-              <p>{student.guardian.email || 'Not provided'}</p>
-            </div>
-          </div>
-        </div>
-        
-        {/* Status Information Summary */}
-        <div className="border rounded-lg p-5 space-y-4">
-          <div className="flex justify-between items-center">
-            <h4 className="font-medium text-gray-700">Status Information</h4>
-            <button 
-              onClick={() => navigate(`/dashboard/students/${student._id}/edit/status`)}
-              className="text-sm text-blue-600 hover:text-blue-800"
-            >
-              Edit
-            </button>
-          </div>
-          
-          <div className="space-y-2">
-            <div>
-              <span className="text-gray-500 text-sm">Current Status:</span>
-              <p className={`font-medium ${
+        <InfoCard
+          title="Personal Information"
+          editPath="/edit/personal"
+          studentId={student._id}
+          fields={[
+            { label: "Name", value: `${student.firstName} ${student.lastName}` },
+            { label: "CNI Number", value: student.cniNumber },
+            { label: "Date of Birth", value: formatDate(student.dateOfBirth) },
+            { label: "Gender", value: student.gender },
+            { label: "Blood Group", value: student.bloodGroup, fallback: "Not specified" }
+          ]}
+        />
+
+        <InfoCard
+          title="Contact Information"
+          editPath="/edit/personal"
+          studentId={student._id}
+          fields={[
+            { label: "Phone", value: student.phone },
+            { label: "Email", value: student.email },
+            { label: "Address", value: student.address }
+          ]}
+        />
+
+        <InfoCard
+          title="Academic Information"
+          editPath="/edit/academic"
+          studentId={student._id}
+          fields={[
+            { label: "Grade Level", value: student.class?.classGradeLevel },
+            { label: "Class", value: student.class?.className, fallback: "Not assigned" },
+            { label: "Roll Number", value: student.rollNumber, fallback: "Not assigned" },
+            { label: "Enrollment Date", value: formatDate(student.enrollmentDate) },
+            { label: "Admission Date", value: formatDate(student.admissionDate) }
+          ]}
+        />
+
+        <InfoCard
+          title="Guardian Information"
+          editPath="/edit/guardian"
+          studentId={student._id}
+          fields={[
+            { label: "Name", value: student.guardian.name },
+            { label: "Relationship", value: student.guardian.relationship },
+            { label: "CNI Number", value: student.guardian.cniNumber },
+            { label: "Phone", value: student.guardian.phone },
+            { label: "Email", value: student.guardian.email }
+          ]}
+        />
+
+        <InfoCard
+          title="Status Information"
+          editPath="/edit/status"
+          studentId={student._id}
+          fields={[
+            { 
+              label: "Current Status",
+              value: student.status,
+              valueClassName: `font-medium ${
                 student.status === 'Active' ? 'text-green-600' : 'text-red-600'
-              }`}>
-                {student.status}
-              </p>
-            </div>
-            {student.exitStatus && student.exitStatus !== 'None' && (
-              <>
-                <div>
-                  <span className="text-gray-500 text-sm">Exit Status:</span>
-                  <p>{student.exitStatus}</p>
-                </div>
-                <div>
-                  <span className="text-gray-500 text-sm">Exit Date:</span>
-                  <p>{formatDate(student.exitDate || '')}</p>
-                </div>
-                {student.exitRemarks && (
-                  <div>
-                    <span className="text-gray-500 text-sm">Exit Remarks:</span>
-                    <p className="text-sm text-gray-600">{student.exitRemarks}</p>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-        </div>
-        
-        {/* Documents Summary */}
-        <div className="border rounded-lg p-5 space-y-4">
-          <div className="flex justify-between items-center">
-            <h4 className="font-medium text-gray-700">Documents</h4>
-            <button 
-              onClick={() => navigate(`/dashboard/students/${student._id}/edit/documents`)}
-              className="text-sm text-blue-600 hover:text-blue-800"
-            >
-              Manage
-            </button>
-          </div>
-          
-          <div>
-            {student.documents && student.documents.length > 0 ? (
-              <div className="space-y-2">
-                <p className="text-sm text-gray-500">{student.documents.length} document(s) uploaded</p>
-                <ul className="text-sm list-disc list-inside">
-                  {student.documents.slice(0, 3).map((doc, index) => (
-                    <li key={index}>{doc.documentType}</li>
-                  ))}
-                  {student.documents.length > 3 && (
-                    <li className="text-blue-600">
-                      {student.documents.length - 3} more document(s)...
-                    </li>
-                  )}
-                </ul>
-              </div>
-            ) : (
-              <p className="text-sm text-gray-500">No documents uploaded</p>
-            )}
-          </div>
-        </div>
+              }`
+            },
+            ...(student.exitStatus && student.exitStatus !== 'None' ? [
+              { label: "Exit Status", value: student.exitStatus },
+              { label: "Exit Date", value: formatDate(student.exitDate || '') },
+              { label: "Exit Remarks", value: student.exitRemarks }
+            ] : [])
+          ]}
+        />
+
+        <InfoCard
+          title="Documents"
+          editPath="/edit/documents"
+          studentId={student._id}
+          fields={[
+            { 
+              label: "Documents",
+              value: student.documents && student.documents.length > 0 
+                ? `${student.documents.length} document(s) uploaded` 
+                : "No documents uploaded"
+            }
+          ]}
+        />
       </div>
     </div>
   );

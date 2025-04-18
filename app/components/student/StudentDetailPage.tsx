@@ -10,6 +10,7 @@ import { StudentAcademicInfo } from './tabs/StudentAcademicInfo';
 import { StudentDocuments } from './tabs/StudentDocuments';
 import { StudentStatus } from './tabs/StudentStatus';
 import type { Student } from "~/types/student";
+import { isAdmin } from "~/utils/auth";
 
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ');
@@ -74,11 +75,11 @@ export function StudentDetailPage() {
     return (
       <div className="text-center py-10">
         <h3 className="text-lg font-medium text-gray-900">Student not found</h3>
-        <div className="mt-4">
+        {isAdmin() && (<div className="mt-4">
           <Link to="/dashboard/students" className="text-blue-600 hover:text-blue-800">
             Back to students list
           </Link>
-        </div>
+        </div>)}
       </div>
     );
   }
@@ -101,14 +102,15 @@ export function StudentDetailPage() {
             </p>
           </div>
         </div>
-        <div className="mt-4 md:mt-0 flex space-x-2">
+        {isAdmin() && (<div className="mt-4 md:mt-0 flex space-x-2">
           <button 
             onClick={() => navigate('/dashboard/students')}
             className="px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
           >
             Back to List
           </button>
-        </div>
+        </div>)
+        }
       </div>
 
       {/* Tabs */}

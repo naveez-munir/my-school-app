@@ -1,24 +1,15 @@
-import { useNavigate } from 'react-router';
-import type { Student } from '~/types/student';
-
-interface StudentDataProps {
-  student: Student;
-}
+import type { StudentDataProps } from '~/types/student';
+import { StudentSectionHeader } from './StudentSectionHeader';
 
 export function StudentGuardianInfo({student} : StudentDataProps) {
-  const navigate = useNavigate();
 
   return (
     <div className="bg-white shadow rounded-lg">
-      <div className="px-6 py-5 border-b border-gray-200 flex justify-between items-center">
-        <h3 className="text-lg font-medium leading-6 text-gray-900">Guardian Information</h3>
-        <button 
-          onClick={() => navigate(`/dashboard/students/${student._id}/edit/guardian`)}
-          className="px-3 py-1 text-sm border border-blue-500 text-blue-500 rounded-md hover:bg-blue-50"
-        >
-          Edit
-        </button>
-      </div>
+      <StudentSectionHeader 
+        title="Guardian Information" 
+        editPath="/edit/guardian" 
+        studentId={student._id} 
+      />
       
       <div className="p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
