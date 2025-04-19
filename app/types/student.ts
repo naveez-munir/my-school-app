@@ -324,3 +324,7 @@ export interface BasicInfoStepProps {
   onComplete: (data: Partial<CreateStudentDto>) => void;
   onBack: () => void;
 }
+
+export interface StudentDataProps {
+  student: Student;
+}
