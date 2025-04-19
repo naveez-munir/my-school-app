@@ -1,4 +1,5 @@
 import { jwtDecode } from 'jwt-decode';
+import { UserRoleEnum } from '~/types/user';
 
 export interface UserRole {
   isSuperAdmin?: boolean;
@@ -85,7 +86,14 @@ export const isSuperAdmin = (): boolean => {
 
 export const isAdmin = (): boolean => {
   const userRole = getUserRole();
-  return !!userRole?.isAdmin;
+  const adminRoles = [
+    UserRoleEnum.ADMIN, 
+    UserRoleEnum.TENANT_ADMIN,
+    UserRoleEnum.SUPER_ADMIN,
+    UserRoleEnum.PRINCIPAL
+  ];
+
+  return !!userRole?.role && adminRoles.includes(userRole.role as UserRoleEnum);
 };
 
 export const hasPermission = (permission: string): boolean => {

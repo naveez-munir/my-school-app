@@ -1,7 +1,6 @@
 import { AxiosError } from "axios";
 
 export const getErrorMessage = (error: unknown): string => {
-  debugger
   if (error instanceof AxiosError && error.response?.data) {
     const { data } = error.response;
     
