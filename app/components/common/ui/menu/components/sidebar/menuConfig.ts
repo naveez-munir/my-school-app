@@ -88,8 +88,15 @@ export const MENU_ITEMS: MenuItem[] = [
         roles: AdminRoles
       },
       { 
-        name: 'student-leave', 
-        label: 'Student Leave', 
+        name: 'student-pending-leave', 
+        label: 'Student Pending Leaves', 
+        path: '/dashboard/leave/student/pending',
+        icon: 'users',
+        roles: AdminRoles
+      },
+      { 
+        name: 'student-leaves', 
+        label: 'Student Leaves', 
         path: '/dashboard/leave/student',
         icon: 'users',
         roles: AdminRoles
@@ -330,35 +337,35 @@ export const MENU_ITEMS: MenuItem[] = [
   {
     name: 'studentHome',
     label: 'Profile',
-    path: '/dashboard/student/profile',
+    path: '/dashboard/students/profile',
     icon: 'home',
     roles: studentRoles
   },
   {
     name: 'studentLeave',
     label: 'Leave Section',
-    path: '/dashboard/student/leave',
+    path: '/dashboard/students/leave',
     icon: 'clock',
     roles: studentRoles
   },
   {
     name: 'studentAcademic',
     label: 'Academic Section',
-    path: '/dashboard/student/academic',
+    path: '/dashboard/students/academic',
     icon: 'graduationCap',
     roles: studentRoles
   },
   {
     name: 'studentDairy',
     label: 'Dairy Section',
-    path: '/dashboard/student/dairy',
+    path: '/dashboard/students/dairy',
     icon: 'book',
     roles: studentRoles
   },
   {
     name: 'studentExams',
     label: 'Examinations',
-    path: '/dashboard/student/exams',
+    path: '/dashboard/students/exams',
     icon: 'award',
     roles: studentRoles
   },

@@ -55,7 +55,7 @@ const Sidebar = ({ isOpen, onClose, userRole }: SidebarProps) => {
             <X size={24} color="black" />
           </button>
         </div>
-        <nav className="p-4 space-y-1 overflow-y-auto flex-grow">
+        <nav className=" space-y-1 overflow-y-auto flex-grow">
           {filteredMenuItems.map((item) => (
             <MenuItem key={item.name} item={item} onClose={onClose} />
           ))}
