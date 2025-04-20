@@ -10,6 +10,7 @@ import toast from 'react-hot-toast';
 import { TextInput } from '../common/form/inputs/TextInput';
 import { PasswordInput } from '../common/form/inputs/PasswordInput';
 import { storeAuthData, type DecodedToken } from '~/utils/auth';
+import { UserRoleEnum } from '~/types/user';
 
 const loginSchema = z.object({
   tenantName: z.string().min(3, 'School name is required'),
@@ -87,7 +88,8 @@ export const SignIn = () => {
           if (decodedToken.isSuperAdmin) {
             navigate('/admin/dashboard');
           } else {
-            navigate('/dashboard');
+            let url = decodedToken.role === UserRoleEnum.STUDENT ? 'students/profile' : ''
+            navigate(`/dashboard/${url}`);
           }
         } catch (error) {
           console.error('Error decoding token:', error);
