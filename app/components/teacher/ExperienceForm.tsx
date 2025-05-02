@@ -3,6 +3,7 @@ import type { Experience } from '~/types/teacher';
 import { TextInput } from '../common/form/inputs/TextInput';
 import { DateInput } from '../common/form/inputs/DateInput';
 import { TextArea } from '../common/form/inputs/TextArea';
+import { DocumentUploader } from '../student/form/DocumentUploader';
 
 interface ExperienceFormProps {
   data: Experience[];
@@ -80,15 +81,13 @@ export function ExperienceForm({ data = [], onUpdate }: ExperienceFormProps) {
               />
             </div>
 
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700">Experience Letter URL</label>
-              <input
-                type="url"
-                value={experience.experienceLatterUrl}
-                onChange={(e) => handleChange(index, 'experienceLatterUrl', e.target.value)}
-                className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2"
-              />
-            </div>
+            <DocumentUploader
+              currentDocumentUrl={experience.experienceLatterUrl || ''}
+              documentType="Experience Letter"
+              onDocumentChange={(url) => handleChange(index, 'experienceLatterUrl', url)}
+              folder={`teachers/experience/${index}`}
+              label="Experience Letter"
+            />
           </div>
         </div>
       ))}
