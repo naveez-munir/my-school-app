@@ -97,7 +97,10 @@ export function TeacherForm({
         {activeTab === 'documents' && (
           <DocumentsForm
             data={formData.documents!}
+            photoUrl={formData.photoUrl}
+            teacherId={initialData?._id || ''}
             onUpdate={(value) => handleUpdate('documents', value)}
+            onPhotoChange={(url) => handleUpdate('photoUrl', url)}
           />
         )}
       </div>
