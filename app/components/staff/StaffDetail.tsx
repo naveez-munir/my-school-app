@@ -1,7 +1,6 @@
 import { useParams } from 'react-router';
 import { useStaff, useAddEducation, useAddExperience, useAddDocument, useUpdateEmergencyContact } from '~/hooks/useStaffQueries';
-import { CheckCircle, User, Briefcase, GraduationCap, FileText, Phone, Calendar, Mail, MapPin } from 'lucide-react';
-import type { EducationHistory, Experience, Document, EmergencyContact } from '~/types/staff';
+import { User, Briefcase, GraduationCap, FileText, Phone, Calendar, Mail, MapPin } from 'lucide-react';
 
 export const StaffDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -10,7 +9,7 @@ export const StaffDetail = () => {
     isLoading, 
     error 
   } = useStaff(id || '');
-  
+
   const addEducationMutation = useAddEducation();
   const addExperienceMutation = useAddExperience();
   const addDocumentMutation = useAddDocument();
@@ -28,22 +27,6 @@ export const StaffDetail = () => {
     return <div className="p-4 text-center">Staff member not found</div>;
   }
   
-  const handleAddEducation = (education: EducationHistory) => {
-    addEducationMutation.mutate({ staffId: staff.id, education });
-  };
-  
-  const handleAddExperience = (experience: Experience) => {
-    addExperienceMutation.mutate({ staffId: staff.id, experience });
-  };
-  
-  const handleAddDocument = (document: Document) => {
-    addDocumentMutation.mutate({ staffId: staff.id, document });
-  };
-  
-  const handleUpdateEmergencyContact = (contact: EmergencyContact) => {
-    updateEmergencyContactMutation.mutate({ staffId: staff.id, contact });
-  };
-  
   return (
     <div className="max-w-6xl mx-auto p-4">
       <div className="bg-white shadow rounded-lg overflow-hidden">
@@ -59,7 +42,7 @@ export const StaffDetail = () => {
                 />
               ) : (
                 <div className="h-24 w-24 rounded-full bg-blue-100 flex items-center justify-center">
-                  {/* <User className="h-10 w<User className="h-10 w-10 text-blue-600" /> */}
+                  <User className="h-10 w-10 text-blue-600" />
                 </div>
               )}
             </div>
@@ -272,24 +255,23 @@ export const StaffDetail = () => {
                     <div className="flex justify-between items-start">
                       <div>
                         <h3 className="font-medium text-gray-900">{edu.institution}</h3>
-                        <p className="text-gray-700">{edu.degree}{edu.fieldOfStudy ? ` in ${edu.fieldOfStudy}` : ''}</p>
+                        <p className="text-gray-700">{edu.degree}</p>
                       </div>
                       <div className="text-sm text-gray-500">
-                        {new Date(edu.startDate).getFullYear()} - 
-                        {edu.endDate ? new Date(edu.endDate).getFullYear() : 'Present'}
+                        {edu.year}
                       </div>
                     </div>
                     
-                    {edu.grade && (
-                      <div className="mt-2 text-sm">
-                        <span className="text-gray-500">Grade: </span>
-                        <span className="font-medium">{edu.grade}</span>
-                      </div>
-                    )}
-                    
-                    {edu.description && (
-                      <div className="mt-2 text-sm text-gray-600">
-                        {edu.description}
+                    {edu.certificateUrl && (
+                      <div className="mt-2">
+                        <a 
+                          href={edu.certificateUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-blue-600 text-sm hover:underline"
+                        >
+                          View Certificate
+                        </a>
                       </div>
                     )}
                   </div>
@@ -313,25 +295,31 @@ export const StaffDetail = () => {
                   <div key={index} className="p-3 bg-gray-50 rounded-lg border">
                     <div className="flex justify-between items-start">
                       <div>
-                        <h3 className="font-medium text-gray-900">{exp.company}</h3>
+                        <h3 className="font-medium text-gray-900">{exp.institution}</h3>
                         <p className="text-gray-700">{exp.position}</p>
                       </div>
                       <div className="text-sm text-gray-500">
-                        {new Date(exp.startDate).toLocaleDateString()} - 
-                        {exp.endDate ? new Date(exp.endDate).toLocaleDateString() : 'Present'}
+                        {new Date(exp.fromDate).toLocaleDateString()} - 
+                        {exp.toDate ? new Date(exp.toDate).toLocaleDateString() : 'Present'}
                       </div>
                     </div>
-                    
-                    {exp.location && (
-                      <div className="mt-2 text-sm">
-                        <span className="text-gray-500">Location: </span>
-                        <span className="font-medium">{exp.location}</span>
-                      </div>
-                    )}
                     
                     {exp.description && (
                       <div className="mt-2 text-sm text-gray-600">
                         {exp.description}
+                      </div>
+                    )}
+                    
+                    {exp.experienceLatterUrl && (
+                      <div className="mt-2">
+                        <a 
+                          href={exp.experienceLatterUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-blue-600 text-sm hover:underline"
+                        >
+                          View Experience Letter
+                        </a>
                       </div>
                     )}
                   </div>
@@ -355,11 +343,10 @@ export const StaffDetail = () => {
                   <div key={index} className="p-3 bg-gray-50 rounded-lg border">
                     <div className="flex items-start justify-between">
                       <div>
-                        <h3 className="font-medium text-gray-900">{doc.title}</h3>
-                        <p className="text-xs text-gray-500">{doc.type}</p>
+                        <h3 className="font-medium text-gray-900">{doc.documentType}</h3>
                       </div>
                       <a 
-                        href={doc.url} 
+                        href={doc.documentUrl} 
                         target="_blank" 
                         rel="noopener noreferrer"
                         className="text-blue-600 text-sm hover:underline"
@@ -373,18 +360,6 @@ export const StaffDetail = () => {
                         Uploaded: {new Date(doc.uploadDate).toLocaleDateString()}
                       </div>
                     )}
-                    
-                    {doc.expiryDate && (
-                      <div className="mt-1 text-xs text-gray-500">
-                        Expires: {new Date(doc.expiryDate).toLocaleDateString()}
-                      </div>
-                    )}
-                    
-                    {doc.description && (
-                      <div className="mt-2 text-sm text-gray-600">
-                        {doc.description}
-                      </div>
-                    )}
                   </div>
                 ))}
               </div>
@@ -394,4 +369,4 @@ export const StaffDetail = () => {
       </div>
     </div>
   );
-}
+};

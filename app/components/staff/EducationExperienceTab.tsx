@@ -10,6 +10,7 @@ interface EducationExperienceTabProps {
   experience: Experience[];
   setExperience: React.Dispatch<React.SetStateAction<Experience[]>>;
   isSubmitting: boolean;
+  staffId?: string;
 }
 
 export function EducationExperienceTab({
@@ -17,34 +18,32 @@ export function EducationExperienceTab({
   setEducationHistory,
   experience,
   setExperience,
-  isSubmitting
+  isSubmitting,
+  staffId = ""
 }: EducationExperienceTabProps) {
   const handleAddEducation = () => {
     setEducationHistory([...educationHistory, {
-      institution: '',
       degree: '',
-      fieldOfStudy: '',
-      startDate: new Date(),
-      endDate: undefined,
-      grade: '',
-      description: ''
+      institution: '',
+      year: new Date().getFullYear(),
+      certificateUrl: ''
     }]);
   };
 
   const handleAddExperience = () => {
     setExperience([...experience, {
-      company: '',
+      institution: '',
       position: '',
-      startDate: new Date(),
-      endDate: undefined,
-      location: '',
-      description: ''
+      fromDate: new Date(),
+      toDate: undefined,
+      description: '',
+      experienceLatterUrl: ''
     }]);
   };
 
   return (
     <div className="space-y-6">
-      {/* Education History Section */}
+
       <div className="space-y-4">
         <div className="flex justify-between items-center">
           <h4 className="text-md font-medium">Education History</h4>
@@ -71,12 +70,12 @@ export function EducationExperienceTab({
               educationHistory={educationHistory}
               setEducationHistory={setEducationHistory}
               isSubmitting={isSubmitting}
+              staffId={staffId}
             />
           ))
         )}
       </div>
-      
-      {/* Work Experience Section */}
+
       <div className="space-y-4">
         <div className="flex justify-between items-center">
           <h4 className="text-md font-medium">Work Experience</h4>
@@ -103,6 +102,7 @@ export function EducationExperienceTab({
               allExperience={experience}
               setExperience={setExperience}
               isSubmitting={isSubmitting}
+              staffId={staffId}
             />
           ))
         )}

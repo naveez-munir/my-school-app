@@ -1,8 +1,7 @@
 import { Trash2 } from 'lucide-react';
 import { TextInput } from '~/components/common/form/inputs/TextInput';
-import { DateInput } from '~/components/common/form/inputs/DateInput';
-import { TextArea } from '~/components/common/form/inputs/TextArea';
 import { type EducationHistory } from '~/types/staff';
+import { DocumentUploader } from '~/components/student/form/DocumentUploader';
 
 interface EducationItemProps {
   index: number;
@@ -10,6 +9,7 @@ interface EducationItemProps {
   educationHistory: EducationHistory[];
   setEducationHistory: React.Dispatch<React.SetStateAction<EducationHistory[]>>;
   isSubmitting: boolean;
+  staffId?: string;
 }
 
 export function EducationItem({
@@ -17,7 +17,8 @@ export function EducationItem({
   education,
   educationHistory,
   setEducationHistory,
-  isSubmitting
+  isSubmitting,
+  staffId = ""
 }: EducationItemProps) {
   const handleChange = (field: keyof EducationHistory, value: any) => {
     const updated = [...educationHistory];
@@ -63,46 +64,26 @@ export function EducationItem({
         />
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
+      <div className="mb-4">
         <TextInput
-          label="Field of Study"
-          value={education.fieldOfStudy || ''}
-          onChange={(value) => handleChange('fieldOfStudy', value)}
-          disabled={isSubmitting}
-        />
-        
-        <TextInput
-          label="Grade"
-          value={education.grade || ''}
-          onChange={(value) => handleChange('grade', value)}
-          disabled={isSubmitting}
-        />
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
-        <DateInput
-          label="Start Date"
-          value={education.startDate ? new Date(education.startDate).toISOString().split('T')[0] : ''}
-          onChange={(value) => handleChange('startDate', new Date(value))}
+          label="Year"
+          value={education.year ? education.year.toString() : ''}
+          onChange={(value) => handleChange('year', parseInt(value))}
+          type="number"
           required
           disabled={isSubmitting}
         />
-        
-        <DateInput
-          label="End Date"
-          value={education.endDate ? new Date(education.endDate).toISOString().split('T')[0] : ''}
-          onChange={(value) => handleChange('endDate', new Date(value))}
-          disabled={isSubmitting}
+      </div>
+
+      <div className="mt-4 pt-3 border-t border-gray-200">
+        <DocumentUploader
+          currentDocumentUrl={education.certificateUrl || ''}
+          documentType="Degree Certificate"
+          onDocumentChange={(url) => handleChange('certificateUrl', url)}
+          folder={`staff/${staffId}/education/${index}`}
+          label="Certificate"
         />
       </div>
-      
-      <TextArea
-        label="Description"
-        value={education.description || ''}
-        onChange={(value) => handleChange('description', value)}
-        rows={3}
-        disabled={isSubmitting}
-      />
     </div>
   );
 }

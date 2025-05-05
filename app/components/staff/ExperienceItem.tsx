@@ -3,6 +3,7 @@ import { TextInput } from '~/components/common/form/inputs/TextInput';
 import { DateInput } from '~/components/common/form/inputs/DateInput';
 import { TextArea } from '~/components/common/form/inputs/TextArea';
 import { type Experience } from '~/types/staff';
+import { DocumentUploader } from '~/components/student/form/DocumentUploader';
 
 interface ExperienceItemProps {
   index: number;
@@ -10,6 +11,7 @@ interface ExperienceItemProps {
   allExperience: Experience[];
   setExperience: React.Dispatch<React.SetStateAction<Experience[]>>;
   isSubmitting: boolean;
+  staffId?: string;
 }
 
 export function ExperienceItem({
@@ -17,7 +19,8 @@ export function ExperienceItem({
   experience,
   allExperience,
   setExperience,
-  isSubmitting
+  isSubmitting,
+  staffId = ""
 }: ExperienceItemProps) {
   const handleChange = (field: keyof Experience, value: any) => {
     const updated = [...allExperience];
@@ -47,9 +50,9 @@ export function ExperienceItem({
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
         <TextInput
-          label="Company"
-          value={experience.company}
-          onChange={(value) => handleChange('company', value)}
+          label="Institution"
+          value={experience.institution || ''}
+          onChange={(value) => handleChange('institution', value)}
           required
           disabled={isSubmitting}
         />
@@ -65,37 +68,40 @@ export function ExperienceItem({
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
         <DateInput
-          label="Start Date"
-          value={experience.startDate ? new Date(experience.startDate).toISOString().split('T')[0] : ''}
-          onChange={(value) => handleChange('startDate', new Date(value))}
+          label="From Date"
+          value={experience.fromDate ? new Date(experience.fromDate).toISOString().split('T')[0] : ''}
+          onChange={(value) => handleChange('fromDate', new Date(value))}
           required
           disabled={isSubmitting}
         />
         
         <DateInput
-          label="End Date"
-          value={experience.endDate ? new Date(experience.endDate).toISOString().split('T')[0] : ''}
-          onChange={(value) => handleChange('endDate', new Date(value))}
-          disabled={isSubmitting}
-        />
-      </div>
-      
-      <div className="mb-2">
-        <TextInput
-          label="Location"
-          value={experience.location || ''}
-          onChange={(value) => handleChange('location', value)}
+          label="To Date"
+          value={experience.toDate ? new Date(experience.toDate).toISOString().split('T')[0] : ''}
+          onChange={(value) => handleChange('toDate', new Date(value))}
           disabled={isSubmitting}
         />
       </div>
 
-      <TextArea
-        label="Description"
-        value={experience.description || ''}
-        onChange={(value) => handleChange('description', value)}
-        rows={3}
-        disabled={isSubmitting}
-      />
+      <div className="mb-4">
+        <TextArea
+          label="Description"
+          value={experience.description || ''}
+          onChange={(value) => handleChange('description', value)}
+          rows={3}
+          disabled={isSubmitting}
+        />
+      </div>
+
+      <div className="mt-4 pt-3 border-t border-gray-200">
+        <DocumentUploader
+          currentDocumentUrl={experience.experienceLatterUrl || ''}
+          documentType="Experience Letter"
+          onDocumentChange={(url) => handleChange('experienceLatterUrl', url)}
+          folder={`staff/${staffId}/experience/${index}`}
+          label="Experience Letter"
+        />
+      </div>
     </div>
   );
 }
