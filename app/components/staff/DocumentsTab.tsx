@@ -1,28 +1,28 @@
 import { Plus, Trash2 } from 'lucide-react';
-import { TextInput } from '~/components/common/form/inputs/TextInput';
 import { DateInput } from '~/components/common/form/inputs/DateInput';
-import { TextArea } from '~/components/common/form/inputs/TextArea';
+import { SelectInput } from '~/components/common/form/inputs/SelectInput';
+import { DocumentUploader } from '~/components/student/form/DocumentUploader';
 import { type Document } from '~/types/staff';
+import { DocumentTypes } from '~/types/teacher';
 
 interface DocumentsTabProps {
   documents: Document[];
   setDocuments: React.Dispatch<React.SetStateAction<Document[]>>;
   isSubmitting: boolean;
+  staffId?: string;
 }
 
 export function DocumentsTab({
   documents,
   setDocuments,
-  isSubmitting
+  isSubmitting,
+  staffId = ""
 }: DocumentsTabProps) {
   const handleAddDocument = () => {
     setDocuments([...documents, {
-      title: '',
-      type: '',
-      url: '',
-      uploadDate: new Date(),
-      expiryDate: undefined,
-      description: ''
+      documentType: "",
+      documentUrl: "",
+      uploadDate: new Date()
     }]);
   };
 
@@ -36,6 +36,10 @@ export function DocumentsTab({
     const updated = [...documents];
     updated.splice(index, 1);
     setDocuments(updated);
+  };
+
+  const handleDocumentUrlChange = (index: number, url: string) => {
+    handleChange(index, 'documentUrl', url);
   };
 
   return (
@@ -71,57 +75,34 @@ export function DocumentsTab({
               </button>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
-              <TextInput
-                label="Title"
-                value={doc.title}
-                onChange={(value) => handleChange(index, 'title', value)}
-                required
-                disabled={isSubmitting}
-              />
-              
-              <TextInput
-                label="Type"
-                value={doc.type}
-                onChange={(value) => handleChange(index, 'type', value)}
-                required
-                disabled={isSubmitting}
+            <SelectInput
+              label="Document Type"
+              value={doc.documentType as DocumentTypes}
+              options={DocumentTypes}
+              onChange={(value) => handleChange(index, 'documentType', value)}
+              placeholder="Select document type"
+              required
+              disabled={isSubmitting}
+            />
+            
+            <div className="mt-4">
+              <DocumentUploader
+                currentDocumentUrl={doc.documentUrl}
+                documentType={doc.documentType || "Document"}
+                onDocumentChange={(url) => handleDocumentUrlChange(index, url)}
+                folder={`staff/${staffId}/documents`}
+                label="Upload Document"
               />
             </div>
             
-            <div className="mb-2">
-              <TextInput
-                label="Document URL"
-                value={doc.url}
-                onChange={(value) => handleChange(index, 'url', value)}
-                required
-                disabled={isSubmitting}
-              />
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
+            <div className="mt-4">
               <DateInput
                 label="Upload Date"
                 value={doc.uploadDate ? new Date(doc.uploadDate).toISOString().split('T')[0] : ''}
                 onChange={(value) => handleChange(index, 'uploadDate', new Date(value))}
-                disabled={isSubmitting}
-              />
-              
-              <DateInput
-                label="Expiry Date"
-                value={doc.expiryDate ? new Date(doc.expiryDate).toISOString().split('T')[0] : ''}
-                onChange={(value) => handleChange(index, 'expiryDate', new Date(value))}
-                disabled={isSubmitting}
+                disabled={isSubmitting || true}
               />
             </div>
-            
-            <TextArea
-              label="Description"
-              value={doc.description || ''}
-              onChange={(value) => handleChange(index, 'description', value)}
-              rows={2}
-              disabled={isSubmitting}
-            />
           </div>
         ))
       )}
