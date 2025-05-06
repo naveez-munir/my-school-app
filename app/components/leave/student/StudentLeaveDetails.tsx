@@ -1,28 +1,59 @@
-import { useParams, useNavigate } from 'react-router';
-import { useStudentLeave, useCancelStudentLeave } from '~/hooks/useStudentLeaveQueries';
-import { LeaveStatus } from '~/types/studentLeave';
-import toast from 'react-hot-toast';
+import { useParams, useNavigate } from "react-router";
+import {
+  useStudentLeave,
+  useCancelStudentLeave,
+} from "~/hooks/useStudentLeaveQueries";
+import { LeaveStatus } from "~/types/studentLeave";
+import { format } from "date-fns";
+import toast from "react-hot-toast";
+import { useStudentName } from "~/utils/hooks/useStudentName";
+import { getLeaveTypeStyle } from "~/utils/employeeStatusColor";
+import { LeaveStatusBadge } from "./LeaveStatusBadge";
 
 export function StudentLeaveDetailsView() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { data: leave, isLoading, error } = useStudentLeave(id || '');
-  const { mutate: cancelLeave, isPending: isCancelling } = useCancelStudentLeave();
+  const { data: leave, isLoading, error } = useStudentLeave(id || "");
+  const { mutate: cancelLeave, isPending: isCancelling } =
+    useCancelStudentLeave();
+
+  const studentName = useStudentName(leave?.studentId || "");
 
   if (isLoading) {
-    return <div className="flex justify-center p-8">Loading leave details...</div>;
+    return (
+      <div className="flex flex-col items-center justify-center h-64">
+        <div className="w-16 h-16 border-t-4 border-blue-500 border-solid rounded-full animate-spin"></div>
+        <p className="mt-4 text-gray-600">Loading leave details...</p>
+      </div>
+    );
   }
 
   if (error || !leave) {
-    return <div className="text-red-500 p-4">Error loading leave details</div>;
+    return (
+      <div
+        className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative"
+        role="alert"
+      >
+        <div className="font-bold">Error loading leave details</div>
+        <p className="text-sm">
+          {error?.message || "Unable to load the requested leave information"}
+        </p>
+        <button
+          className="mt-2 bg-red-100 hover:bg-red-200 text-red-800 font-semibold py-2 px-4 rounded"
+          onClick={() => navigate(-1)}
+        >
+          Go Back
+        </button>
+      </div>
+    );
   }
 
   const handleCancelLeave = () => {
-    if (!leave.id) return;
-    
-    cancelLeave(leave.id, {
+    if (!leave._id) return;
+
+    cancelLeave(leave._id, {
       onSuccess: () => {
-        toast.success('Leave request cancelled successfully');
+        toast.success("Leave request cancelled successfully");
         navigate(-1);
       },
       onError: (error) => {
@@ -31,131 +62,219 @@ export function StudentLeaveDetailsView() {
     });
   };
 
-  const statusColors = {
-    [LeaveStatus.PENDING]: 'bg-yellow-100 text-yellow-800',
-    [LeaveStatus.APPROVED]: 'bg-green-100 text-green-800',
-    [LeaveStatus.REJECTED]: 'bg-red-100 text-red-800',
-    [LeaveStatus.CANCELLED]: 'bg-gray-100 text-gray-800',
+  const leaveTypeStyle = getLeaveTypeStyle(leave.leaveType);
+
+  const formatDate = (dateString: any) => {
+    return format(new Date(dateString), "MMM dd, yyyy");
   };
 
   return (
-    <div className="max-w-3xl mx-auto py-6">
-      <div className="mb-4 flex justify-between items-center">
-        <h1 className="text-2xl font-semibold">Leave Request Details</h1>
-        <button 
-          className="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50 transition-colors"
-          onClick={() => navigate(-1)}
-        >
-          Back
-        </button>
-      </div>
-      
-      <div className="bg-white shadow rounded-lg overflow-hidden">
-        <div className="p-4 border-b flex justify-between items-center">
-          <h2 className="text-lg font-medium">Leave Request #{leave.id}</h2>
-          <span className={`px-3 py-1 text-sm font-semibold rounded-full ${statusColors[leave.status]}`}>
-            {leave.status}
-          </span>
+    <div className="max-w-4xl mx-auto py-6 px-4">
+      <div className="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center">
+        <div>
+          <div className="flex items-center">
+            <button
+              className="mr-3 p-2 rounded-full hover:bg-gray-100"
+              onClick={() => navigate(-1)}
+              aria-label="Go back"
+            >
+              ←
+            </button>
+            <h1 className="text-2xl font-bold text-gray-800">
+              Leave Request Details
+            </h1>
+          </div>
+          <p className="text-gray-500 mt-1">
+            Request #{leave._id.substring(leave._id.length - 6).toUpperCase()}
+          </p>
         </div>
-        
-        <div className="p-6 space-y-6">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm font-medium text-gray-500">Student ID</p>
-              <p>{leave.studentId}</p>
+
+        <LeaveStatusBadge
+          status={leave.status}
+          size="lg"
+          className="mt-4 md:mt-0 border"
+        />
+      </div>
+
+      <div className="bg-white shadow rounded-lg overflow-hidden border border-gray-200">
+        {/* Student & Leave Type Section */}
+        <div className="p-6 bg-gray-50 border-b">
+          <div className="flex flex-col md:flex-row justify-between">
+            <div className="mb-4 md:mb-0">
+              <h2 className="text-xl font-semibold text-gray-800">
+                {studentName || leave.studentId}
+              </h2>
+              <p className="text-gray-600">Student ID: {leave.studentId}</p>
             </div>
-            <div>
-              <p className="text-sm font-medium text-gray-500">Leave Type</p>
-              <p>{leave.leaveType.replace('_', ' ')}</p>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <p className="text-sm font-medium text-gray-500">Start Date</p>
-              <p>{new Date(leave.startDate).toLocaleDateString()}</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-500">End Date</p>
-              <p>{new Date(leave.endDate).toLocaleDateString()}</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-500">Number of Days</p>
-              <p>{leave.numberOfDays}</p>
-            </div>
-          </div>
-          
-          <div>
-            <p className="text-sm font-medium text-gray-500">Reason</p>
-            <p className="whitespace-pre-wrap">{leave.reason || '-'}</p>
-          </div>
-          
-          {leave.supportingDocumentUrl && (
-            <div>
-              <p className="text-sm font-medium text-gray-500">Supporting Document</p>
-              <a 
-                href={leave.supportingDocumentUrl} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-blue-600 hover:underline"
+            <div className="flex flex-col items-start md:items-end">
+              <div
+                className={`px-3 py-1 rounded-full text-sm font-medium ${leaveTypeStyle}`}
               >
+                {leave.leaveType.replace("_", " ")}
+              </div>
+              <p className="text-gray-500 text-sm mt-1">
+                Requested on {format(new Date(leave.createdAt), "MMM dd, yyyy")}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-6 border-b">
+          <h3 className="text-lg font-medium text-gray-800 mb-4">
+            Leave Duration
+          </h3>
+          <div className="bg-blue-50 rounded-lg p-4">
+            <div className="flex items-center space-x-6">
+              <div className="flex items-center">
+                <span className="text-blue-500 mr-3 text-xl">🗓️</span>
+                <span className="font-medium text-gray-800">
+                  {leave.numberOfDays}{" "}
+                  {leave.numberOfDays === 1 ? "day" : "days"}
+                </span>
+              </div>
+
+              <div className="flex items-center">
+                <span className="text-gray-500 mr-2">From:</span>
+                <span className="font-medium">
+                  {formatDate(leave.startDate)}
+                </span>
+              </div>
+
+              {leave.numberOfDays > 1 && (
+                <div className="flex items-center">
+                  <span className="text-gray-500 mr-2">To:</span>
+                  <span className="font-medium">
+                    {formatDate(leave.endDate)}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="p-6 border-b">
+          <h3 className="text-lg font-medium text-gray-800 mb-4">
+            Reason for Leave
+          </h3>
+          <div className="bg-gray-50 rounded-lg p-4 mb-4">
+            <p className="whitespace-pre-wrap">
+              {leave.reason || "No reason provided"}
+            </p>
+          </div>
+
+          {leave.supportingDocumentUrl && (
+            <div className="mt-4">
+              <h4 className="text-sm font-medium text-gray-500 mb-2">
+                Supporting Document
+              </h4>
+              <a
+                href={leave.supportingDocumentUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center px-4 py-2 border border-gray-300 rounded-lg text-blue-600 hover:bg-blue-50 transition-colors"
+              >
+                <span className="mr-2">📎</span>
                 View Document
               </a>
             </div>
           )}
-          
-          {leave.approvedBy && (
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm font-medium text-gray-500">Approved By</p>
-                <p>{leave.approvedBy} ({leave.approverType})</p>
+        </div>
+
+        {leave.status !== LeaveStatus.PENDING && (
+          <div className="p-6 border-b">
+            <h3 className="text-lg font-medium text-gray-800 mb-4">
+              Processing Details
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {leave.approvedBy && (
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <p className="text-sm text-gray-500 mb-1">Processed By</p>
+                  <p className="font-medium">{leave.approvedBy}</p>
+                  <p className="text-sm text-gray-500">{leave.approverType}</p>
+                </div>
+              )}
+
+              {leave.approvalDate && (
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <p className="text-sm text-gray-500 mb-1">Processed On</p>
+                  <p className="font-medium">
+                    {formatDate(leave.approvalDate)}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {leave.comments && (
+              <div className="mt-4">
+                <p className="text-sm font-medium text-gray-500 mb-2">
+                  Comments
+                </p>
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <p className="whitespace-pre-wrap">{leave.comments}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-medium text-gray-500">Approval Date</p>
-                <p>{leave.approvalDate ? new Date(leave.approvalDate).toLocaleDateString() : '-'}</p>
-              </div>
+            )}
+          </div>
+        )}
+
+        {leave.affectedClasses && leave.affectedClasses.length > 0 && (
+          <div className="p-6 border-b">
+            <h3 className="text-lg font-medium text-gray-800 mb-4">
+              Affected Classes
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {leave.affectedClasses.map((cls, index) => (
+                <div
+                  key={index}
+                  className="bg-gray-100 px-3 py-1 rounded-full text-gray-700 text-sm"
+                >
+                  {cls}
+                </div>
+              ))}
             </div>
-          )}
-          
-          {leave.comments && (
-            <div>
-              <p className="text-sm font-medium text-gray-500">Comments</p>
-              <p className="whitespace-pre-wrap">{leave.comments}</p>
+          </div>
+        )}
+
+        <div className="p-6">
+          <h3 className="text-lg font-medium text-gray-800 mb-4">
+            Request Information
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-gray-50 rounded-lg p-4">
+              <p className="text-sm text-gray-500 mb-1">Requested By</p>
+              <p className="font-medium">{leave.requestedByParent}</p>
             </div>
-          )}
-          
-          {leave.affectedClasses && leave.affectedClasses.length > 0 && (
-            <div>
-              <p className="text-sm font-medium text-gray-500">Affected Classes</p>
-              <ul className="list-disc pl-5">
-                {leave.affectedClasses.map((cls, index) => (
-                  <li key={index}>{cls}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-          
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm font-medium text-gray-500">Requested By</p>
-              <p>{leave.requestedByParent}</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-500">Created At</p>
-              <p>{new Date(leave.createdAt).toLocaleString()}</p>
+
+            <div className="bg-gray-50 rounded-lg p-4">
+              <p className="text-sm text-gray-500 mb-1">Created At</p>
+              <p className="font-medium">
+                {format(new Date(leave.createdAt), "MMM dd, yyyy HH:mm")}
+              </p>
             </div>
           </div>
         </div>
-        
+
         {leave.status === LeaveStatus.PENDING && (
-          <div className="p-4 border-t">
-            <button 
-              className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
-              onClick={handleCancelLeave}
-              disabled={isCancelling}
-            >
-              Cancel Leave Request
-            </button>
+          <div className="p-6 bg-gray-50 border-t">
+            <div className="flex justify-end">
+              <button
+                className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center"
+                onClick={handleCancelLeave}
+                disabled={isCancelling}
+              >
+                {isCancelling ? (
+                  <>
+                    <div className="w-4 h-4 border-t-2 border-white border-solid rounded-full animate-spin mr-2"></div>
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <span className="mr-2">✗</span>
+                    Cancel Leave Request
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         )}
       </div>
