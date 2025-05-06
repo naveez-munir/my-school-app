@@ -1,20 +1,41 @@
 import { LeaveStatus } from '~/types/studentLeave';
-
-const statusColors = {
-  [LeaveStatus.PENDING]: 'bg-yellow-100 text-yellow-800',
-  [LeaveStatus.APPROVED]: 'bg-green-100 text-green-800',
-  [LeaveStatus.REJECTED]: 'bg-red-100 text-red-800',
-  [LeaveStatus.CANCELLED]: 'bg-gray-100 text-gray-800',
-};
+import { 
+  getLeaveStatusColor, 
+  getLeaveStatusIcon, 
+  getLeaveStatusLabel 
+} from '~/utils/employeeStatusColor';
 
 interface LeaveStatusBadgeProps {
   status: LeaveStatus;
+  size?: 'sm' | 'md' | 'lg';
+  showIcon?: boolean;
+  showLabel?: boolean;
+  className?: string;
 }
 
-export function LeaveStatusBadge({ status }: LeaveStatusBadgeProps) {
+export function LeaveStatusBadge({
+  status,
+  size = 'md',
+  showIcon = true,
+  showLabel = true,
+  className = ''
+}: LeaveStatusBadgeProps) {
+  const statusColor = getLeaveStatusColor(status);
+  const statusIcon = getLeaveStatusIcon(status);
+  const statusLabel = getLeaveStatusLabel(status);
+
+  const sizeClasses = {
+    sm: 'text-xs px-2 py-0.5',
+    md: 'text-sm px-3 py-1',
+    lg: 'text-base px-4 py-1.5'
+  };
+  
   return (
-    <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColors[status]}`}>
-      {status}
+    <span 
+      className={`inline-flex items-center rounded-full font-medium ${statusColor} ${sizeClasses[size]} ${className}`}
+    >
+      {showIcon && <span className="mr-1">{statusIcon}</span>}
+      {showLabel && statusLabel}
     </span>
   );
 }

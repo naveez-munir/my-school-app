@@ -21,7 +21,7 @@ export function MyStudentsLeavesTable() {
         actions: (row) => (
           <button 
             className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-            onClick={() => handleViewDetails(row.id)}
+            onClick={() => handleViewDetails(row._id)}
           >
             View Details
           </button>

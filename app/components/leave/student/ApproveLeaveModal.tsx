@@ -18,7 +18,7 @@ export function ApproveLeaveModal({ leave, isOpen, onClose }: ApproveLeaveModalP
   const handleApprove = (status: LeaveStatus.APPROVED | LeaveStatus.REJECTED) => {
     approveLeave(
       { 
-        id: leave.id, 
+        id: leave._id, 
         data: { status, comments } 
       },
       {
