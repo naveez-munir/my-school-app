@@ -38,6 +38,15 @@ export enum BloodGroup {
   'AB-' = 'AB-'
 }
 
+export enum DocumentTypes{
+  CNIC = "CNIC",
+  DegreeCertificate= "Degree Certificate",
+  ExperienceLetter= "Experience Letter",
+  MedicalRecords= "Medical Records",
+  Contract= "Employment Contract",
+  Other= "Other"
+};
+
 export enum EmploymentStatus {
   Active = 'Active',
   OnLeave = 'OnLeave',
@@ -64,7 +73,7 @@ export interface Teacher {
   subjects?: string[];
   classTeacherOf?: {
     _id: string;
-    name: string;
+    className: string;
   };
   educationHistory?: EducationHistory[];
   experience?: Experience[];
