@@ -10,7 +10,7 @@ import { StudentAcademicInfo } from './tabs/StudentAcademicInfo';
 import { StudentDocuments } from './tabs/StudentDocuments';
 import { StudentStatus } from './tabs/StudentStatus';
 import type { Student } from "~/types/student";
-import { isAdmin } from "~/utils/auth";
+import { getUserId, isAdmin } from "~/utils/auth";
 
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ');
@@ -57,10 +57,12 @@ const StudentAvatar = ({ student }: { student: Student }) => (
   )
 );
 
-export function StudentDetailPage() {
+export function StudentDetailPage({stId} : {stId?:string}) {
+  const userId = getUserId();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { data: student, isLoading } = useStudent(id || '');
+  const studentId =  stId ? stId : id ? id : userId
+  const { data: student, isLoading } = useStudent(studentId || '');
   const [tabIndex, setTabIndex] = useState(0);
   
   if (isLoading) {
