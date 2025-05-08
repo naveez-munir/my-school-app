@@ -9,6 +9,7 @@ export interface UserRole {
 }
 
 export interface DecodedToken {
+  userId?: string;
   sub: string;
   role?: string;
   isSuperAdmin?: boolean;
@@ -67,6 +68,19 @@ export const getUserRole = (): UserRole | null => {
     return userRole;
   } catch (error) {
     console.error('Error decoding token:', error);
+    return null;
+  }
+};
+
+export const getUserId = (): string | null => {
+  try {
+    const authData = getAuthData();
+    if (!authData?.token) return null;
+
+    const decodedToken = jwtDecode<DecodedToken>(authData.token);
+    return decodedToken.userId || null;
+  } catch (error) {
+    console.error('Error getting user ID from token:', error);
     return null;
   }
 };
