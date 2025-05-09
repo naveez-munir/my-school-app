@@ -86,8 +86,8 @@ export const useApproveStudentLeave = () => {
       queryClient.invalidateQueries({ queryKey: studentLeaveKeys.lists() });
       queryClient.invalidateQueries({ queryKey: studentLeaveKeys.pending() });
       
-      if (updatedLeave.id) {
-        queryClient.setQueryData(studentLeaveKeys.detail(updatedLeave.id), updatedLeave);
+      if (updatedLeave._id) {
+        queryClient.setQueryData(studentLeaveKeys.detail(updatedLeave._id), updatedLeave);
         if (updatedLeave.studentId) {
           queryClient.invalidateQueries({ 
             queryKey: studentLeaveKeys.studentLeaves(updatedLeave.studentId) 
