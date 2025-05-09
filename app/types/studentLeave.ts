@@ -18,7 +18,7 @@ export enum ApproverType {
 }
 
 export interface StudentLeaveResponse {
-  id: string;
+  _id: string;
   studentId: string;
   leaveType: LeaveType;
   startDate: string;
