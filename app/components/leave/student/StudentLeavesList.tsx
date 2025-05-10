@@ -1,8 +1,13 @@
 import { useMyLeaves } from '~/hooks/useStudentLeaveQueries';
 import { LeaveBaseTable } from './LeaveBaseTable';
+import type { SearchStudentLeaveRequest } from '~/types/studentLeave';
 
-export function StudentLeavesTable() {
-  const { data = [], isLoading, error } = useMyLeaves();
+export function StudentLeavesTable({studentId}:{studentId? : string}) {
+  const params: SearchStudentLeaveRequest = {};
+  if (studentId) {
+    params.studentId = studentId;
+  }
+  const { data = [], isLoading, error } = useMyLeaves(params);
 
   return (
     <LeaveBaseTable
