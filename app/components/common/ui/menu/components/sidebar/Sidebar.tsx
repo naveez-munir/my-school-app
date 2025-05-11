@@ -16,6 +16,8 @@ const getRoleTitle = (role: string): string => {
       return "Student Portal";
     case "staff":
       return "Staff Portal";
+    case "guardian":
+      return "Guardian Portal";
     default:
       return "Portal test";
   }

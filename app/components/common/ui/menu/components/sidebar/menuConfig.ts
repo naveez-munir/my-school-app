@@ -350,8 +350,8 @@ export const MENU_ITEMS: MenuItem[] = [
   },
   {
     name: 'studentAcademic',
-    label: 'Academic Section',
-    path: '/dashboard/students/academic',
+    label: 'Academic Result Section',
+    path: '/dashboard/students/result',
     icon: 'graduationCap',
     roles: studentRoles
   },
@@ -387,35 +387,35 @@ export const MENU_ITEMS: MenuItem[] = [
   {
     name: 'guardianChildren',
     label: 'My Children',
-    path: '/dashboard/children',
+    path: '/dashboard/guardian/children',
     icon: 'users',
     roles: parentRoles
   },
   {
     name: 'guardianLeave',
     label: 'Leave Section',
-    path: '/dashboard/leave',
+    path: '/dashboard/guardian/leave',
     icon: 'clock',
     roles: parentRoles
   },
   {
     name: 'guardianAcademic',
     label: 'Academic Section',
-    path: '/dashboard/academic',
+    path: '/dashboard/guardian/academic',
     icon: 'graduationCap',
     roles: parentRoles
   },
   {
     name: 'guardianFees',
     label: 'Fee Section',
-    path: '/dashboard/fees',
+    path: '/dashboard/guardian/fees',
     icon: 'dollarSign',
     roles: parentRoles
   },
   {
     name: 'guardianDairy',
     label: 'Dairy Section',
-    path: '/dashboard/dairy',
+    path: '/dashboard/guardian/dairy',
     icon: 'book',
     roles: parentRoles
   },
@@ -424,7 +424,7 @@ export const MENU_ITEMS: MenuItem[] = [
   { 
     name: 'settings', 
     label: 'Settings', 
-    path: '/dashboard/settings',
+    path: '/dashboard/guardian/settings',
     icon: 'settings',
     roles: ['super_admin', 'tenant_admin', 'admin', 'principal', 'accountant', 'teacher', 'student', 'staff', 'guardian']
   }
