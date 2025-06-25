@@ -9,8 +9,7 @@ const baseExamService = createEntityService<ExamResponse, CreateExamDto, UpdateE
 
 export const examApi = {
   ...baseExamService,
-  
-  // Add specific methods
+
   getUpcoming: async (classId?: string) => {
     const response = await api.get<ExamResponse[]>('/exams/upcoming', { 
       params: classId ? { classId } : {} 
@@ -20,6 +19,11 @@ export const examApi = {
   
   updateStatus: async (id: string, status: 'Scheduled' | 'Ongoing' | 'Completed' | 'ResultDeclared') => {
     const response = await api.put<ExamResponse>(`/exams/${id}/status`, { status });
+    return response.data;
+  },
+
+  getMyExams: async () => {
+    const response = await api.get<ExamResponse[]>('/exams/my-exams');
     return response.data;
   }
 };
