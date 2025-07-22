@@ -288,12 +288,12 @@ export interface StudentFormErrors {
 export interface StudentsTableProps {
   data: StudentResponse[];
   onView: (student: StudentResponse) => void;
-  onDelete: (id: string) => void;
+  onDelete?: (student: StudentResponse) => void;
 }
 
 export interface TableMetaType {
   onView: (student: StudentResponse) => void;
-  onDelete: (id: string) => void;
+  onDelete?: (student: StudentResponse) => void;
 }
 export interface StudentFormLayoutProps {
   student: any;
