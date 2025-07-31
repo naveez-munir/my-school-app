@@ -119,6 +119,7 @@ export interface PopulatedFeeComponent extends Omit<FeeComponent, 'feeCategory'>
 export interface FeeStructure extends BaseEntity {
   academicYear: string;
   classId: MongoId;
+  description: string;
   feeComponents: FeeComponent[];
 }
 
@@ -131,12 +132,14 @@ export interface PopulatedFeeStructure extends Omit<FeeStructure, 'classId' | 'f
 export interface CreateFeeStructureInput {
   academicYear: string;
   classId: MongoId;
+  description: string;
   feeComponents: FeeComponent[];
 }
 
 export interface UpdateFeeStructureInput {
   academicYear?: string;
   classId?: MongoId;
+  description?: string;
   feeComponents?: FeeComponent[];
 }
 
@@ -260,6 +263,7 @@ export interface GetPendingFeesParams {
   academicYear?: string;
   classId?: MongoId;
   month?: number;
+  status?: string;
 }
 
 export interface PendingFeesResult {
@@ -335,6 +339,10 @@ export interface FeePayment extends BaseEntity {
   status: PaymentStatus;
   collectedBy?: MongoId;
   remarks?: string;
+  studentName?: string;
+  studentRollNumber?: string;
+  studentClass?: string;
+  collectedByName?: string;
 }
 
 export interface PopulatedFeePayment extends Omit<FeePayment, 'studentId' | 'studentFeeId' | 'collectedBy'> {
@@ -538,11 +546,10 @@ export function prepareQueryParams<T extends Record<string, any>>(params: T): Re
 
 /**
  * Formats a fee amount as currency
+ * @deprecated Use formatCurrency from ~/utils/currencyUtils instead
  */
 export function formatCurrency(amount: number): string {
-  return amount.toLocaleString('en-US', {
-    style: 'currency',
-    currency: 'PKR',
+  return amount.toLocaleString('en-IN', {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
   });
