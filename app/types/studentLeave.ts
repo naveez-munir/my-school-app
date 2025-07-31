@@ -18,8 +18,10 @@ export enum ApproverType {
 }
 
 export interface StudentLeaveResponse {
-  _id: string;
+  id: string;
+  _id?: string;
   studentId: string;
+  studentName?: string;
   leaveType: LeaveType;
   startDate: string;
   endDate: string;
@@ -29,6 +31,7 @@ export interface StudentLeaveResponse {
   status: LeaveStatus;
   requestedByParent: string;
   approvedBy?: string;
+  approverName?: string;
   approverType?: ApproverType;
   approvalDate?: string;
   comments?: string;
