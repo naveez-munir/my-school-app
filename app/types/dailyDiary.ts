@@ -18,6 +18,8 @@ export interface SubjectTaskResponse {
   task: string;
   dueDate?: string;
   additionalNotes?: string;
+  addedBy?: TeacherInfo;
+  addedAt?: string;
 }
 
 export interface AttachmentResponse {
@@ -42,6 +44,19 @@ export interface DailyDiaryResponse {
 export interface SubjectTaskRequest {
   subject: string;
   task: string;
+  dueDate?: string;
+  additionalNotes?: string;
+}
+
+export interface AddSubjectTaskRequest {
+  subject: string;
+  task: string;
+  dueDate?: string;
+  additionalNotes?: string;
+}
+
+export interface UpdateSubjectTaskRequest {
+  task?: string;
   dueDate?: string;
   additionalNotes?: string;
 }
@@ -97,4 +112,11 @@ export function prepareForEdit(diary: DailyDiaryResponse): CreateDailyDiaryReque
       fileType: attachment.fileType
     }))
   };
+}
+
+export interface TeacherInfo {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email?: string;
 }
