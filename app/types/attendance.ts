@@ -2,12 +2,14 @@
 export enum AttendanceStatus {
   PRESENT = 'present',
   ABSENT = 'absent',
-  LATE = 'late'
+  LATE = 'late',
+  LEAVE = 'leave'
 }
 
 export enum AttendanceType {
   STUDENT = 'Student',
-  TEACHER = 'Teacher'
+  TEACHER = 'Teacher',
+  STAFF = 'Staff'
 }
 
 export interface User {
@@ -80,7 +82,7 @@ export interface BatchAttendanceRecord {
 
 export interface BatchAttendanceInput {
   userType: AttendanceType;
-  classId: string;
+  classId?: string;
   date: string;
   records: BatchAttendanceRecord[];
 }
@@ -96,6 +98,11 @@ export interface BatchResponse {
   message: string;
   count: number;
   ids: string[];
+  skipped?: {
+    count: number;
+    userIds: string[];
+    reason: string;
+  };
 }
 
 
@@ -166,4 +173,32 @@ export interface MonthlyReportFilter {
   year: number;
   userType?: AttendanceType;
   classId?: string;
+}
+
+export interface PaginationMeta {
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  itemsPerPage: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  meta: PaginationMeta;
+}
+
+export interface AttendanceFilterParams {
+  userType?: AttendanceType;
+  classId?: string;
+  userId?: string;
+  status?: AttendanceStatus;
+  startDate?: string;
+  endDate?: string;
+  search?: string;
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
 }
