@@ -34,6 +34,8 @@ export interface LeaveResponse {
   reason?: string;
   status: LeaveStatus;
   isPaid: boolean;
+  isPaidOverridden?: boolean;
+  overrideReason?: string;
   approvedBy?: string;
   approverName?: string;
   approvalDate?: string;
@@ -100,6 +102,9 @@ export interface ApproveLeaveRequest {
   approverType: EmployeeType;
   status: LeaveStatus.APPROVED | LeaveStatus.REJECTED;
   comments?: string;
+  overridePaidStatus?: boolean;
+  isPaid?: boolean;
+  overrideReason?: string;
 }
 
 export interface CreateLeaveBalanceRequest {
