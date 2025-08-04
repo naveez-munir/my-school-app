@@ -70,8 +70,6 @@ export interface UpdateExpenseDto extends Partial<CreateExpenseDto> {
 }
 
 export interface ApproveExpenseDto {
-  approvedBy: string;
-  approverType: EmployeeType;
   status: ExpenseStatus.APPROVED | ExpenseStatus.REJECTED;
   comments?: string;
 }
