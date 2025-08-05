@@ -25,6 +25,27 @@ export enum PaymentMethod {
   ONLINE = 'ONLINE'
 }
 
+export enum AllowanceType {
+  HRA = 'HRA',
+  TRANSPORT = 'TRANSPORT',
+  MEDICAL = 'MEDICAL',
+  TEACHING_ALLOWANCE = 'TEACHING_ALLOWANCE',
+  OVERTIME = 'OVERTIME',
+  PERFORMANCE_BONUS = 'PERFORMANCE_BONUS',
+  SPECIAL_DUTY = 'SPECIAL_DUTY',
+  OTHER = 'OTHER'
+}
+
+export enum DeductionType {
+  TAX = 'TAX',
+  INSURANCE = 'INSURANCE',
+  LOAN = 'LOAN',
+  ADVANCE_SALARY = 'ADVANCE_SALARY',
+  PROVIDENT_FUND = 'PROVIDENT_FUND',
+  LEAVE_DEDUCTION = 'LEAVE_DEDUCTION',
+  OTHER = 'OTHER'
+}
+
 // Base interfaces for allowances, deductions, and attendance
 export interface SalaryAllowance {
   allowanceType: string;
@@ -125,7 +146,7 @@ export interface SearchSalaryParams {
 }
 
 export interface ApproveSalaryDto {
-  approvedBy: string;
+  approvedBy?: string;
   comments?: string;
 }
 
@@ -181,4 +202,25 @@ export const PaymentMethodLabels: Record<PaymentMethod, string> = {
   [PaymentMethod.CHEQUE]: 'Cheque',
   [PaymentMethod.BANK_TRANSFER]: 'Bank Transfer',
   [PaymentMethod.ONLINE]: 'Online Payment'
+};
+
+export const AllowanceTypeLabels: Record<AllowanceType, string> = {
+  [AllowanceType.HRA]: 'House Rent Allowance (HRA)',
+  [AllowanceType.TRANSPORT]: 'Transport Allowance',
+  [AllowanceType.MEDICAL]: 'Medical Allowance',
+  [AllowanceType.TEACHING_ALLOWANCE]: 'Teaching Allowance',
+  [AllowanceType.OVERTIME]: 'Overtime',
+  [AllowanceType.PERFORMANCE_BONUS]: 'Performance Bonus',
+  [AllowanceType.SPECIAL_DUTY]: 'Special Duty Allowance',
+  [AllowanceType.OTHER]: 'Other'
+};
+
+export const DeductionTypeLabels: Record<DeductionType, string> = {
+  [DeductionType.TAX]: 'Tax',
+  [DeductionType.INSURANCE]: 'Insurance',
+  [DeductionType.LOAN]: 'Loan Deduction',
+  [DeductionType.ADVANCE_SALARY]: 'Advance Salary',
+  [DeductionType.PROVIDENT_FUND]: 'Provident Fund',
+  [DeductionType.LEAVE_DEDUCTION]: 'Leave Deduction',
+  [DeductionType.OTHER]: 'Other'
 };
