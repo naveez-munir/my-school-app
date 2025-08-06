@@ -52,6 +52,8 @@ export interface Payment {
   createdAt?: Date | string;
   updatedAt?: Date | string;
   isActive?: boolean;
+  displayName?: string;
+  displaySubtext?: string;
 }
 
 // DTOs for API requests
@@ -142,3 +144,46 @@ export const ReceivedByTypeLabels: Record<ReceivedByType, string> = {
   [ReceivedByType.TEACHER]: 'Teacher',
   [ReceivedByType.STAFF]: 'Staff'
 };
+
+// Lookup response types
+export interface PendingSalary {
+  id: string;
+  employeeId: string;
+  employeeName: string;
+  employeeType: string;
+  month: number;
+  year: number;
+  netSalary: number;
+  label: string;
+  referenceType: string;
+}
+
+export interface PendingExpense {
+  id: string;
+  description: string;
+  expenseType: string;
+  amount: number;
+  billNumber?: string;
+  vendorDetails?: string;
+  expenseDate: Date | string;
+  label: string;
+  referenceType: string;
+}
+
+export interface PendingStudentFee {
+  id: string;
+  studentId: string;
+  studentName: string;
+  rollNumber?: string;
+  className?: string;
+  feeType: string;
+  billMonth?: string;
+  netAmount: number;
+  paidAmount: number;
+  dueAmount: number;
+  status: string;
+  label: string;
+  referenceType: string;
+}
+
+export type PendingPaymentReference = PendingSalary | PendingExpense | PendingStudentFee;
