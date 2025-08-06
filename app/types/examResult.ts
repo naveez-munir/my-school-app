@@ -18,11 +18,13 @@ export interface ExamResultResponse {
     marksObtained: number;
     maxMarks: number;
     percentage: string;
+    status: string;
     remarks?: string;
   }[];
   totalMarks: number;
   percentage: number;
   grade?: string;
+  status: string;
   rank?: number;
   remarks?: string;
 }
@@ -45,6 +47,7 @@ export interface ExamResultQueryParams {
   classId?: string;
   academicYear?: string;
   examType?: string;
+  status?: string;
 }
 
 export interface SubjectOption {
@@ -91,14 +94,14 @@ export interface DetailedSubjectResult {
   marksObtained: number;
   maxMarks: number;
   percentage: string;
+  status: string;
   passingMarks?: number;
-  isPassing: boolean;
   remarks?: string;
 }
 
 export interface DetailedExamResult extends ExamResultResponse {
   detailedSubjectResults: DetailedSubjectResult[];
-  isPassing: boolean;
+  status: string;
   class?: {
     id: string;
     name: string;
@@ -108,4 +111,36 @@ export interface DetailedExamResult extends ExamResultResponse {
   lowestMarks?: number;
   averageMarks?: number;
   totalStudents?: number;
+}
+
+export interface BulkStudentResultInput {
+  studentId: string;
+  subjectResults: {
+    subject: string;
+    marksObtained: number;
+    maxMarks: number;
+    remarks?: string;
+  }[];
+  remarks?: string;
+}
+
+export interface BulkResultInput {
+  examId: string;
+  results: BulkStudentResultInput[];
+}
+
+export interface StudentResultStatus {
+  studentId: string;
+  studentName?: string;
+  status: 'success' | 'failed';
+  resultId?: string;
+  error?: string;
+}
+
+export interface BulkResultResponse {
+  success: boolean;
+  message: string;
+  successCount: number;
+  failureCount: number;
+  results: StudentResultStatus[];
 }
