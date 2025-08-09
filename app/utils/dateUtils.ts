@@ -1,6 +1,6 @@
 export function formatDate(dateString?: string | Date | null, fallback: string = 'N/A'): string {
   if (!dateString) return fallback;
-  
+
   try {
     return new Date(dateString).toLocaleDateString();
   } catch (error) {
@@ -9,9 +9,26 @@ export function formatDate(dateString?: string | Date | null, fallback: string =
   }
 }
 
+export function formatUserFriendlyDate(dateString?: string | Date | null, fallback: string = 'N/A'): string {
+  if (!dateString) return fallback;
+
+  try {
+    const date = new Date(dateString);
+    const options: Intl.DateTimeFormatOptions = {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    };
+    return date.toLocaleDateString('en-US', options);
+  } catch (error) {
+    console.error('Invalid date format:', error);
+    return fallback;
+  }
+}
+
 export function formatDateTime(dateString?: string | Date | null, fallback: string = 'N/A'): string {
   if (!dateString) return fallback;
-  
+
   try {
     return new Date(dateString).toLocaleString();
   } catch (error) {
@@ -22,14 +39,14 @@ export function formatDateTime(dateString?: string | Date | null, fallback: stri
 
 export function getRelativeDate(dateString?: string | Date | null, fallback: string = 'N/A'): string {
   if (!dateString) return fallback;
-  
+
   try {
     const date = new Date(dateString);
     const formatter = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
-    
+
     const now = new Date();
     const diffInSeconds = Math.floor((date.getTime() - now.getTime()) / 1000);
- 
+
     if (Math.abs(diffInSeconds) < 60) {
       return formatter.format(diffInSeconds, 'second');
     } else if (Math.abs(diffInSeconds) < 3600) {
