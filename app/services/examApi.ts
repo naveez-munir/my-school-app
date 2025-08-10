@@ -11,12 +11,12 @@ export const examApi = {
   ...baseExamService,
 
   getUpcoming: async (classId?: string) => {
-    const response = await api.get<ExamResponse[]>('/exams/upcoming', { 
-      params: classId ? { classId } : {} 
+    const response = await api.get<ExamResponse[]>('/exams/upcoming', {
+      params: classId ? { classId } : {}
     });
     return response.data;
   },
-  
+
   updateStatus: async (id: string, status: 'Scheduled' | 'Ongoing' | 'Completed' | 'ResultDeclared') => {
     const response = await api.put<ExamResponse>(`/exams/${id}/status`, { status });
     return response.data;
@@ -24,6 +24,11 @@ export const examApi = {
 
   getMyExams: async () => {
     const response = await api.get<ExamResponse[]>('/exams/my-exams');
+    return response.data;
+  },
+
+  getMyTeachingExams: async () => {
+    const response = await api.get<ExamResponse[]>('/exams/my-teaching-exams');
     return response.data;
   }
 };
