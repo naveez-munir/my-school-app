@@ -6,16 +6,40 @@ import { useNavigate } from "react-router";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import DeletePrompt from "../common/DeletePrompt";
+import { getUserRole, isAdminRole } from '~/utils/auth';
+import { UserRoleEnum } from '~/types/user';
+import { TeacherClassView } from './teacher/TeacherClassView';
 
 export function ClassSection() {
+  const userRole = getUserRole();
+  const role = userRole?.role;
+
+  if (isAdminRole(role)) {
+    return <AdminClassManagement />;
+  }
+
+  if (role === UserRoleEnum.TEACHER) {
+    return <TeacherClassView />;
+  }
+
+  return (
+    <div className="p-6 text-center">
+      <div className="text-red-600 text-lg font-medium">
+        You do not have permission to access this page
+      </div>
+    </div>
+  );
+}
+
+function AdminClassManagement() {
   const navigate = useNavigate();
   const [showDeletePrompt, setShowDeletePrompt] = useState<boolean>(false);
   const [classToDelete, setClassToDelete] = useState<string>('');
 
-  const { 
-    data: classes = [], 
-    isLoading, 
-    error 
+  const {
+    data: classes = [],
+    isLoading,
+    error
   } = useClasses();
 
   const deleteClassMutation = useDeleteClass();
@@ -26,6 +50,7 @@ export function ClassSection() {
     setShowDeletePrompt(false);
     setClassToDelete('');
   };
+
   const handleDeleteClick = (id: string) => {
     setShowDeletePrompt(true);
     setClassToDelete(id);
@@ -37,7 +62,6 @@ export function ClassSection() {
 
   return (
     <div className="space-y-6 p-4 sm:p-6 md:p-8">
-      {/* Header Section */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-gray-700">Classes</h1>
@@ -53,7 +77,6 @@ export function ClassSection() {
         </button>
       </div>
 
-      {/* Main Content */}
       <div className="bg-white rounded-lg shadow">
         {isLoading ? (
           <ClassesSkeleton />
