@@ -5,8 +5,7 @@ import type { Class, CreateClassDto } from '~/types/class';
 import GenericCombobox from '../common/form/inputs/Select';
 import { TextInput } from '../common/form/inputs/TextInput';
 import { FormActions } from '../common/form/FormActions';
-import { GradeLevel } from '~/types/student';
-import { SelectInput } from '../common/form/inputs/SelectInput';
+import { GradeSelector } from '../common/GradeSelector';
 
 interface ClassFormProps {
   initialData?: Class;
@@ -96,12 +95,10 @@ export function ClassForm({
           error={errors.className}
           placeholder="A, B, C"
         />
-        <SelectInput<typeof GradeLevel>
-          label="Grade Level"
-          value={formData.classGradeLevel as GradeLevel}
+        <GradeSelector
+          value={formData.classGradeLevel || ''}
           onChange={(value) => handleChange('classGradeLevel', value)}
-          options={GradeLevel}
-          placeholder="Select Grade Level"
+          label="Grade Level"
           required
         />
       </div>
