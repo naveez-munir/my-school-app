@@ -2,6 +2,7 @@ import { createColumnHelper, type ColumnDef } from '@tanstack/react-table';
 import type { ClassResponse } from '~/types/class';
 import { GenericDataTable } from '../common/table/GenericDataTable';
 import { SortableColumnHeader, createActionsColumn, type ActionButton } from '../common/table/TableHelpers';
+import { Edit, Trash2 } from 'lucide-react';
 
 interface ClassesTableProps {
   data: ClassResponse[];
@@ -14,11 +15,13 @@ export function createClassColumns(): ColumnDef<ClassResponse, any>[] {
   const actions: ActionButton<ClassResponse>[] = [
     {
       label: 'Edit',
+      icon: Edit,
       onClick: (item, _, meta) => meta.onEdit?.(item),
       color: 'blue'
     },
     {
       label: 'Delete',
+      icon: Trash2,
       onClick: (_, id, meta) => meta.onDelete?.(id),
       color: 'red'
     }
