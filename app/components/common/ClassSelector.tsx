@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import GenericCombobox from '~/components/common/form/inputs/Select';
 import { useClasses } from '~/hooks/useClassQueries';
 import type { ClassResponse } from '~/types/class';
@@ -11,7 +11,12 @@ interface ClassSelectorProps {
   placeholder?: string;
   disabled?: boolean;
   className?: string;
+  showOnlyAvailable?: boolean;
+  excludeClassId?: string;
+  error?: string;
 }
+
+type ClassWithDisplay = ClassResponse & { displayName: string };
 
 export function ClassSelector({
   value = '',
@@ -20,20 +25,52 @@ export function ClassSelector({
   required = false,
   placeholder = 'Select or enter class',
   className = '',
-  disabled = false
+  disabled = false,
+  showOnlyAvailable = false,
+  excludeClassId,
+  error
 }: ClassSelectorProps) {
   const { data: classes = [], isLoading: loading } = useClasses();
-  const [selectedClass, setSelectedClass] = useState<ClassResponse | null>(null)
+  const [selectedClass, setSelectedClass] = useState<ClassWithDisplay | null>(null)
+
+  const extractGradeNumber = (gradeLevel: string): number => {
+    const match = gradeLevel?.match(/(\d+)/);
+    return match ? parseInt(match[1], 10) : 999;
+  };
+
+  const processedClasses = useMemo(() => {
+    const filteredClasses = showOnlyAvailable
+      ? classes.filter(cls =>
+          !cls.classTeacher ||
+          cls.id === value ||
+          cls.id === excludeClassId
+        )
+      : classes;
+
+    return filteredClasses
+      .map(cls => ({
+        ...cls,
+        displayName: `${cls.className} - ${cls.classSection}`
+      }))
+      .sort((a, b) => {
+        const gradeA = extractGradeNumber(a.classGradeLevel);
+        const gradeB = extractGradeNumber(b.classGradeLevel);
+        if (gradeA !== gradeB) {
+          return gradeA - gradeB;
+        }
+        return a.classSection.localeCompare(b.classSection);
+      });
+  }, [classes, showOnlyAvailable, value, excludeClassId]);
   useEffect(() => {
-    if (value && classes.length > 0) {
-      const matchingClass = classes.find(c => c.id === value);
+    if (value && processedClasses.length > 0) {
+      const matchingClass = processedClasses.find(c => c.id === value);
       setSelectedClass(matchingClass || null);
     } else {
       setSelectedClass(null);
     }
-  }, [value, classes]);
+  }, [value, processedClasses]);
 
-  const handleClassChange = (selected: ClassResponse | null) => {
+  const handleClassChange = (selected: ClassWithDisplay | null) => {
     setSelectedClass(selected);
     onChange(selected ? selected.id : '');
   };
@@ -45,19 +82,23 @@ export function ClassSelector({
           {label}{required && <span className="text-red-500">*</span>}
         </label>
       )}
-      
+
       {loading ? (
         <div className="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 h-10 animate-pulse"></div>
       ) : (
-        <GenericCombobox<ClassResponse>
-          items={classes}
+        <GenericCombobox<ClassWithDisplay>
+          items={processedClasses}
           value={selectedClass}
           onChange={handleClassChange}
-          displayKey="className" 
+          displayKey="displayName"
           valueKey="id"
           placeholder={placeholder}
           disabled={disabled}
         />
+      )}
+
+      {error && (
+        <p className="mt-1 text-sm text-red-500">{error}</p>
       )}
     </div>
   );
