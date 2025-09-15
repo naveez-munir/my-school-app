@@ -2,7 +2,6 @@ import { useNavigate, useParams } from 'react-router';
 import { useState, useEffect } from 'react';
 import { useClass } from '~/hooks/useClassQueries';
 import { useSubjects } from '~/hooks/useSubjectQueries';
-import { useTeachers } from '~/hooks/useTeacherQueries';
 import { useCreateClass, useUpdateClass } from '~/hooks/useClassQueries';
 import { ClassForm } from './ClassForm';
 import { TeacherAssignmentSection } from './TeacherAssignmentSection';
@@ -19,7 +18,6 @@ export function CreateEditClass() {
   const { data: currentClass, isLoading: classLoading, refetch: refetchClass } = useClass(id || '');
   
   const { data: subjects = [], isLoading: subjectsLoading } = useSubjects();
-  const { data: teachers = [], isLoading: teachersLoading } = useTeachers();
   
   const createClassMutation = useCreateClass();
   const updateClassMutation = useUpdateClass();
@@ -70,7 +68,7 @@ export function CreateEditClass() {
     }
   };
 
-  const isLoading = (id && classLoading) || (id && subjectsLoading) || (id && teachersLoading);
+  const isLoading = (id && classLoading) || (id && subjectsLoading);
 
   if (isLoading) {
     return (
@@ -139,7 +137,6 @@ export function CreateEditClass() {
           {activeTab === 'teacher-assignment' && id && currentClass && (
             <TeacherAssignmentSection
               classData={currentClass as Class}
-              teachers={teachers}
               isLoading={classLoading}
               onRefresh={refreshClassData}
             />
