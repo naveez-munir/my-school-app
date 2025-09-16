@@ -8,26 +8,27 @@ interface ModalProps {
   title: string;
   children: ReactNode;
   size?: 'sm' | 'md' | 'lg' | 'xl';
+  closeOnOutsideClick?: boolean;
 }
 
-export function Modal({ 
-  isOpen, 
-  onClose, 
-  title, 
-  children, 
-  size = 'md' 
+export function Modal({
+  isOpen,
+  onClose,
+  title,
+  children,
+  size = 'md',
+  closeOnOutsideClick = true
 }: ModalProps) {
-  // Map size to max-width class
   const sizeClasses = {
     sm: 'max-w-sm',
     md: 'max-w-md',
     lg: 'max-w-lg',
     xl: 'max-w-xl'
   };
-  
+
   return (
     <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-50" onClose={onClose}>
+      <Dialog as="div" className="relative z-50" onClose={closeOnOutsideClick ? onClose : () => {}}>
         <TransitionChild
           as={Fragment}
           enter="ease-out duration-300"
