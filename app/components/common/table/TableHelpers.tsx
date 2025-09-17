@@ -1,12 +1,13 @@
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import type { TableMetaType } from './GenericDataTable';
+import type { LucideIcon } from 'lucide-react';
 
-export function SortableColumnHeader({ 
-  column, 
-  title 
-}: { 
-  column: any, 
-  title: string 
+export function SortableColumnHeader({
+  column,
+  title
+}: {
+  column: any,
+  title: string
 }) {
   return (
     <div className="flex items-center cursor-pointer" onClick={() => column.toggleSorting()}>
@@ -22,6 +23,7 @@ export function SortableColumnHeader({
 
 export interface ActionButton<T> {
   label: string;
+  icon?: LucideIcon;
   onClick: (item: T, id: string, meta: TableMetaType<T>) => void;
   color: 'blue' | 'red' | 'green' | 'gray';
 }
@@ -33,23 +35,26 @@ export function createActionsColumn<T>(actions: ActionButton<T>[]) {
       const meta = info.table.options.meta as TableMetaType<T>;
       const item = info.row.original;
       const id = info.getValue();
-      
+
       return (
         <div className="flex justify-end space-x-4">
           {actions.map((action, index) => {
-            const colorClass = 
+            const colorClass =
               action.color === 'blue' ? 'text-blue-600 hover:text-blue-900' :
               action.color === 'red' ? 'text-red-600 hover:text-red-900' :
               action.color === 'green' ? 'text-green-600 hover:text-green-900' :
               'text-gray-600 hover:text-gray-900';
-              
+
+            const Icon = action.icon;
+
             return (
               <button
                 key={index}
                 onClick={() => action.onClick(item, id, meta)}
                 className={`${colorClass} cursor-pointer`}
+                title={action.label}
               >
-                {action.label}
+                {Icon ? <Icon className="h-4 w-4" /> : action.label}
               </button>
             );
           })}
