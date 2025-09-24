@@ -3,6 +3,7 @@ import type { StaffListResponse } from '~/types/staff';
 import { GenericDataTable } from '../common/table/GenericDataTable';
 import { SortableColumnHeader, createActionsColumn, type ActionButton } from '../common/table/TableHelpers';
 import { getEmploymentStatusColor } from '~/utils/employeeStatusColor';
+import { Edit, Trash2 } from 'lucide-react';
 
 interface StaffTableProps {
   data: StaffListResponse[];
@@ -15,22 +16,39 @@ export function createStaffColumns(): ColumnDef<StaffListResponse, any>[] {
   const actions: ActionButton<StaffListResponse>[] = [
     {
       label: 'Edit',
+      icon: Edit,
       onClick: (item, _, meta) => meta.onEdit?.(item),
       color: 'blue'
     },
     {
       label: 'Delete',
+      icon: Trash2,
       onClick: (_, id, meta) => meta.onDelete?.(id),
       color: 'red'
     }
   ];
-  
+
   return [
     columnHelper.accessor('name', {
       header: ({ column }) => <SortableColumnHeader column={column} title="Name" />,
       cell: (info) => (
-        <div className="text-sm font-medium text-gray-900">
-          {info.getValue()}
+        <div className="flex items-center space-x-3">
+          {info.row.original.photoUrl ? (
+            <img
+              src={info.row.original.photoUrl}
+              alt={info.getValue()}
+              className="h-8 w-8 rounded-full object-cover"
+            />
+          ) : (
+            <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
+              <span className="text-xs font-medium text-gray-600">
+                {info.getValue().split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
+              </span>
+            </div>
+          )}
+          <div className="text-sm font-medium text-gray-900">
+            {info.getValue()}
+          </div>
         </div>
       ),
     }),
