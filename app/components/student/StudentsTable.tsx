@@ -1,6 +1,6 @@
-import { 
-  useReactTable, 
-  getCoreRowModel, 
+import {
+  useReactTable,
+  getCoreRowModel,
   getPaginationRowModel,
   getFilteredRowModel,
   getSortedRowModel,
@@ -10,8 +10,9 @@ import {
   type SortingState,
 } from '@tanstack/react-table';
 import { useState, useMemo } from 'react';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, Eye, Trash2 } from 'lucide-react';
 import type { StudentResponse, StudentsTableProps, TableMetaType } from '~/types/student';
+import { ClassSelector } from '~/components/common/ClassSelector';
 
 const fuzzyFilter: FilterFn<StudentResponse> = (row, columnId, filterValue: string) => {
   const value = row.getValue(columnId) as string;
@@ -34,12 +35,18 @@ const columns = [
     ),
     cell: (info) => (
       <div className="flex items-center space-x-3">
-        {info.row.original.photoUrl && (
-          <img 
-            src={info.row.original.photoUrl} 
+        {info.row.original.photoUrl ? (
+          <img
+            src={info.row.original.photoUrl}
             alt={info.getValue()}
             className="h-8 w-8 rounded-full object-cover"
           />
+        ) : (
+          <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
+            <span className="text-xs font-medium text-gray-600">
+              {info.getValue().split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
+            </span>
+          </div>
         )}
         <div className="text-sm font-medium text-gray-900">
           {info.getValue()}
@@ -110,38 +117,51 @@ const columns = [
   }),
   columnHelper.accessor('id', {
     header: () => <div className="text-right">Actions</div>,
-    cell: (info) => (
-      <div className="flex justify-end space-x-4">
-        <button
-          onClick={() => (info.table.options.meta as TableMetaType).onView(info.row.original)}
-          className="text-blue-600 hover:text-blue-900 cursor-pointer"
-        >
-          View
-        </button>
-        <button
-          onClick={() => (info.table.options.meta as TableMetaType).onDelete(info.getValue())}
-          className="text-red-600 hover:text-red-900 cursor-pointer"
-        >
-          Delete
-        </button>
-      </div>
-    ),
+    cell: (info) => {
+      const meta = info.table.options.meta as TableMetaType;
+      return (
+        <div className="flex justify-end space-x-4">
+          <button
+            onClick={() => meta.onView(info.row.original)}
+            className="text-blue-600 hover:text-blue-900 cursor-pointer"
+            title="View"
+          >
+            <Eye className="h-4 w-4" />
+          </button>
+          {meta.onDelete && (
+            <button
+              onClick={() => meta.onDelete?.(info.row.original)}
+              className="text-red-600 hover:text-red-900 cursor-pointer"
+              title="Delete"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+      );
+    },
   }),
 ];
 
-export function StudentsTable({ 
-  data, 
+export function StudentsTable({
+  data,
   onView,
-  onDelete 
+  onDelete
 }: StudentsTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState('');
+  const [selectedClass, setSelectedClass] = useState<string>('');
   const [pagination, setPagination] = useState({
     pageIndex: 0,
     pageSize: 20,
   });
 
-  const tableData = useMemo(() => data, [data]);
+  const filteredData = useMemo(() => {
+    if (!selectedClass) return data;
+    return data.filter(student => student.classId === selectedClass);
+  }, [data, selectedClass]);
+
+  const tableData = useMemo(() => filteredData, [filteredData]);
 
   const table = useReactTable({
     data: tableData,
@@ -168,7 +188,7 @@ export function StudentsTable({
   return (
     <div className="space-y-4">
       <div className="bg-white p-4 rounded-lg shadow">
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-3">
           <div>
             <label className="block text-sm font-medium text-gray-700">Search</label>
             <input
@@ -179,6 +199,13 @@ export function StudentsTable({
               className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-500"
             />
           </div>
+          <ClassSelector
+            value={selectedClass}
+            onChange={setSelectedClass}
+            label="Filter by Class"
+            placeholder="All classes"
+            className="w-full"
+          />
           <div className="flex items-end">
             <select
               value={pagination.pageSize}
