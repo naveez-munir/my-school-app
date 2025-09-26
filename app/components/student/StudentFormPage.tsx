@@ -7,6 +7,7 @@ import { useCreateStudent } from "~/hooks/useStudentQueries";
 import type { CreateStudentDto } from "~/types/student";
 import { cleanFormData } from "~/utils/cleanFormData";
 import toast from 'react-hot-toast';
+import { formatUserFriendlyDate } from '~/utils/dateUtils';
 
 type FormStep = 'basic' | 'guardian' | 'review';
 
@@ -86,10 +87,10 @@ export function StudentFormPage() {
         <div className="grid grid-cols-2 gap-4">
           <div><span className="text-gray-500">Name:</span> {formData.firstName} {formData.lastName}</div>
           <div><span className="text-gray-500">CNI:</span> {formData.cniNumber}</div>
-          <div><span className="text-gray-500">DOB:</span> {formData.dateOfBirth}</div>
+          <div><span className="text-gray-500">DOB:</span> {formatUserFriendlyDate(formData.dateOfBirth)}</div>
           <div><span className="text-gray-500">Gender:</span> {formData.gender}</div>
           <div><span className="text-gray-500">Grade:</span> {formData.gradeLevel}</div>
-          <div><span className="text-gray-500">Admission Date:</span> {formData.admissionDate}</div>
+          <div><span className="text-gray-500">Admission Date:</span> {formatUserFriendlyDate(formData.admissionDate)}</div>
         </div>
       </div>
       
