@@ -2,6 +2,7 @@ import { useState, memo } from "react";
 import { useParams, useNavigate, Link } from "react-router";
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
 import { useStudent } from "~/hooks/useStudentQueries";
+import { Mail, Phone, User } from "lucide-react";
 
 import { StudentOverview } from './tabs/StudentOverview';
 import { StudentPersonalInfo } from './tabs/StudentPersonalInfo';
@@ -43,16 +44,14 @@ const TAB_COMPONENTS = [
 
 const StudentAvatar = ({ student }: { student: Student }) => (
   student.photoUrl ? (
-    <img 
-      src={student.photoUrl} 
+    <img
+      src={student.photoUrl}
       alt={`${student.firstName} ${student.lastName}`}
-      className="h-16 w-16 rounded-full object-cover mr-4" 
+      className="h-24 w-24 rounded-full object-cover border-4 border-white shadow"
     />
   ) : (
-    <div className="h-16 w-16 rounded-full bg-gray-200 flex items-center justify-center mr-4">
-      <span className="text-gray-500 text-xl font-medium">
-        {student.firstName?.[0]}{student.lastName?.[0]}
-      </span>
+    <div className="h-24 w-24 rounded-full bg-blue-100 flex items-center justify-center border-4 border-white shadow">
+      <User className="h-10 w-10 text-blue-600" />
     </div>
   )
 );
@@ -89,30 +88,94 @@ export function StudentDetailPage({stId} : {stId?:string}) {
   return (
     <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
       {/* Student header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between">
-        <div className="flex items-center">
-          <StudentAvatar student={student} />
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              {student.firstName} {student.lastName}
-            </h1>
-            <p className="text-sm text-gray-500">
-              Grade: {student.gradeLevel} • Roll #: {student.rollNumber || 'Not assigned'} • 
-              Status: <span className={student.status === 'Active' ? 'text-green-600' : 'text-red-600'}>
-                {student.status}
-              </span>
-            </p>
+      <div className="bg-white rounded-lg shadow overflow-hidden">
+        <div className="p-6 sm:p-8 bg-gradient-to-r from-blue-50 to-indigo-50 border-b">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
+            <div className="flex-shrink-0">
+              <StudentAvatar student={student} />
+            </div>
+
+            <div className="flex-1 text-center sm:text-left">
+              <h1 className="text-xl font-bold text-gray-900">
+                {student.firstName} {student.lastName}
+              </h1>
+
+              <div className="mt-2 space-y-1">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4">
+                  <div className="flex items-center gap-1 justify-center sm:justify-start">
+                    <span className="text-sm font-medium text-gray-500">Roll #:</span>
+                    <span className="text-sm text-gray-900">{student.rollNumber || 'Not assigned'}</span>
+                  </div>
+                  <div className="flex items-center gap-1 justify-center sm:justify-start">
+                    <span className="text-sm font-medium text-gray-500">Grade:</span>
+                    <span className="text-sm text-gray-900">{student.gradeLevel}</span>
+                  </div>
+                  <div className="flex items-center gap-1 justify-center sm:justify-start">
+                    <span className="text-sm font-medium text-gray-500">Status:</span>
+                    <span className={`text-sm px-2 py-0.5 rounded-full ${
+                      student.status === 'Active' ? 'bg-green-100 text-green-800' :
+                      student.status === 'Inactive' ? 'bg-red-100 text-red-800' :
+                      student.status === 'Graduated' ? 'bg-blue-100 text-blue-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {student.status}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4">
+                  {student.cniNumber && (
+                    <div className="flex items-center gap-1 justify-center sm:justify-start">
+                      <span className="text-sm font-medium text-gray-500">CNI:</span>
+                      <span className="text-sm text-gray-900">{student.cniNumber}</span>
+                    </div>
+                  )}
+                  {student.class?.className && (
+                    <div className="flex items-center gap-1 justify-center sm:justify-start">
+                      <span className="text-sm font-medium text-gray-500">Class:</span>
+                      <span className="text-sm text-gray-900">{student.class.className}</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4">
+                  {student.email && (
+                    <div className="flex items-center gap-1 justify-center sm:justify-start">
+                      <Mail className="h-4 w-4 text-gray-500" />
+                      <span className="text-sm text-gray-900">{student.email}</span>
+                    </div>
+                  )}
+                  {student.phone && (
+                    <div className="flex items-center gap-1 justify-center sm:justify-start">
+                      <Phone className="h-4 w-4 text-gray-500" />
+                      <span className="text-sm text-gray-900">{student.phone}</span>
+                    </div>
+                  )}
+                </div>
+
+                {student.guardian?.name && (
+                  <div className="flex items-center gap-1 justify-center sm:justify-start">
+                    <span className="text-sm font-medium text-gray-500">Guardian:</span>
+                    <span className="text-sm text-gray-900">
+                      {student.guardian.name} ({student.guardian.relationship})
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {isAdmin() && (
+              <div className="flex-shrink-0">
+                <button
+                  onClick={() => navigate('/dashboard/students')}
+                  className="px-4 py-2 bg-white text-gray-700 rounded-lg hover:bg-gray-50 border border-gray-300 transition-colors"
+                >
+                  Back to List
+                </button>
+              </div>
+            )}
           </div>
         </div>
-        {isAdmin() && (<div className="mt-4 md:mt-0 flex space-x-2">
-          <button 
-            onClick={() => navigate('/dashboard/students')}
-            className="px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-          >
-            Back to List
-          </button>
-        </div>)
-        }
       </div>
 
       {/* Tabs */}
