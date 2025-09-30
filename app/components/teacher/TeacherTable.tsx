@@ -3,40 +3,54 @@ import type { TeacherResponse } from '~/types/teacher';
 import { GenericDataTable } from '../common/table/GenericDataTable';
 import { SortableColumnHeader, createActionsColumn, type ActionButton } from '../common/table/TableHelpers';
 import { getEmploymentStatusColor } from '~/utils/employeeStatusColor';
+import { Edit, Trash2 } from 'lucide-react';
 
 interface TeacherTableProps {
   data: TeacherResponse[];
-  onEdit: (teacher: TeacherResponse) => void;
-  onDelete: (id: string) => void;
+  onEdit?: (teacher: TeacherResponse) => void;
+  onDelete?: (teacher: TeacherResponse) => void;
 }
 
 
-export function createTeacherColumns(): ColumnDef<TeacherResponse, any>[] {
+export function createTeacherColumns(onEdit?: (teacher: TeacherResponse) => void, onDelete?: (teacher: TeacherResponse) => void): ColumnDef<TeacherResponse, any>[] {
   const columnHelper = createColumnHelper<TeacherResponse>();
-  const actions: ActionButton<TeacherResponse>[] = [
-    {
+  const actions: ActionButton<TeacherResponse>[] = [];
+
+  if (onEdit) {
+    actions.push({
       label: 'Edit',
-      onClick: (item, _, meta) => meta.onEdit?.(item),
+      icon: Edit,
+      onClick: (item) => onEdit(item),
       color: 'blue'
-    },
-    {
+    });
+  }
+
+  if (onDelete) {
+    actions.push({
       label: 'Delete',
-      onClick: (_, id, meta) => meta.onDelete?.(id),
+      icon: Trash2,
+      onClick: (item) => onDelete(item),
       color: 'red'
-    }
-  ];
+    });
+  }
   
   return [
     columnHelper.accessor('name', {
       header: ({ column }) => <SortableColumnHeader column={column} title="Teacher Name" />,
       cell: (info) => (
         <div className="flex items-center space-x-3">
-          {info.row.original.photoUrl && (
-            <img 
-              src={info.row.original.photoUrl} 
+          {info.row.original.photoUrl ? (
+            <img
+              src={info.row.original.photoUrl}
               alt={info.getValue()}
               className="h-8 w-8 rounded-full object-cover"
             />
+          ) : (
+            <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
+              <span className="text-xs font-medium text-gray-600">
+                {info.getValue().split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
+              </span>
+            </div>
           )}
           <div className="text-sm font-medium text-gray-900">
             {info.getValue()}
@@ -76,23 +90,30 @@ export function createTeacherColumns(): ColumnDef<TeacherResponse, any>[] {
         </span>
       ),
     }),
-    columnHelper.accessor('id', createActionsColumn<TeacherResponse>(actions)),
+    ...(actions.length > 0 ? [columnHelper.accessor('id', createActionsColumn<TeacherResponse>(actions))] : []),
   ];
 }
 
-export function TeacherTable({ 
-  data, 
+export function TeacherTable({
+  data,
   onEdit,
-  onDelete 
+  onDelete
 }: TeacherTableProps) {
-  const columns = createTeacherColumns();
+  const columns = createTeacherColumns(onEdit, onDelete);
+
+  const handleDelete = onDelete ? (id: string) => {
+    const teacher = data.find(t => t.id === id);
+    if (teacher) {
+      onDelete(teacher);
+    }
+  } : undefined;
 
   return (
     <GenericDataTable<TeacherResponse>
       data={data}
       columns={columns}
       onEdit={onEdit}
-      onDelete={onDelete}
+      onDelete={handleDelete}
       emptyStateMessage="No teachers found."
       searchPlaceholder="Search teachers..."
       idField="id"
