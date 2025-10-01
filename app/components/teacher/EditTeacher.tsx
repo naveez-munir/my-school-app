@@ -1,29 +1,42 @@
+import { useState } from 'react';
 import { useTeacher, useUpdateTeacher } from '~/hooks/useTeacherQueries';
 import { TeacherForm } from './TeacherForm';
 import type { CreateTeacherDto } from '~/types/teacher';
 import { useNavigate, useParams } from 'react-router';
 import { cleanTeacherData } from '~/utils/cleanFormData';
 import { useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
+import { getErrorMessage } from '~/utils/error';
+import { LeaveBalanceTab } from '~/components/leave/LeaveBalanceTab';
+import { isAdmin } from '~/utils/auth';
 
 export function EditTeacher() {
   const { id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState<'basic' | 'leave'>('basic');
+  const userIsAdmin = isAdmin();
   
   // React Query hooks
   const { data: currentTeacher, isLoading: fetchLoading } = useTeacher(id || '');
   const updateTeacherMutation = useUpdateTeacher();
 
-  const handleSubmit = async (data: CreateTeacherDto) => {
-    try {
-      if (id) {
-        const cleanedData = cleanTeacherData(data);
-        await updateTeacherMutation.mutateAsync({ id, data: cleanedData });
-        queryClient.invalidateQueries({ queryKey: ['classes'] });
-        navigate('/dashboard/teachers');
-      }
-    } catch (error) {
-      console.error('Failed to update teacher:', error);
+  const handleSubmit = (data: CreateTeacherDto) => {
+    if (id) {
+      const cleanedData = cleanTeacherData(data);
+      updateTeacherMutation.mutate(
+        { id, data: cleanedData },
+        {
+          onSuccess: () => {
+            toast.success('Teacher updated successfully');
+            queryClient.invalidateQueries({ queryKey: ['classes'] });
+            navigate('/dashboard/teachers');
+          },
+          onError: (error) => {
+            toast.error(getErrorMessage(error));
+          }
+        }
+      );
     }
   };
 
@@ -107,12 +120,45 @@ export function EditTeacher() {
           </div>
         </div>
 
+        <div className="border-b border-gray-200">
+          <nav className="flex space-x-8 px-6">
+            <button
+              onClick={() => setActiveTab('basic')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                activeTab === 'basic'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              📋 Basic Info
+            </button>
+            <button
+              onClick={() => setActiveTab('leave')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                activeTab === 'leave'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              🏖️ Leave Balance
+            </button>
+          </nav>
+        </div>
+
         <div className="p-4 sm:p-6">
-          <TeacherForm
-            initialData={currentTeacher}
-            onSubmit={handleSubmit}
-            isLoading={updateTeacherMutation.isPending}
-          />
+          {activeTab === 'basic' ? (
+            <TeacherForm
+              initialData={currentTeacher}
+              onSubmit={handleSubmit}
+              isLoading={updateTeacherMutation.isPending}
+            />
+          ) : (
+            <LeaveBalanceTab
+              employeeId={id || ''}
+              employeeType="Teacher"
+              isAdmin={userIsAdmin}
+            />
+          )}
         </div>
       </div>
     </div>
