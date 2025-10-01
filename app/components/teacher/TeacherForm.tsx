@@ -79,6 +79,7 @@ export function TeacherForm({
           <BasicInfoForm
             data={formData}
             onUpdate={handleUpdate}
+            assignedClassName={initialData?.classTeacherOf?.className}
           />
         )}
         {activeTab === 'education' && (
