@@ -11,6 +11,8 @@ interface TeacherSelectorProps {
   placeholder?: string;
   disabled?: boolean;
   className?: string;
+  showOnlyAvailable?: boolean;
+  excludeTeacherId?: string;
 }
 
 export function TeacherSelector({
@@ -19,10 +21,20 @@ export function TeacherSelector({
   label = 'Teacher',
   required = false,
   placeholder = 'Select or enter teacher',
-  className = ''
+  className = '',
+  showOnlyAvailable = false,
+  excludeTeacherId
 }: TeacherSelectorProps) {
   const { data: teachers = [], isLoading: loading } = useTeachers();
   const [selectedTeacher, setSelectedTeacher] = useState<TeacherResponse | null>(null)
+
+  const availableTeachers = showOnlyAvailable
+    ? teachers.filter(teacher =>
+        !teacher.assignedClassName ||
+        teacher.id === value ||
+        teacher.id === excludeTeacherId
+      )
+    : teachers;
 
   useEffect(() => {
     if (value && teachers.length > 0) {
@@ -50,10 +62,10 @@ export function TeacherSelector({
         <div className="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 h-10 animate-pulse"></div>
       ) : (
         <GenericCombobox<TeacherResponse>
-          items={teachers}
+          items={availableTeachers}
           value={selectedTeacher}
           onChange={handleTeacherChange}
-          displayKey="name" 
+          displayKey="name"
           valueKey="id"
           placeholder={placeholder}
         />
