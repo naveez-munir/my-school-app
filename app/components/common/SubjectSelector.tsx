@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import GenericCombobox from '~/components/common/form/inputs/Select';
 import { useSubjects } from '~/hooks/useSubjectQueries';
+import { useClass } from '~/hooks/useClassQueries';
 import type { Subject } from '~/types/subject';
 
 interface SubjectSelectorProps {
@@ -10,6 +11,7 @@ interface SubjectSelectorProps {
   required?: boolean;
   placeholder?: string;
   className?: string;
+  classId?: string;
 }
 
 export function SubjectSelector({
@@ -18,19 +20,31 @@ export function SubjectSelector({
   label = 'Course',
   required = false,
   placeholder = 'Select or enter course',
-  className = ''
+  className = '',
+  classId
 }: SubjectSelectorProps) {
-  const { data: subjects = [], isLoading: loading } = useSubjects();
+  const { data: subjects = [], isLoading: loadingSubjects } = useSubjects();
+  const { data: classData, isLoading: loadingClass } = useClass(classId || '');
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
-  
+
+  const filteredSubjects = useMemo(() => {
+    if (!classId || !classData?.classSubjects) {
+      return subjects;
+    }
+    const classSubjectIds = classData.classSubjects.map(s => s._id);
+    return subjects.filter(s => classSubjectIds.includes(s._id));
+  }, [classId, classData, subjects]);
+
+  const loading = loadingSubjects || (classId ? loadingClass : false);
+
   useEffect(() => {
-    if (value && subjects.length > 0) {
-      const matchingSubject = subjects.find(s => s._id === value);
+    if (value && filteredSubjects.length > 0) {
+      const matchingSubject = filteredSubjects.find(s => s._id === value);
       setSelectedSubject(matchingSubject || null);
     } else {
       setSelectedSubject(null);
     }
-  }, [value, subjects]);
+  }, [value, filteredSubjects]);
 
   const handleSubjectChange = (selected: Subject | null) => {
     setSelectedSubject(selected);
@@ -49,10 +63,10 @@ export function SubjectSelector({
         <div className="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 h-10 animate-pulse"></div>
       ) : (
         <GenericCombobox<Subject>
-          items={subjects}
+          items={filteredSubjects}
           value={selectedSubject}
           onChange={handleSubjectChange}
-          displayKey="subjectName" 
+          displayKey="subjectName"
           valueKey="_id"
           placeholder={placeholder}
         />
