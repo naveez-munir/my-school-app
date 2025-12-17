@@ -5,19 +5,20 @@ import { BookOpen, Calendar, BarChart3 } from 'lucide-react';
 
 export function StudentAcademicInfo({student} : StudentDataProps) {
   const classInfoFields = [
-    { label: "Grade Level", value: student.class?.classGradeLevel, icon: BookOpen },
+    { label: "Grade Level", value: student.class?.classGradeLevel, fallback: "Not assigned", icon: BookOpen },
     { label: "Class", value: student.class?.className, fallback: "Not assigned", icon: BookOpen },
     { label: "Roll Number", value: student.rollNumber, fallback: "Not assigned", icon: BookOpen }
   ];
 
   const enrollmentFields = [
-    { label: "Enrollment Date", value: formatUserFriendlyDate(student.enrollmentDate), icon: Calendar },
-    { label: "Admission Date", value: formatUserFriendlyDate(student.admissionDate), icon: Calendar },
+    { label: "Enrollment Date", value: formatUserFriendlyDate(student.enrollmentDate), fallback: "Not provided", icon: Calendar },
+    { label: "Admission Date", value: formatUserFriendlyDate(student.admissionDate), fallback: "Not provided", icon: Calendar },
     {
       label: "Attendance",
       value: student.attendancePercentage !== undefined
         ? `${student.attendancePercentage.toFixed(1)}%`
         : 'Not recorded',
+      fallback: "Not recorded",
       icon: BarChart3
     }
   ];

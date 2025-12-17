@@ -1,10 +1,5 @@
 import { CheckIcon } from "lucide-react";
-
-interface StepIndicatorProps {
-  steps: Array<{ id: string; label: string }>;
-  currentStep: string;
-  onStepClick: (step: any) => void;
-}
+import type { StepIndicatorProps } from "~/types/student";
 
 export function StepIndicator({
   steps,

@@ -77,7 +77,7 @@ export function PersonalInfoForm() {
 
   return (
     <StudentFormLayout
-      student={student}
+      student={student || null}
       isLoadingStudent={isLoadingStudent}
       isSubmitting={isPending}
       title="Edit Personal Information"

@@ -61,7 +61,7 @@ export function AcademicInfoForm() {
 
   return (
     <StudentFormLayout
-      student={student}
+      student={student || null}
       isLoadingStudent={isLoadingStudent}
       isSubmitting={isPending}
       title="Edit Academic Information"

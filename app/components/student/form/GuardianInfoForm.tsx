@@ -1,6 +1,6 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useParams } from "react-router";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { TextInput } from "~/components/common/form/inputs/TextInput";
 import { SelectInput } from "~/components/common/form/inputs/SelectInput";
@@ -56,6 +56,18 @@ export function GuardianInfoForm() {
     defaultValues: formData as UpdateGuardianInfoFormData,
   });
 
+  const guardianCni = useWatch({
+    control,
+    name: "cniNumber",
+  });
+
+  const cniMismatchError = useMemo(() => {
+    if (guardianCni && student?.cniNumber && guardianCni === student.cniNumber) {
+      return "Guardian CNIC cannot be the same as student CNIC";
+    }
+    return null;
+  }, [guardianCni, student?.cniNumber]);
+
   useEffect(() => {
     if (formData) {
       reset(formData as UpdateGuardianInfoFormData);
@@ -63,15 +75,18 @@ export function GuardianInfoForm() {
   }, [formData, reset]);
 
   const onSubmit = async (validatedData: UpdateGuardianInfoFormData) => {
+    if (cniMismatchError) {
+      return;
+    }
     setFormData(validatedData as Guardian);
     await submitToApi(validatedData);
   };
 
   return (
     <StudentFormLayout
-      student={student}
+      student={student || null}
       isLoadingStudent={isLoadingStudent}
-      isSubmitting={isPending}
+      isSubmitting={isPending || !!cniMismatchError}
       title="Edit Guardian Information"
       description={`Update guardian details for {studentName}.`}
       onSubmit={handleSubmit(onSubmit)}
@@ -92,19 +107,24 @@ export function GuardianInfoForm() {
           )}
         />
 
-        <FormField
-          name="cniNumber"
-          control={control}
-          errors={errors}
-          render={(field) => (
-            <TextInput
-              label="CNI Number"
-              value={field.value}
-              onChange={field.onChange}
-              required
-            />
+        <div>
+          <FormField
+            name="cniNumber"
+            control={control}
+            errors={errors}
+            render={(field) => (
+              <TextInput
+                label="CNI Number"
+                value={field.value}
+                onChange={field.onChange}
+                required
+              />
+            )}
+          />
+          {cniMismatchError && (
+            <p className="mt-1 text-sm text-red-600">{cniMismatchError}</p>
           )}
-        />
+        </div>
 
         <FormField
           name="relationship"

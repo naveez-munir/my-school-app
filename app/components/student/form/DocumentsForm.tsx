@@ -97,7 +97,7 @@ export function DocumentsForm() {
 
   return (
     <StudentFormLayout
-      student={student}
+      student={student || null}
       isLoadingStudent={isLoadingStudent}
       isSubmitting={isPhotoUpdatePending || isSubmitting}
       title="Manage Student Documents"

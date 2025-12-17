@@ -296,7 +296,7 @@ export interface TableMetaType {
   onDelete?: (student: StudentResponse) => void;
 }
 export interface StudentFormLayoutProps {
-  student: any;
+  student: Student | null;
   isLoadingStudent: boolean;
   isSubmitting: boolean;
   title: string;
@@ -327,4 +327,87 @@ export interface BasicInfoStepProps {
 
 export interface StudentDataProps {
   student: Student;
+}
+
+// ============================================
+// Component Props - Form Components
+// ============================================
+
+export interface DocumentUploaderProps {
+  currentDocumentUrl?: string;
+  documentType?: string;
+  onDocumentChange: (url: string) => void;
+  folder?: string;
+  label?: string;
+  accept?: string;
+}
+
+export interface PhotoUploadProps {
+  currentPhoto?: string;
+  onPhotoChange: (url: string) => void;
+  folder?: string;
+}
+
+export interface StepIndicatorProps {
+  steps: Array<{ id: string; label: string }>;
+  currentStep: string;
+  onStepClick: (step: string) => void;
+}
+
+// ============================================
+// Component Props - Card Components
+// ============================================
+
+export interface StudentCardField {
+  label: string;
+  value: string | number | null | undefined;
+  fallback?: string;
+  valueClassName?: string;
+  icon?: React.ComponentType<{ className?: string }>;
+}
+
+export interface InfoCardProps {
+  title: string;
+  editPath?: string;
+  studentId?: string;
+  fields: StudentCardField[];
+  className?: string;
+  showEditButton?: boolean;
+}
+
+export interface SectionCardProps {
+  title: string;
+  editPath?: string;
+  studentId?: string;
+  fields: StudentCardField[];
+  className?: string;
+  showEditButton?: boolean;
+}
+
+export interface DetailSectionProps {
+  title: string;
+  editPath?: string;
+  studentId?: string;
+  fields: StudentCardField[];
+  columns?: 2 | 3;
+  className?: string;
+  showEditButton?: boolean;
+}
+
+export interface TabSectionProps {
+  title: string;
+  editPath?: string;
+  studentId?: string;
+  fields: StudentCardField[];
+  columns?: 2 | 3;
+  className?: string;
+  showEditButton?: boolean;
+}
+
+export interface QuickInfoCardProps {
+  student: {
+    cniNumber: string;
+    dateOfBirth: string;
+    admissionDate: string;
+  };
 }

@@ -7,6 +7,7 @@ import { TextArea } from "~/components/common/form/inputs/TextArea";
 import { TextInput } from "~/components/common/form/inputs/TextInput";
 import { GradeSelector } from "~/components/common/GradeSelector";
 import { FormField } from "~/components/common/form/FormField";
+import { FormStepActions } from "~/components/common/form/FormStepActions";
 import { Gender, BloodGroup } from "~/types/student";
 import type { BasicInfoStepProps, CreateStudentDto } from "~/types/student";
 import { basicInfoSchema, type BasicInfoFormData } from "~/utils/validation/studentValidation";
@@ -216,21 +217,12 @@ export function BasicInfoStep({
         />
       </div>
 
-      <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 pt-4 sm:pt-5 lg:pt-6 border-t">
-        <button
-          type="button"
-          onClick={onBack}
-          className="px-3 py-1.5 sm:px-4 sm:py-2 border rounded-md text-xs sm:text-sm text-gray-700 hover:bg-gray-50 cursor-pointer"
-        >
-          Back
-        </button>
-        <button
-          type="submit"
-          className="px-3 py-1.5 sm:px-4 sm:py-2 bg-blue-600 text-white rounded-md text-xs sm:text-sm hover:bg-blue-700 cursor-pointer"
-        >
-          Next
-        </button>
-      </div>
+      <FormStepActions
+        onBack={onBack}
+        backLabel="Back"
+        nextLabel="Next"
+        isFirstStep={false}
+      />
     </form>
   );
 }

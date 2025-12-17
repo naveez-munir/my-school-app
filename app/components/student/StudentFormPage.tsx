@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import { StepIndicator } from "./form/StepIndicator";
 import { BasicInfoStep } from "./form/BasicInfoStep";
 import { GuardianInfoStep } from "./form/GuardianInfoStep";
+import { FormStepActions } from "~/components/common/form/FormStepActions";
 import { useCreateStudent } from "~/hooks/useStudentQueries";
 import type { CreateStudentDto } from "~/types/student";
 import { cleanFormData } from "~/utils/cleanFormData";
@@ -39,12 +40,12 @@ export function StudentFormPage() {
     }
   };
 
-  const handleStepSelect = (stepId: FormStep) => {
+  const handleStepSelect = (stepId: string) => {
     const currentIndex = steps.findIndex(s => s.id === activeStep);
     const targetIndex = steps.findIndex(s => s.id === stepId);
-    
+
     if (targetIndex <= currentIndex) {
-      setActiveStep(stepId);
+      setActiveStep(stepId as FormStep);
     }
   };
 
@@ -116,23 +117,14 @@ export function StudentFormPage() {
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 pt-4 sm:pt-5 lg:pt-6 border-t">
-        <button
-          type="button"
-          onClick={handleBack}
-          className="btn-secondary"
-        >
-          Previous
-        </button>
-        <button
-          type="button"
-          onClick={() => handleSubmit()}
-          disabled={isSubmitting}
-          className="btn-primary disabled:bg-blue-400"
-        >
-          {isSubmitting ? 'Submitting...' : 'Create Student'}
-        </button>
-      </div>
+      <FormStepActions
+        onBack={handleBack}
+        onNext={() => handleSubmit()}
+        backLabel="Previous"
+        submitLabel="Create Student"
+        isLastStep={true}
+        isSubmitting={isSubmitting}
+      />
     </div>
   );
 

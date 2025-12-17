@@ -1,24 +1,10 @@
-import { useNavigate } from 'react-router';
-import { isAdmin } from '~/utils/auth';
+import { FieldCard } from '~/components/common/ui/FieldCard';
+import type { TabSectionProps } from '~/types/student';
 
-interface TabField {
-  label: string;
-  value: string | number | null | undefined;
-  fallback?: string;
-  valueClassName?: string;
-  icon?: React.ComponentType<{ className?: string }>;
-}
-
-interface TabSectionProps {
-  title: string;
-  editPath?: string;
-  studentId?: string;
-  fields: TabField[];
-  columns?: 2 | 3;
-  className?: string;
-  showEditButton?: boolean;
-}
-
+/**
+ * @deprecated Use FieldCard directly with layout="grid-2" or "grid-3"
+ * This component is kept for backward compatibility
+ */
 export function TabSection({
   title,
   editPath,
@@ -28,20 +14,21 @@ export function TabSection({
   className = '',
   showEditButton = true
 }: TabSectionProps) {
-  const navigate = useNavigate();
-  const isAdminUser = isAdmin();
+  const fullEditPath = editPath && studentId
+    ? `/dashboard/students/${studentId}${editPath}`
+    : undefined;
 
-  const columnClass = columns === 2 ? 'grid-cols-2' : 'grid-cols-3';
+  const layout = columns === 2 ? 'grid-2' : 'grid-3';
 
   return (
-    <div className={`${className}`}>
+    <div className={className}>
       <h4 className="text-heading mb-3 sm:mb-4">{title}</h4>
-      <div className={`grid gap-4 sm:gap-6 ${columnClass}`}>
+      <div className={layout === 'grid-2' ? 'grid gap-4 sm:gap-6 grid-cols-2' : 'grid gap-4 sm:gap-6 grid-cols-3'}>
         {fields.map((field, index) => {
           const Icon = field.icon;
           return (
             <div key={index} className="flex flex-col">
-              <div className="flex-center mb-2">
+              <div className={`${Icon ? 'flex-center' : ''} mb-2`}>
                 {Icon && <Icon className="icon-md text-gray-500" />}
                 <span className="text-label">{field.label}</span>
               </div>
