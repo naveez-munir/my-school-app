@@ -2,12 +2,9 @@ import { useEffect, useState } from 'react';
 import { FormActions } from '~/components/common/form/FormActions';
 import { SelectInput } from '~/components/common/form/inputs/SelectInput';
 import { TextInput } from '~/components/common/form/inputs/TextInput';
-import { type StudentFee, type PopulatedStudentFee, type ApplyDiscountInput, DiscountType, type FeeDetail, type PopulatedFeeDetail } from '~/types/studentFee';
-import { formatCurrency } from '~/types/studentFee';
+import { type AnyStudentFee, type ApplyDiscountInput, DiscountType, type FeeDetail, type PopulatedFeeDetail } from '~/types/studentFee';
+import { formatCurrency, getStudentDisplayName } from '~/types/studentFee';
 import { formatUserFriendlyDate } from '~/utils/dateUtils';
-
-// Use a type alias for fees that can be either populated or not
-type AnyStudentFee = StudentFee | PopulatedStudentFee;
 
 interface ApplyDiscountModalProps {
   isOpen: boolean;
@@ -59,15 +56,6 @@ export function ApplyDiscountModal({
     [DiscountType.OTHER]: 'Other Discount'
   };
 
-  // Get student name for display
-  const getStudentName = () => {
-    const student = fee.studentId;
-    if (typeof student === 'object' && student !== null) {
-      return `${student.firstName} ${student.lastName}`;
-    }
-    return `Student ID: ${student}`;
-  };
-
   // Get eligible fee categories for discount (those with discountAllowed)
   const getEligibleFeeCategories = () => {
     return fee.feeDetails.map(detail => {
@@ -110,7 +98,7 @@ export function ApplyDiscountModal({
         <div className="bg-blue-50 p-4 rounded-md mb-4">
           <h4 className="font-medium text-blue-700">Fee Details</h4>
           <div className="mt-2 space-y-1">
-            <p><span className="font-medium">Student:</span> {getStudentName()}</p>
+            <p><span className="font-medium">Student:</span> {getStudentDisplayName(fee)}</p>
             <p><span className="font-medium">Bill Type:</span> {fee.billType}</p>
             <p><span className="font-medium">Due Date:</span> {formatUserFriendlyDate(fee.dueDate)}</p>
             <p><span className="font-medium">Total Amount:</span> {formatCurrency(fee.totalAmount)}</p>
