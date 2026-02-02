@@ -4,11 +4,10 @@ import type {
   GenerateStudentFeeInput,
   ApplyDiscountInput,
   BulkGenerateStudentFeeInput,
-  StudentFee,
   PopulatedStudentFee,
   CreateAdhocFeeInput,
   StudentFeeSettlementInput,
-  StudentClassTransferInput
+  StudentClassTransferInput,
 } from "~/types/studentFee";
 import {
   useStudentFeeAnalytics,
@@ -25,6 +24,7 @@ import {
 } from "~/hooks/useStudentFeeQueries";
 import { useClasses } from "~/hooks/useClassQueries";
 import { useStudents } from "~/hooks/useStudentQueries";
+import { useStudentFeeModals } from "~/hooks/useStudentFeeModals";
 import { AcademicYearSelector } from "~/components/common/AcademicYearSelector";
 import { ClassSelector } from "~/components/common/ClassSelector";
 import { MonthSelector } from "~/components/common/MonthSelector";
@@ -33,47 +33,17 @@ import { FeeActionButtons } from "./FeeActionButtons";
 import { StudentFeeSkeleton } from "./StudentFeeSkeleton";
 import { FeeStatusSummary } from "./FeeStatusSummary";
 import { StudentFeesTable } from "./StudentFeesTable";
-import { GenerateStudentFeeModal } from "./GenerateStudentFeeModal";
-import { BulkGenerateFeesModal } from "./BulkGenerateFeesModal";
-import { ApplyDiscountModal } from "./ApplyDiscountModal";
-import { CancelFeeModal } from "./CancelFeeModal";
-import { ViewFeeDetailsModal } from "./ViewFeeDetailsModal";
-import { ConfirmActionModal } from "./ConfirmActionModal";
-import { GenerateRecurringFeesModal, type RecurringFeeData, type ClassSelection } from "./GenerateRecurringFeesModal";
-import { PaymentModal } from "../feePayment/PaymentModal";
-import { BulkPaymentModal } from "../feePayment/BulkPaymentModal";
-import { CreateAdhocFeeModal } from "./CreateAdhocFeeModal";
-import { SettleStudentFeesModal } from "./SettleStudentFeesModal";
-import { ClassTransferModal } from "./ClassTransferModal";
-
-type AnyStudentFee = StudentFee | PopulatedStudentFee;
+import { StudentFeeModals } from "./StudentFeeModals";
+import type { RecurringFeeData } from "./GenerateRecurringFeesModal";
 
 export const StudentFeeSection = () => {
   const [academicYear, setAcademicYear] = useState<string>('');
   const [selectedClassId, setSelectedClassId] = useState<string>('');
   const [selectedMonth, setSelectedMonth] = useState<number | undefined>(undefined);
   const [selectedStatus, setSelectedStatus] = useState<string>('');
-
-  const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false);
-  const [isBulkGenerateModalOpen, setIsBulkGenerateModalOpen] = useState(false);
-  const [isDiscountModalOpen, setIsDiscountModalOpen] = useState(false);
-  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
-  const [isViewDetailsModalOpen, setIsViewDetailsModalOpen] = useState(false);
-  const [isRecurringModalOpen, setIsRecurringModalOpen] = useState(false);
-  const [classesRequiringSelection, setClassesRequiringSelection] = useState<ClassSelection[]>([]);
-  const [selectedFee, setSelectedFee] = useState<AnyStudentFee | null>(null);
-  const [feeToCancel, setFeeToCancel] = useState<string | null>(null);
-  const [feeToView, setFeeToView] = useState<AnyStudentFee | null>(null);
-  const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; action: 'lateFees' | 'updateStatuses' | null }>({ isOpen: false, action: null });
-  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
-  const [feeToPay, setFeeToPay] = useState<AnyStudentFee | null>(null);
   const [selectedFeeIds, setSelectedFeeIds] = useState<Set<string>>(new Set());
-  const [isBulkPaymentModalOpen, setIsBulkPaymentModalOpen] = useState(false);
-  const [isAdhocModalOpen, setIsAdhocModalOpen] = useState(false);
-  const [isSettlementModalOpen, setIsSettlementModalOpen] = useState(false);
-  const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
-  const [selectedStudentForAction, setSelectedStudentForAction] = useState<{ id: string; name: string; classId?: string } | null>(null);
 
+  const modals = useStudentFeeModals();
   const { data: students = [] } = useStudents();
   const { data: classes = [] } = useClasses();
 
@@ -82,7 +52,7 @@ export const StudentFeeSection = () => {
     fees,
     isLoading: feesLoading,
     error
-  } = useStudentFeeAnalytics({academicYear,classId: selectedClassId, month: selectedMonth, status: selectedStatus});
+  } = useStudentFeeAnalytics({ academicYear, classId: selectedClassId, month: selectedMonth, status: selectedStatus });
 
   const isLoading = feesLoading;
   const hasAllData = !isLoading && fees && fees.length > 0;
@@ -101,7 +71,7 @@ export const StudentFeeSection = () => {
   const handleGenerateFee = async (data: GenerateStudentFeeInput) => {
     try {
       await generateFeeMutation.mutateAsync(data);
-      setIsGenerateModalOpen(false);
+      modals.close();
       toast.success("Student fee generated successfully");
     } catch (err: any) {
       console.error("Error generating student fee:", err);
@@ -113,8 +83,7 @@ export const StudentFeeSection = () => {
   const handleBulkGenerate = async (data: BulkGenerateStudentFeeInput) => {
     try {
       const result: any = await bulkGenerateFeeMutation.mutateAsync(data);
-      setIsBulkGenerateModalOpen(false);
-
+      modals.close();
       if (result.summary?.failed > 0) {
         toast.success(result.summary.message, { duration: 5000 });
       } else {
@@ -128,67 +97,47 @@ export const StudentFeeSection = () => {
   };
 
   const handleApplyDiscount = async (data: ApplyDiscountInput) => {
-    if (selectedFee) {
-      try {
-        await applyDiscountMutation.mutateAsync({
-          id: selectedFee._id,
-          data
-        });
-        toast.success("Discount applied successfully");
-        setIsDiscountModalOpen(false);
-        setSelectedFee(null);
-      } catch (err: any) {
-        const errorMessage = err?.response?.data?.message || err?.message || "Failed to apply discount";
-        toast.error(errorMessage);
-        console.error("Error applying discount:", err);
-      }
+    if (modals.state.modal !== 'discount') return;
+    try {
+      await applyDiscountMutation.mutateAsync({ id: modals.state.fee._id, data });
+      toast.success("Discount applied successfully");
+      modals.close();
+    } catch (err: any) {
+      const errorMessage = err?.response?.data?.message || err?.message || "Failed to apply discount";
+      toast.error(errorMessage);
+      console.error("Error applying discount:", err);
     }
-  };
-
-  const handleCancelFeeClick = (id: string) => {
-    setFeeToCancel(id);
-    setIsCancelModalOpen(true);
   };
 
   const handleCancelFee = async (reason: string) => {
-    if (feeToCancel) {
-      try {
-        await cancelFeeMutation.mutateAsync({ id: feeToCancel, reason });
-        setIsCancelModalOpen(false);
-        setFeeToCancel(null);
-        toast.success("Fee cancelled successfully");
-      } catch (err: any) {
-        console.error("Error canceling fee:", err);
-        const errorMessage = err?.response?.data?.message?.message || err?.response?.data?.message || "Failed to cancel fee";
-        toast.error(errorMessage);
-      }
+    if (modals.state.modal !== 'cancel') return;
+    try {
+      await cancelFeeMutation.mutateAsync({ id: modals.state.feeId, reason });
+      modals.close();
+      toast.success("Fee cancelled successfully");
+    } catch (err: any) {
+      console.error("Error canceling fee:", err);
+      const errorMessage = err?.response?.data?.message?.message || err?.response?.data?.message || "Failed to cancel fee";
+      toast.error(errorMessage);
     }
   };
 
-  const handleCalculateLateFees = () => {
-    setConfirmModal({ isOpen: true, action: 'lateFees' });
-  };
-
-  const handleUpdateFeeStatuses = () => {
-    setConfirmModal({ isOpen: true, action: 'updateStatuses' });
-  };
-
   const handleConfirmAction = async () => {
-    if (confirmModal.action === 'lateFees') {
+    if (modals.state.modal === 'confirmLateFees') {
       try {
         await calculateLateFeesMutation.mutateAsync();
         toast.success('Late fees calculated successfully');
-        setConfirmModal({ isOpen: false, action: null });
+        modals.close();
       } catch (err: any) {
         const errorMessage = err?.response?.data?.message || err?.message || "Failed to calculate late fees";
         toast.error(errorMessage);
         console.error("Error calculating late fees:", err);
       }
-    } else if (confirmModal.action === 'updateStatuses') {
+    } else if (modals.state.modal === 'confirmUpdateStatuses') {
       try {
         await updateFeeStatusesMutation.mutateAsync();
         toast.success('Fee statuses updated successfully');
-        setConfirmModal({ isOpen: false, action: null });
+        modals.close();
       } catch (err: any) {
         const errorMessage = err?.response?.data?.message || err?.message || "Failed to update fee statuses";
         toast.error(errorMessage);
@@ -197,36 +146,15 @@ export const StudentFeeSection = () => {
     }
   };
 
-  const handleViewDetails = (fee: AnyStudentFee) => {
-    setFeeToView(fee);
-    setIsViewDetailsModalOpen(true);
-  };
-
-  const handlePay = (fee: AnyStudentFee) => {
-    setFeeToPay(fee);
-    setIsPaymentModalOpen(true);
-  };
-
-  const handleBulkPay = () => {
-    setIsBulkPaymentModalOpen(true);
-  };
-
-  const handleGenerateRecurring = () => {
-    setIsRecurringModalOpen(true);
-  };
-
   const handleGenerateRecurringConfirm = async (data: RecurringFeeData) => {
     try {
       const result = await generateRecurringMutation.mutateAsync(data);
-
       if (result.classesRequiringSelection && result.classesRequiringSelection.length > 0) {
-        setClassesRequiringSelection(result.classesRequiringSelection);
+        modals.updateClassesRequiringSelection(result.classesRequiringSelection);
         toast.error(`Please select fee structures for ${result.classesRequiringSelection.length} classes`);
         return;
       }
-
-      setIsRecurringModalOpen(false);
-      setClassesRequiringSelection([]);
+      modals.close();
       toast.success(`Successfully generated ${result.generated} fees${result.skipped > 0 ? `, skipped ${result.skipped} existing` : ''}`);
     } catch (err: any) {
       console.error("Error generating recurring fees:", err);
@@ -238,7 +166,7 @@ export const StudentFeeSection = () => {
   const handleCreateAdhocFee = async (data: CreateAdhocFeeInput) => {
     try {
       await createAdhocFeeMutation.mutateAsync(data);
-      setIsAdhocModalOpen(false);
+      modals.close();
       toast.success("Ad-hoc fee created successfully");
     } catch (err: any) {
       console.error("Error creating ad-hoc fee:", err);
@@ -248,11 +176,10 @@ export const StudentFeeSection = () => {
   };
 
   const handleSettleStudentFees = async (data: StudentFeeSettlementInput) => {
-    if (!selectedStudentForAction) return { cancelledFees: 0, totalCancelledAmount: 0, refundableFees: [], totalRefundableAmount: 0, nonRefundableFees: 0, totalNonRefundableAmount: 0 };
-
+    if (modals.state.modal !== 'settlement') return { cancelledFees: 0, totalCancelledAmount: 0, refundableFees: [], totalRefundableAmount: 0, nonRefundableFees: 0, totalNonRefundableAmount: 0 };
     try {
       const result = await settleStudentFeesMutation.mutateAsync({
-        studentId: selectedStudentForAction.id,
+        studentId: modals.state.student.id,
         data
       });
       toast.success("Student fees settled successfully");
@@ -266,11 +193,10 @@ export const StudentFeeSection = () => {
   };
 
   const handleClassTransfer = async (data: StudentClassTransferInput) => {
-    if (!selectedStudentForAction) return { cancelledFees: 0, totalCancelledAmount: 0, carriedForwardFees: 0, totalCarriedForwardAmount: 0, adjustedFees: 0, totalAdjustmentAmount: 0, newFeesGenerated: 0, totalNewFeesAmount: 0 };
-
+    if (modals.state.modal !== 'transfer') return { cancelledFees: 0, totalCancelledAmount: 0, carriedForwardFees: 0, totalCarriedForwardAmount: 0, adjustedFees: 0, totalAdjustmentAmount: 0, newFeesGenerated: 0, totalNewFeesAmount: 0 };
     try {
       const result = await handleClassTransferMutation.mutateAsync({
-        studentId: selectedStudentForAction.id,
+        studentId: modals.state.student.id,
         data
       });
       toast.success("Class transfer completed successfully");
@@ -298,19 +224,19 @@ export const StudentFeeSection = () => {
         </h2>
         <div className="space-x-2">
           <button
-            onClick={() => setIsGenerateModalOpen(true)}
+            onClick={modals.openGenerate}
             className="bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700 text-sm font-medium"
           >
             Generate Fee
           </button>
           <button
-            onClick={() => setIsBulkGenerateModalOpen(true)}
+            onClick={modals.openBulkGenerate}
             className="bg-green-600 text-white px-4 py-2.5 rounded-lg hover:bg-green-700 text-sm font-medium"
           >
             Bulk Generate
           </button>
           <button
-            onClick={() => setIsAdhocModalOpen(true)}
+            onClick={modals.openAdhoc}
             className="bg-purple-600 text-white px-4 py-2.5 rounded-lg hover:bg-purple-700 text-sm font-medium"
           >
             Ad-hoc Fee
@@ -325,19 +251,16 @@ export const StudentFeeSection = () => {
             onChange={setAcademicYear}
             className="md:col-span-1"
           />
-
           <ClassSelector
             value={selectedClassId}
             onChange={setSelectedClassId}
             className="md:col-span-1"
           />
-
           <MonthSelector
             value={selectedMonth}
             onChange={setSelectedMonth}
             className="md:col-span-1"
           />
-
           <FeeStatusSelector
             value={selectedStatus as any}
             onChange={(value) => setSelectedStatus(value === 'all' ? '' : value)}
@@ -346,7 +269,6 @@ export const StudentFeeSection = () => {
             includeAll={true}
             className="md:col-span-1"
           />
-
           <div className="md:col-span-1 flex items-end gap-2">
             <button
               onClick={clearFilters}
@@ -356,7 +278,7 @@ export const StudentFeeSection = () => {
             </button>
             {selectedFeeIds.size > 0 && (
               <button
-                onClick={handleBulkPay}
+                onClick={modals.openBulkPayment}
                 className="bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700 text-sm font-medium"
               >
                 Bulk Pay ({selectedFeeIds.size})
@@ -364,12 +286,12 @@ export const StudentFeeSection = () => {
             )}
           </div>
         </div>
-        
+
         <div className="mt-4">
           <FeeActionButtons
-            onCalculateLateFees={handleCalculateLateFees}
-            onUpdateFeeStatuses={handleUpdateFeeStatuses}
-            onGenerateRecurring={handleGenerateRecurring}
+            onCalculateLateFees={modals.openConfirmLateFees}
+            onUpdateFeeStatuses={modals.openConfirmUpdateStatuses}
+            onGenerateRecurring={modals.openRecurring}
             isCalculating={calculateLateFeesMutation.isPending}
             isUpdating={updateFeeStatusesMutation.isPending}
             isGeneratingRecurring={generateRecurringMutation.isPending}
@@ -388,173 +310,50 @@ export const StudentFeeSection = () => {
       ) : (
         <>
           <FeeStatusSummary summary={summary || { totalPending: 0, totalOverdue: 0, count: 0 }} />
-          
+
           <StudentFeesTable
             data={fees}
-            onViewDetails={handleViewDetails}
-            onDiscount={(fee: AnyStudentFee) => {
-              setSelectedFee(fee);
-              setIsDiscountModalOpen(true);
-            }}
-            onCancel={handleCancelFeeClick}
-            onPay={handlePay}
-            onSettleStudent={(studentId: string, studentName: string) => {
-              setSelectedStudentForAction({ id: studentId, name: studentName });
-              setIsSettlementModalOpen(true);
-            }}
-            onClassTransfer={(studentId: string, studentName: string, classId?: string) => {
-              setSelectedStudentForAction({ id: studentId, name: studentName, classId });
-              setIsTransferModalOpen(true);
-            }}
+            onViewDetails={(fee) => modals.openViewDetails(fee as PopulatedStudentFee)}
+            onDiscount={(fee) => modals.openDiscount(fee as PopulatedStudentFee)}
+            onCancel={modals.openCancel}
+            onPay={(fee) => modals.openPayment(fee as PopulatedStudentFee)}
+            onSettleStudent={modals.openSettlement}
+            onClassTransfer={modals.openTransfer}
             selectedFees={selectedFeeIds}
             onSelectionChange={setSelectedFeeIds}
           />
         </>
       )}
 
-      <GenerateStudentFeeModal
-        isOpen={isGenerateModalOpen}
-        onClose={() => setIsGenerateModalOpen(false)}
-        onSubmit={handleGenerateFee}
-        isSubmitting={generateFeeMutation.isPending}
+      <StudentFeeModals
+        modalState={modals.state}
+        onClose={modals.close}
         academicYear={academicYear}
-      />
-
-      <BulkGenerateFeesModal
-        isOpen={isBulkGenerateModalOpen}
-        onClose={() => setIsBulkGenerateModalOpen(false)}
-        onSubmit={handleBulkGenerate}
-        isSubmitting={bulkGenerateFeeMutation.isPending}
-        academicYear={academicYear}
+        selectedMonth={selectedMonth}
+        fees={fees || []}
+        selectedFeeIds={selectedFeeIds}
         students={students}
         classes={classes}
+        onGenerateFee={handleGenerateFee}
+        onBulkGenerate={handleBulkGenerate}
+        onApplyDiscount={handleApplyDiscount}
+        onCancelFee={handleCancelFee}
+        onConfirmAction={handleConfirmAction}
+        onGenerateRecurring={handleGenerateRecurringConfirm}
+        onCreateAdhocFee={handleCreateAdhocFee}
+        onSettleStudentFees={handleSettleStudentFees}
+        onClassTransfer={handleClassTransfer}
+        onClearSelectedFees={() => setSelectedFeeIds(new Set())}
+        isGenerating={generateFeeMutation.isPending}
+        isBulkGenerating={bulkGenerateFeeMutation.isPending}
+        isApplyingDiscount={applyDiscountMutation.isPending}
+        isCancelling={cancelFeeMutation.isPending}
+        isConfirmActionLoading={calculateLateFeesMutation.isPending || updateFeeStatusesMutation.isPending}
+        isGeneratingRecurring={generateRecurringMutation.isPending}
+        isCreatingAdhoc={createAdhocFeeMutation.isPending}
+        isSettling={settleStudentFeesMutation.isPending}
+        isTransferring={handleClassTransferMutation.isPending}
       />
-
-      <ApplyDiscountModal
-        isOpen={isDiscountModalOpen}
-        onClose={() => {
-          setIsDiscountModalOpen(false);
-          setSelectedFee(null);
-        }}
-        onSubmit={handleApplyDiscount}
-        fee={selectedFee}
-        isSubmitting={applyDiscountMutation.isPending}
-      />
-
-      <CancelFeeModal
-        isOpen={isCancelModalOpen}
-        onClose={() => {
-          setIsCancelModalOpen(false);
-          setFeeToCancel(null);
-        }}
-        onConfirm={handleCancelFee}
-        isSubmitting={cancelFeeMutation.isPending}
-      />
-
-      <ViewFeeDetailsModal
-        isOpen={isViewDetailsModalOpen}
-        onClose={() => {
-          setIsViewDetailsModalOpen(false);
-          setFeeToView(null);
-        }}
-        fee={feeToView}
-      />
-
-      <ConfirmActionModal
-        isOpen={confirmModal.isOpen}
-        onClose={() => setConfirmModal({ isOpen: false, action: null })}
-        onConfirm={handleConfirmAction}
-        title={confirmModal.action === 'lateFees' ? 'Calculate Late Fees' : 'Update Fee Statuses'}
-        message={confirmModal.action === 'lateFees'
-          ? 'This will calculate late fees for all overdue payments. Continue?'
-          : 'This will update the status of all fees based on their due dates and payment status. Continue?'}
-        confirmText="Continue"
-        isLoading={calculateLateFeesMutation.isPending || updateFeeStatusesMutation.isPending}
-      />
-
-      <GenerateRecurringFeesModal
-        isOpen={isRecurringModalOpen}
-        onClose={() => {
-          setIsRecurringModalOpen(false);
-          setClassesRequiringSelection([]);
-        }}
-        onConfirm={handleGenerateRecurringConfirm}
-        currentFilters={{ academicYear, month: selectedMonth }}
-        isLoading={generateRecurringMutation.isPending}
-        classesRequiringSelection={classesRequiringSelection}
-      />
-
-      {feeToPay && (
-        <PaymentModal
-          isOpen={isPaymentModalOpen}
-          onClose={() => {
-            setIsPaymentModalOpen(false);
-            setFeeToPay(null);
-          }}
-          studentFeeId={feeToPay._id}
-          studentId={typeof feeToPay.studentId === 'object' ? feeToPay.studentId._id : feeToPay.studentId}
-          dueAmount={feeToPay.dueAmount}
-        />
-      )}
-
-      <BulkPaymentModal
-        isOpen={isBulkPaymentModalOpen}
-        onClose={() => {
-          setIsBulkPaymentModalOpen(false);
-          setSelectedFeeIds(new Set());
-        }}
-        studentFeePayments={(fees || [])
-          .filter(fee => selectedFeeIds.has(fee._id))
-          .map(fee => {
-            const studentId = typeof fee.studentId === 'object' ? fee.studentId._id : fee.studentId;
-            const studentName = typeof fee.studentId === 'object'
-              ? `${fee.studentId.firstName} ${fee.studentId.lastName}`
-              : `Student ${fee.studentId}`;
-
-            return {
-              studentFeeId: fee._id,
-              studentId,
-              studentName,
-              dueAmount: fee.dueAmount,
-              amount: fee.dueAmount,
-            };
-          })}
-      />
-
-      <CreateAdhocFeeModal
-        isOpen={isAdhocModalOpen}
-        onClose={() => setIsAdhocModalOpen(false)}
-        onSubmit={handleCreateAdhocFee}
-        isSubmitting={createAdhocFeeMutation.isPending}
-        academicYear={academicYear}
-      />
-
-      {selectedStudentForAction && (
-        <>
-          <SettleStudentFeesModal
-            isOpen={isSettlementModalOpen}
-            onClose={() => {
-              setIsSettlementModalOpen(false);
-              setSelectedStudentForAction(null);
-            }}
-            onSubmit={handleSettleStudentFees}
-            isSubmitting={settleStudentFeesMutation.isPending}
-            studentName={selectedStudentForAction.name}
-          />
-
-          <ClassTransferModal
-            isOpen={isTransferModalOpen}
-            onClose={() => {
-              setIsTransferModalOpen(false);
-              setSelectedStudentForAction(null);
-            }}
-            onSubmit={handleClassTransfer}
-            isSubmitting={handleClassTransferMutation.isPending}
-            studentName={selectedStudentForAction.name}
-            currentClassId={selectedStudentForAction.classId}
-          />
-        </>
-      )}
     </div>
   );
 };
