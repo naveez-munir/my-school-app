@@ -76,16 +76,15 @@ const getShortRoleTitle = (role: string): string => {
 
 const Sidebar = ({ isOpen, onClose, userRole }: SidebarProps) => {
   const [tenantName, setTenantName] = useState<string>('');
-  const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
-    // Load collapsed state from localStorage
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('sidebar-collapsed');
-      if (saved !== null) {
-        return saved === 'true';
-      }
+  const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
+
+  // Sync collapsed state from localStorage after mount to avoid SSR hydration mismatch
+  useEffect(() => {
+    const saved = localStorage.getItem('sidebar-collapsed');
+    if (saved !== null) {
+      setIsCollapsed(saved === 'true');
     }
-    return true;
-  });
+  }, []);
 
   useEffect(() => {
     const tenant = getTenantName();

@@ -29,12 +29,15 @@ export interface AttachmentResponse {
   fileType: string;
 }
 
+export type DiaryStatus = 'DRAFT' | 'PUBLISHED';
+
 export interface DailyDiaryResponse {
   id: string;
   classId: ClassResponse;
   date: string;
   title: string;
   description: string;
+  status: DiaryStatus;
   subjectTasks: SubjectTaskResponse[];
   attachments: AttachmentResponse[];
   createdBy: string;
@@ -72,8 +75,9 @@ export interface CreateDailyDiaryRequest {
   date: string;
   title: string;
   description: string;
-  subjectTasks: SubjectTaskRequest[];
+  subjectTasks?: SubjectTaskRequest[];
   attachments?: AttachmentRequest[];
+  status?: DiaryStatus;
 }
 
 export interface UpdateDailyDiaryRequest {
@@ -83,12 +87,14 @@ export interface UpdateDailyDiaryRequest {
   description?: string;
   subjectTasks?: SubjectTaskRequest[];
   attachments?: AttachmentRequest[];
+  status?: DiaryStatus;
 }
 
 export interface DiaryQueryParams {
   startDate?: string;
   endDate?: string;
   classId?: string;
+  status?: DiaryStatus;
   page?: number;
   limit?: number;
 }

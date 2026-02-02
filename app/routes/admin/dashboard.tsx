@@ -17,16 +17,7 @@ export function meta({}: Route.MetaArgs) {
 export default function SuperAdminDashboard() {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
-    // Sync with sidebar's localStorage state
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('sidebar-collapsed');
-      if (saved !== null) {
-        return saved === 'true';
-      }
-    }
-    return true;
-  });
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(true);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -39,14 +30,15 @@ export default function SuperAdminDashboard() {
     setUserRole(role?.role as string);
   }, [navigate]);
 
-  // Listen for sidebar collapse state changes
+  // Sync collapsed state from localStorage after mount to avoid SSR hydration mismatch
   useEffect(() => {
     const handleStorageChange = () => {
-      if (typeof window !== 'undefined') {
-        const saved = localStorage.getItem('sidebar-collapsed');
-        setIsSidebarCollapsed(saved === 'true');
-      }
+      const saved = localStorage.getItem('sidebar-collapsed');
+      setIsSidebarCollapsed(saved === 'true');
     };
+
+    // Initial sync on mount
+    handleStorageChange();
 
     // Listen for storage events (from other tabs/windows)
     window.addEventListener('storage', handleStorageChange);

@@ -4,16 +4,20 @@ import { useState } from 'react';
 
 export const useFileUpload = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
-  
+
   const mutation = useMutation({
-    mutationFn: ({ file, folder, isPrivate = false }: { 
-      file: File; 
-      folder?: string; 
-      isPrivate?: boolean 
+    mutationFn: ({ file, folder, isPrivate = false, oldUrl }: {
+      file: File;
+      folder?: string;
+      isPrivate?: boolean;
+      oldUrl?: string;
     }) => {
-      return fileApi.upload(file, folder, isPrivate);
+      return fileApi.upload(file, folder, isPrivate, oldUrl, setUploadProgress);
     },
     onMutate: () => {
+      setUploadProgress(0);
+    },
+    onSettled: () => {
       setUploadProgress(0);
     }
   });

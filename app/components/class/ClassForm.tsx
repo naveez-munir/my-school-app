@@ -1,9 +1,8 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { X } from 'lucide-react';
 import type { Subject } from '~/types/subject';
 import type { Class, CreateClassDto } from '~/types/class';
-import GenericCombobox from '../common/form/inputs/Select';
+import MultiSelect from '../common/form/inputs/MultiSelect';
 import { TextInput } from '../common/form/inputs/TextInput';
 import { FormActions } from '../common/form/FormActions';
 import { FormField } from '../common/form/FormField';
@@ -39,27 +38,10 @@ export function ClassForm({
 
   const formData = watch();
 
-  // Get selected subjects details for tags
-  const selectedSubjectsDetails = subjects.filter(subject =>
+  // Get selected subjects as full objects for MultiSelect
+  const selectedSubjects = subjects.filter(subject =>
     formData.classSubjects?.includes(subject._id)
   );
-
-  // Get available subjects (not selected)
-  const availableSubjects = subjects.filter(subject =>
-    !formData.classSubjects?.includes(subject._id)
-  );
-
-  const handleRemoveSubject = (subjectId: string) => {
-    const updatedSubjects = formData.classSubjects?.filter(id => id !== subjectId) || [];
-    setValue('classSubjects', updatedSubjects, { shouldValidate: true });
-  };
-
-  const handleAddSubject = (subject: Subject | null) => {
-    if (subject) {
-      const updatedSubjects = [...(formData.classSubjects || []), subject._id];
-      setValue('classSubjects', updatedSubjects, { shouldValidate: true });
-    }
-  };
 
   const onFormSubmit = (data: CreateClassFormData) => {
     console.log('Form validation passed, submitting data:', data);
@@ -125,40 +107,27 @@ export function ClassForm({
 
       {/* Subjects Section */}
       {mode === 'edit' && (
-        <div className="space-y-4">
-          <label className="block text-sm font-medium text-gray-700">
-            Subjects
-          </label>
-          
-          {/* Selected Subjects Tags */}
-          <div className="mb-3 flex flex-wrap gap-2">
-            {selectedSubjectsDetails.map((subject) => (
-              <div
-                key={subject._id}
-                className="inline-flex items-center bg-blue-50 text-blue-700 rounded-md px-2 py-1 text-sm"
-              >
-                <span>{subject.subjectName}</span>
-                <button
-                  type="button"
-                  onClick={() => handleRemoveSubject(subject._id)}
-                  className="ml-1 hover:text-blue-900 focus:outline-none"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-            ))}
-          </div>
-          {availableSubjects.length > 0 && (
-            <GenericCombobox<Subject>
-              items={availableSubjects}
-              value={null}
-              onChange={handleAddSubject}
+        <FormField
+          name="classSubjects"
+          control={control}
+          errors={errors}
+          render={(field) => (
+            <MultiSelect<Subject>
+              items={subjects}
+              value={selectedSubjects}
+              onChange={(selected) => {
+                const subjectIds = selected.map(s => s._id);
+                field.onChange(subjectIds);
+              }}
               displayKey="subjectName"
               valueKey="_id"
-              placeholder="Add subjects..."
+              label="Subjects"
+              placeholder="Select subjects..."
+              disabled={isLoading}
+              showTags={true}
             />
           )}
-        </div>
+        />
       )}
 
       <FormActions

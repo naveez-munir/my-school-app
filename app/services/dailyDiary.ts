@@ -9,6 +9,7 @@ import type {
   AddSubjectTaskRequest,
   UpdateSubjectTaskRequest
 } from '~/types/dailyDiary';
+import type { PaginatedResponse } from '~/types/attendance';
 
 const baseDiaryService = createEntityService<DailyDiaryResponse, CreateDailyDiaryRequest, UpdateDailyDiaryRequest>(
   api,
@@ -17,16 +18,19 @@ const baseDiaryService = createEntityService<DailyDiaryResponse, CreateDailyDiar
 
 export const dailyDiaryApi = {
   ...baseDiaryService,
-  
-  // Get diary entries by class ID
-  getByClass: async (classId: string, params?: DiaryQueryParams) => {
-    const response = await api.get<DailyDiaryResponse[]>(`/daily-diary/class/${classId}`, { params });
+
+  getAllPaginated: async (params?: DiaryQueryParams): Promise<PaginatedResponse<DailyDiaryResponse>> => {
+    const response = await api.get<PaginatedResponse<DailyDiaryResponse>>('/daily-diary', { params });
     return response.data;
   },
-  
-  // Get diary entries for a student
-  getForStudent: async (studentId: string, params?: DiaryQueryParams) => {
-    const response = await api.get<DailyDiaryResponse[]>(`/daily-diary/student/${studentId}`, { params });
+
+  getByClass: async (classId: string, params?: DiaryQueryParams): Promise<PaginatedResponse<DailyDiaryResponse>> => {
+    const response = await api.get<PaginatedResponse<DailyDiaryResponse>>(`/daily-diary/class/${classId}`, { params });
+    return response.data;
+  },
+
+  getForStudent: async (studentId: string, params?: DiaryQueryParams): Promise<PaginatedResponse<DailyDiaryResponse>> => {
+    const response = await api.get<PaginatedResponse<DailyDiaryResponse>>(`/daily-diary/student/${studentId}`, { params });
     return response.data;
   },
   

@@ -11,10 +11,10 @@ export default defineConfig({
     tsconfigPaths(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'icons/*.svg'],
+      includeAssets: ['favicon.ico', 'favicon/favicon.ico', 'favicon/favicon.svg', 'favicon/favicon-96x96.png', 'favicon/apple-touch-icon.png', 'favicon/web-app-manifest-192x192.png', 'favicon/web-app-manifest-512x512.png'],
       manifest: {
-        name: 'My School App',
-        short_name: 'School App',
+        name: 'MySchool',
+        short_name: 'School',
         description: 'School Management System - Manage students, teachers, classes, exams, and more',
         theme_color: '#3b82f6',
         background_color: '#ffffff',
@@ -23,15 +23,34 @@ export default defineConfig({
         start_url: '/',
         icons: [
           {
-            src: '/icons/app-icon.svg',
-            sizes: 'any',
-            type: 'image/svg+xml',
-            purpose: 'any maskable'
+            src: '/favicon/web-app-manifest-192x192.png',
+            sizes: '192x192',
+            type: 'image/png',
+            purpose: 'any'
           },
           {
-            src: '/favicon.ico',
-            sizes: '48x48',
-            type: 'image/x-icon'
+            src: '/favicon/web-app-manifest-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any'
+          },
+          {
+            src: '/favicon/web-app-manifest-192x192.png',
+            sizes: '192x192',
+            type: 'image/png',
+            purpose: 'maskable'
+          },
+          {
+            src: '/favicon/web-app-manifest-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable'
+          },
+          {
+            src: '/favicon/apple-touch-icon.png',
+            sizes: '180x180',
+            type: 'image/png',
+            purpose: 'any'
           }
         ]
       },

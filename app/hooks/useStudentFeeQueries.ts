@@ -1,14 +1,19 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { studentFeeApi } from '../services/studentFeeApi';
-import { 
-  type StudentFee, 
+import {
+  type StudentFee,
   type PopulatedStudentFee,
-  type GenerateStudentFeeInput, 
+  type GenerateStudentFeeInput,
   type BulkGenerateStudentFeeInput,
   type ApplyDiscountInput,
   type GetStudentFeesParams,
   type GetPendingFeesParams,
   type PendingFeesResult,
+  type CreateAdhocFeeInput,
+  type StudentFeeSettlementInput,
+  type SettlementSummary,
+  type StudentClassTransferInput,
+  type TransferSummary,
   FeeStatus
 } from '../types/studentFee';
 
@@ -211,7 +216,7 @@ export const useGenerateRecurringFees = () => {
 // Synchronize discounts
 export const useSynchronizeDiscounts = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (studentId: string) => studentFeeApi.synchronizeDiscounts(studentId),
     onSuccess: (_, studentId) => {
@@ -220,6 +225,72 @@ export const useSynchronizeDiscounts = () => {
       });
       queryClient.invalidateQueries({
         queryKey: studentFeeKeys.pending()
+      });
+    }
+  });
+};
+
+// Create ad-hoc fee
+export const useCreateAdhocFee = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: CreateAdhocFeeInput) => studentFeeApi.createAdhocFee(data),
+    onSuccess: (newFee: AnyStudentFee) => {
+      queryClient.invalidateQueries({
+        queryKey: studentFeeKeys.lists()
+      });
+      queryClient.invalidateQueries({
+        queryKey: studentFeeKeys.byStudent(newFee.studentId.toString())
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['studentFees', 'pending']
+      });
+      queryClient.setQueryData(
+        studentFeeKeys.detail(newFee._id),
+        newFee
+      );
+    }
+  });
+};
+
+// Settle student fees
+export const useSettleStudentFees = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ studentId, data }: { studentId: string; data: StudentFeeSettlementInput }) =>
+      studentFeeApi.settleStudentFees(studentId, data),
+    onSuccess: (_, { studentId }) => {
+      queryClient.invalidateQueries({
+        queryKey: studentFeeKeys.lists()
+      });
+      queryClient.invalidateQueries({
+        queryKey: studentFeeKeys.byStudent(studentId)
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['studentFees', 'pending']
+      });
+    }
+  });
+};
+
+// Handle class transfer
+export const useHandleClassTransfer = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ studentId, data }: { studentId: string; data: StudentClassTransferInput }) =>
+      studentFeeApi.handleClassTransfer(studentId, data),
+    onSuccess: (_, { studentId }) => {
+      queryClient.invalidateQueries({
+        queryKey: studentFeeKeys.lists()
+      });
+      queryClient.invalidateQueries({
+        queryKey: studentFeeKeys.byStudent(studentId)
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['studentFees', 'pending']
       });
     }
   });

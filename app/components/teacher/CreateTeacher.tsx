@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { getErrorMessage } from '~/utils/error';
+import { cleanTeacherData } from '~/utils/cleanFormData';
 
 export function CreateTeacher() {
   const navigate = useNavigate();
@@ -12,13 +13,10 @@ export function CreateTeacher() {
   const queryClient = useQueryClient();
 
   const handleSubmit = (data: CreateTeacherDto) => {
-    const submissionData = { ...data };
-    if (submissionData.classTeacherOf === '') {
-      delete submissionData.classTeacherOf;
-    }
+    const cleanedData = cleanTeacherData(data);
 
     createTeacherMutation.mutate(
-      submissionData,
+      cleanedData,
       {
         onSuccess: () => {
           toast.success('Teacher created successfully');

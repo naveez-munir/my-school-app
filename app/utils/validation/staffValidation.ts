@@ -77,7 +77,10 @@ export const educationHistorySchema = z.object({
   degree: z.string().min(1, "Degree is required"),
   institution: z.string().min(1, "Institution is required"),
   year: z.number().min(1950, "Year must be after 1950").max(new Date().getFullYear(), "Year cannot be in the future"),
-  certificateUrl: z.string().url("Invalid certificate URL").optional().nullable(),
+  certificateUrl: z.union([
+    z.string().url("Must be a valid URL"),
+    z.literal(''),
+  ]).optional().nullable(),
 });
 
 // ========================================
@@ -89,7 +92,10 @@ export const experienceSchema = z.object({
   fromDate: dateValidator,
   toDate: dateValidator.optional().nullable(),
   description: z.string().optional().nullable(),
-  experienceLatterUrl: z.string().url("Invalid experience letter URL").optional().nullable(),
+  experienceLatterUrl: z.union([
+    z.string().url("Must be a valid URL"),
+    z.literal(''),
+  ]).optional().nullable(),
 }).refine(
   (data) => {
     if (data.toDate && data.fromDate) {

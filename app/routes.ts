@@ -59,7 +59,10 @@ export default [
       route(":id/edit", "routes/dashboard/exams/$id.edit.tsx"),
     ]),
     route("accounts/:action?/:subaction?/:id?", "routes/dashboard/account/index.tsx"),
-    route("fee/:action?", "routes/dashboard/studentFee/index.tsx"),
+    route("fee", "routes/dashboard/studentFee/fee.tsx", [
+      route("structure/:id/edit", "routes/dashboard/studentFee/structure.edit.tsx"),
+      route(":action?", "routes/dashboard/studentFee/index.tsx"),
+    ]),
     route("guardian/:action?/:id?", "routes/dashboard/guardian/index.tsx"),
     route("salary", "routes/dashboard/salary.tsx", [
       route(":id", "routes/dashboard/salary/$id.tsx"),
@@ -86,9 +89,12 @@ export default [
       route("exceptions", "routes/dashboard/timetable/exceptions/index.tsx"),
       route("exceptions/new", "routes/dashboard/timetable/exceptions/new.tsx"),
     ]),
-    route("courses", "routes/dashboard/courses.tsx"),
+    route("subjects", "routes/dashboard/subjects.tsx"),
     route("exam-types", "routes/dashboard/exam-types.tsx"),
     route("management", "routes/dashboard/management.tsx"),
     route("settings", "routes/dashboard/settings.tsx")
-  ])
+  ]),
+
+  // Catch-all route for 404 pages
+  route("*", "routes/not-found.tsx")
 ] satisfies RouteConfig;

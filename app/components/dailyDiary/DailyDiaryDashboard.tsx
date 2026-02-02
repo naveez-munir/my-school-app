@@ -5,18 +5,27 @@ import { DailyDiaryTable } from './DailyDiaryTable';
 import { ClassSelector } from '~/components/common/ClassSelector';
 import { TextInput } from '~/components/common/form/inputs/TextInput';
 import { DateInput } from '~/components/common/form/inputs/DateInput';
-import { useDiaryEntries, useDeleteDiaryEntry } from '~/hooks/useDailyDiaryQueries';
+import { SelectInput } from '~/components/common/form/inputs/SelectInput';
+import { useDiaryEntriesPaginated, useDeleteDiaryEntry } from '~/hooks/useDailyDiaryQueries';
 import { useTeacherProfile } from '~/hooks/useTeacherQueries';
 import { getUserRole } from '~/utils/auth';
 import { UserRoleEnum } from '~/types/user';
-import type { DailyDiaryResponse, DiaryQueryParams } from '~/types/dailyDiary';
+import type { DailyDiaryResponse, DiaryQueryParams, DiaryStatus } from '~/types/dailyDiary';
 import { DailyDiaryListSkeleton } from './DailyDiaryListSkeleton';
 import DeletePrompt from '~/components/common/DeletePrompt';
 import { Info } from 'lucide-react';
 
+const STATUS_OPTIONS: Record<string, string> = {
+  ALL: 'All Status',
+  DRAFT: 'Draft',
+  PUBLISHED: 'Published',
+};
+
 export function DailyDiaryDashboard() {
   const navigate = useNavigate();
   const [selectedClassId, setSelectedClassId] = useState<string>('');
+  const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
+  const [page, setPage] = useState<number>(1);
   const [dateRange, setDateRange] = useState<DiaryQueryParams>({
     startDate: '',
     endDate: ''
@@ -27,15 +36,21 @@ export function DailyDiaryDashboard() {
 
   const queryParams: DiaryQueryParams = {
     ...(selectedClassId && { classId: selectedClassId }),
+    ...(selectedStatus && selectedStatus !== 'ALL' && { status: selectedStatus as DiaryStatus }),
     ...(dateRange.startDate && { startDate: dateRange.startDate }),
     ...(dateRange.endDate && { endDate: dateRange.endDate }),
+    page,
+    limit: 10,
   };
 
   const {
-    data: diaryEntries = [],
+    data: response,
     isLoading,
     error
-  } = useDiaryEntries(queryParams);
+  } = useDiaryEntriesPaginated(queryParams);
+
+  const diaryEntries = response?.data || [];
+  const meta = response?.meta;
 
   const userRole = getUserRole();
   const isTeacherRole = userRole?.role === UserRoleEnum.TEACHER;
@@ -119,8 +134,7 @@ export function DailyDiaryDashboard() {
       {/* Filters Section */}
       <div className="bg-white p-2 sm:p-3 lg:p-4 rounded-lg shadow">
         <div className="space-y-3 sm:space-y-4">
-          {/* Row 1: Search and Class Filter */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
             <TextInput
               label="Search"
               value={globalFilter}
@@ -131,23 +145,29 @@ export function DailyDiaryDashboard() {
             <ClassSelector
               label="Filter by Class"
               value={selectedClassId}
-              onChange={(classId) => setSelectedClassId(classId)}
+              onChange={(classId) => { setSelectedClassId(classId); setPage(1); }}
               placeholder="All Classes"
+            />
+
+            <SelectInput
+              label="Status"
+              value={selectedStatus}
+              options={STATUS_OPTIONS}
+              onChange={(value) => { setSelectedStatus(value); setPage(1); }}
             />
           </div>
 
-          {/* Row 2: Date Filters */}
           <div className="grid grid-cols-2 gap-3 sm:gap-4">
             <DateInput
               label="Start Date"
               value={dateRange.startDate || ''}
-              onChange={(value) => setDateRange(prev => ({ ...prev, startDate: value }))}
+              onChange={(value) => { setDateRange(prev => ({ ...prev, startDate: value })); setPage(1); }}
             />
 
             <DateInput
               label="End Date"
               value={dateRange.endDate || ''}
-              onChange={(value) => setDateRange(prev => ({ ...prev, endDate: value }))}
+              onChange={(value) => { setDateRange(prev => ({ ...prev, endDate: value })); setPage(1); }}
             />
           </div>
         </div>
@@ -162,13 +182,39 @@ export function DailyDiaryDashboard() {
             {(error as Error).message || "An error occurred"}
           </div>
         ) : (
-          <DailyDiaryTable
-            data={diaryEntries}
-            globalFilter={globalFilter}
-            onView={handleView}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-          />
+          <>
+            <DailyDiaryTable
+              data={diaryEntries}
+              globalFilter={globalFilter}
+              onView={handleView}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+            />
+
+            {meta && meta.totalPages > 1 && (
+              <div className="px-4 py-3 flex items-center justify-between border-t">
+                <div className="text-sm text-gray-700">
+                  Page {meta.currentPage} of {meta.totalPages}
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setPage(page - 1)}
+                    disabled={!meta.hasPreviousPage}
+                    className="px-3 py-1 border text-gray-500 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                  >
+                    Previous
+                  </button>
+                  <button
+                    onClick={() => setPage(page + 1)}
+                    disabled={!meta.hasNextPage}
+                    className="px-3 py-1 border text-gray-500 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
 

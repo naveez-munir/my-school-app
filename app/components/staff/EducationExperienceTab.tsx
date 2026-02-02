@@ -1,44 +1,47 @@
-import React from 'react';
 import { Plus } from 'lucide-react';
-import { type EducationHistory, type Experience } from '~/types/staff';
+import type { Control, FieldErrors, UseFieldArrayReturn } from 'react-hook-form';
+import type { CreateStaffFormData } from '~/utils/validation/staffValidation';
 import { EducationItem } from './EducationItem';
 import { ExperienceItem } from './ExperienceItem';
 
 interface EducationExperienceTabProps {
-  educationHistory: EducationHistory[];
-  setEducationHistory: React.Dispatch<React.SetStateAction<EducationHistory[]>>;
-  experience: Experience[];
-  setExperience: React.Dispatch<React.SetStateAction<Experience[]>>;
+  control: Control<CreateStaffFormData>;
+  errors: FieldErrors<CreateStaffFormData>;
+  educationFieldArray: UseFieldArrayReturn<CreateStaffFormData, 'educationHistory'>;
+  experienceFieldArray: UseFieldArrayReturn<CreateStaffFormData, 'experience'>;
   isSubmitting: boolean;
   staffId?: string;
 }
 
 export function EducationExperienceTab({
-  educationHistory,
-  setEducationHistory,
-  experience,
-  setExperience,
+  control,
+  errors,
+  educationFieldArray,
+  experienceFieldArray,
   isSubmitting,
   staffId = ""
 }: EducationExperienceTabProps) {
+  const { fields: educationFields, append: appendEducation, remove: removeEducation } = educationFieldArray;
+  const { fields: experienceFields, append: appendExperience, remove: removeExperience } = experienceFieldArray;
+
   const handleAddEducation = () => {
-    setEducationHistory([...educationHistory, {
+    appendEducation({
       degree: '',
       institution: '',
       year: new Date().getFullYear(),
       certificateUrl: ''
-    }]);
+    });
   };
 
   const handleAddExperience = () => {
-    setExperience([...experience, {
+    appendExperience({
       institution: '',
       position: '',
-      fromDate: new Date(),
+      fromDate: new Date().toISOString().split('T')[0],
       toDate: undefined,
       description: '',
       experienceLatterUrl: ''
-    }]);
+    });
   };
 
   return (
@@ -56,19 +59,19 @@ export function EducationExperienceTab({
             <Plus className="h-4 w-4 mr-1" /> Add Education
           </button>
         </div>
-        
-        {educationHistory.length === 0 ? (
+
+        {educationFields.length === 0 ? (
           <div className="bg-gray-50 p-4 text-center text-gray-500 rounded-md">
             No education history added.
           </div>
         ) : (
-          educationHistory.map((education, index) => (
+          educationFields.map((field, index) => (
             <EducationItem
-              key={index}
+              key={field.id}
               index={index}
-              education={education}
-              educationHistory={educationHistory}
-              setEducationHistory={setEducationHistory}
+              control={control}
+              errors={errors}
+              onRemove={() => removeEducation(index)}
               isSubmitting={isSubmitting}
               staffId={staffId}
             />
@@ -88,19 +91,19 @@ export function EducationExperienceTab({
             <Plus className="h-4 w-4 mr-1" /> Add Experience
           </button>
         </div>
-        
-        {experience.length === 0 ? (
+
+        {experienceFields.length === 0 ? (
           <div className="bg-gray-50 p-4 text-center text-gray-500 rounded-md">
             No work experience added.
           </div>
         ) : (
-          experience.map((exp, index) => (
+          experienceFields.map((field, index) => (
             <ExperienceItem
-              key={index}
+              key={field.id}
               index={index}
-              experience={exp}
-              allExperience={experience}
-              setExperience={setExperience}
+              control={control}
+              errors={errors}
+              onRemove={() => removeExperience(index)}
               isSubmitting={isSubmitting}
               staffId={staffId}
             />

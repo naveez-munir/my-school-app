@@ -12,20 +12,36 @@ export interface FileUrlResponse {
 }
 
 export const fileApi = {
-  upload: async (file: File, folder?: string, isPrivate: boolean = false): Promise<FileUploadResponse> => {
+  upload: async (
+    file: File,
+    folder?: string,
+    isPrivate: boolean = false,
+    oldUrl?: string,
+    onUploadProgress?: (progress: number) => void
+  ): Promise<FileUploadResponse> => {
     const formData = new FormData();
     formData.append('file', file);
-    
+
     const url = '/files/upload';
-    const params = { folder, private: isPrivate };
-    
-    const response = await api.post(url, formData, { 
+    const params: Record<string, any> = { folder, private: isPrivate };
+
+    if (oldUrl) {
+      params.oldUrl = oldUrl;
+    }
+
+    const response = await api.post(url, formData, {
       params,
       headers: {
         'Content-Type': 'multipart/form-data'
+      },
+      onUploadProgress: (progressEvent) => {
+        if (progressEvent.total && onUploadProgress) {
+          const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          onUploadProgress(progress);
+        }
       }
     });
-    
+
     return response.data;
   },
   

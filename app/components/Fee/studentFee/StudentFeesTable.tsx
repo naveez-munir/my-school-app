@@ -1,7 +1,7 @@
 import { createColumnHelper } from '@tanstack/react-table';
 import type { StudentFee, PopulatedStudentFee, FeeStatus } from '~/types/studentFee';
-import { useMemo } from 'react';
-import { ChevronDown, ChevronUp, Tag, XCircle, Eye, DollarSign, CheckSquare, Square } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { ChevronDown, ChevronUp, Tag, XCircle, Eye, DollarSign, CheckSquare, Square, MoreVertical, UserX, ArrowRightLeft } from 'lucide-react';
 import { formatCurrency, getFeeStatusDisplayName, getFeeStatusClassName } from '~/types/studentFee';
 import { formatUserFriendlyDate } from '~/utils/dateUtils';
 import { GenericDataTable } from '~/components/common/table/GenericDataTable';
@@ -14,6 +14,8 @@ interface TableMetaType {
   onDiscount: (fee: AnyStudentFee) => void;
   onCancel: (id: string) => void;
   onPay: (fee: AnyStudentFee) => void;
+  onSettleStudent?: (studentId: string, studentName: string) => void;
+  onClassTransfer?: (studentId: string, studentName: string, classId?: string) => void;
   readOnly?: boolean;
 }
 
@@ -23,6 +25,8 @@ interface StudentFeesTableProps {
   onDiscount: (fee: AnyStudentFee) => void;
   onCancel: (id: string) => void;
   onPay: (fee: AnyStudentFee) => void;
+  onSettleStudent?: (studentId: string, studentName: string) => void;
+  onClassTransfer?: (studentId: string, studentName: string, classId?: string) => void;
   selectedFees?: Set<string>;
   onSelectionChange?: (selected: Set<string>) => void;
   readOnly?: boolean;
@@ -31,12 +35,122 @@ interface StudentFeesTableProps {
 
 const columnHelper = createColumnHelper<AnyStudentFee>();
 
+function ActionsCell({
+  fee,
+  meta,
+  isReadOnly,
+  canApplyDiscount,
+  canCancel,
+  canPay,
+  studentId,
+  studentName,
+  classId
+}: {
+  fee: AnyStudentFee;
+  meta: TableMetaType;
+  isReadOnly: boolean;
+  canApplyDiscount: boolean;
+  canCancel: boolean;
+  canPay: boolean;
+  studentId: string;
+  studentName: string;
+  classId?: string;
+}) {
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  return (
+    <div className="flex justify-end space-x-2 relative">
+      <button
+        onClick={() => meta.onViewDetails(fee)}
+        className="text-green-600 hover:text-green-900 p-1 rounded"
+        title="View Details"
+      >
+        <Eye className="h-5 w-5" />
+      </button>
+      {canPay && (
+        <button
+          onClick={() => meta.onPay(fee)}
+          className="text-emerald-600 hover:text-emerald-900 p-1 rounded"
+          title="Collect Payment"
+        >
+          <DollarSign className="h-5 w-5" />
+        </button>
+      )}
+      {canApplyDiscount && (
+        <button
+          onClick={() => meta.onDiscount(fee)}
+          className="text-blue-600 hover:text-blue-900 p-1 rounded"
+          title="Apply Discount"
+        >
+          <Tag className="h-5 w-5" />
+        </button>
+      )}
+      {canCancel && (
+        <button
+          onClick={() => meta.onCancel(fee._id)}
+          className="text-red-600 hover:text-red-900 p-1 rounded"
+          title="Cancel Fee"
+        >
+          <XCircle className="h-5 w-5" />
+        </button>
+      )}
+      {!isReadOnly && (meta.onSettleStudent || meta.onClassTransfer) && (
+        <div className="relative">
+          <button
+            onClick={() => setShowDropdown(!showDropdown)}
+            className="text-gray-600 hover:text-gray-900 p-1 rounded"
+            title="More Actions"
+          >
+            <MoreVertical className="h-5 w-5" />
+          </button>
+          {showDropdown && (
+            <>
+              <div
+                className="fixed inset-0 z-10"
+                onClick={() => setShowDropdown(false)}
+              />
+              <div className="absolute right-0 mt-1 w-48 bg-white rounded-md shadow-lg z-20 border border-gray-200">
+                {meta.onSettleStudent && (
+                  <button
+                    onClick={() => {
+                      meta.onSettleStudent!(studentId, studentName);
+                      setShowDropdown(false);
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+                  >
+                    <UserX className="h-4 w-4" />
+                    <span>Settle Student Fees</span>
+                  </button>
+                )}
+                {meta.onClassTransfer && (
+                  <button
+                    onClick={() => {
+                      meta.onClassTransfer!(studentId, studentName, classId);
+                      setShowDropdown(false);
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+                  >
+                    <ArrowRightLeft className="h-4 w-4" />
+                    <span>Class Transfer</span>
+                  </button>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function StudentFeesTable({
   data,
   onViewDetails,
   onDiscount,
   onCancel,
   onPay,
+  onSettleStudent,
+  onClassTransfer,
   selectedFees = new Set(),
   onSelectionChange,
   readOnly = false,
@@ -264,43 +378,22 @@ export function StudentFeesTable({
         const canCancel = !isReadOnly && fee.status !== 'CANCELLED' && fee.status !== 'PAID';
         const canPay = !isReadOnly && fee.dueAmount > 0 && fee.status !== 'CANCELLED';
 
+        const studentId = typeof fee.studentId === 'object' ? fee.studentId._id : fee.studentId;
+        const studentName = getStudentName(fee.studentId);
+        const classId = typeof fee.classId === 'object' ? fee.classId._id : fee.classId;
+
         return (
-          <div className="flex justify-end space-x-2">
-            <button
-              onClick={() => meta.onViewDetails(fee)}
-              className="text-green-600 hover:text-green-900 p-1 rounded"
-              title="View Details"
-            >
-              <Eye className="h-5 w-5" />
-            </button>
-            {canPay && (
-              <button
-                onClick={() => meta.onPay(fee)}
-                className="text-emerald-600 hover:text-emerald-900 p-1 rounded"
-                title="Collect Payment"
-              >
-                <DollarSign className="h-5 w-5" />
-              </button>
-            )}
-            {canApplyDiscount && (
-              <button
-                onClick={() => meta.onDiscount(fee)}
-                className="text-blue-600 hover:text-blue-900 p-1 rounded"
-                title="Apply Discount"
-              >
-                <Tag className="h-5 w-5" />
-              </button>
-            )}
-            {canCancel && (
-              <button
-                onClick={() => meta.onCancel(info.getValue())}
-                className="text-red-600 hover:text-red-900 p-1 rounded"
-                title="Cancel Fee"
-              >
-                <XCircle className="h-5 w-5" />
-              </button>
-            )}
-          </div>
+          <ActionsCell
+            fee={fee}
+            meta={meta}
+            isReadOnly={isReadOnly}
+            canApplyDiscount={canApplyDiscount}
+            canCancel={canCancel}
+            canPay={canPay}
+            studentId={studentId}
+            studentName={studentName}
+            classId={classId}
+          />
         );
       },
     }),
@@ -320,6 +413,8 @@ export function StudentFeesTable({
         onDiscount,
         onCancel,
         onPay,
+        onSettleStudent,
+        onClassTransfer,
         readOnly,
       } as TableMetaType}
     />

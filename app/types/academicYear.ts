@@ -24,3 +24,8 @@ export interface UpdateAcademicYearDto {
   isActive?: boolean;
   status?: 'Draft' | 'Active' | 'Closed';
 }
+
+export interface UpdateAcademicYearResponse {
+  updated: AcademicYear;
+  previouslyClosed?: AcademicYear;
+}

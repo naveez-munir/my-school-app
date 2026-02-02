@@ -10,16 +10,22 @@ import type {
   AddSubjectTaskRequest,
   UpdateSubjectTaskRequest
 } from '~/types/dailyDiary';
+import type { PaginatedResponse } from '~/types/attendance';
 
-// Create base CRUD hooks for diary operations
 const baseDiaryHooks = createQueryHooks<DailyDiaryResponse, CreateDailyDiaryRequest, UpdateDailyDiaryRequest>(
-  'dailyDiaries', 
+  'dailyDiaries',
   dailyDiaryApi
 );
 
-// Add specialized hooks for diary-specific operations
+export const useDiaryEntriesPaginated = (params?: DiaryQueryParams) => {
+  return useQuery<PaginatedResponse<DailyDiaryResponse>>({
+    queryKey: [...baseDiaryHooks.keys.lists(), params],
+    queryFn: () => dailyDiaryApi.getAllPaginated(params),
+  });
+};
+
 export const useDiaryEntriesByClass = (classId: string, params?: DiaryQueryParams) => {
-  return useQuery({
+  return useQuery<PaginatedResponse<DailyDiaryResponse>>({
     queryKey: [...baseDiaryHooks.keys.lists(), 'class', classId, params],
     queryFn: () => dailyDiaryApi.getByClass(classId, params),
     enabled: !!classId
@@ -27,7 +33,7 @@ export const useDiaryEntriesByClass = (classId: string, params?: DiaryQueryParam
 };
 
 export const useDiaryEntriesForStudent = (studentId: string, params?: DiaryQueryParams) => {
-  return useQuery({
+  return useQuery<PaginatedResponse<DailyDiaryResponse>>({
     queryKey: [...baseDiaryHooks.keys.lists(), 'student', studentId, params],
     queryFn: () => dailyDiaryApi.getForStudent(studentId, params),
     enabled: !!studentId

@@ -99,7 +99,7 @@ const ExamTypeDashboard: React.FC = () => {
     updateExamTypeMutation.isPending;
 
   return (
-    <div className="container mx-auto py-6 px-4">
+    <div className="container mx-auto py-6">
       <div className="mb-6 flex justify-between items-center">
         <h1 className="text-xs sm:text-sm lg:text-base font-bold text-gray-800">Exam Types</h1>
         <div className="flex space-x-4">

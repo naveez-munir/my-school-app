@@ -5,7 +5,10 @@ import type {
   ApplyDiscountInput,
   BulkGenerateStudentFeeInput,
   StudentFee,
-  PopulatedStudentFee
+  PopulatedStudentFee,
+  CreateAdhocFeeInput,
+  StudentFeeSettlementInput,
+  StudentClassTransferInput
 } from "~/types/studentFee";
 import {
   useStudentFeeAnalytics,
@@ -15,7 +18,10 @@ import {
   useCancelFee,
   useCalculateLateFees,
   useUpdateFeeStatuses,
-  useGenerateRecurringFees
+  useGenerateRecurringFees,
+  useCreateAdhocFee,
+  useSettleStudentFees,
+  useHandleClassTransfer
 } from "~/hooks/useStudentFeeQueries";
 import { useClasses } from "~/hooks/useClassQueries";
 import { useStudents } from "~/hooks/useStudentQueries";
@@ -36,6 +42,9 @@ import { ConfirmActionModal } from "./ConfirmActionModal";
 import { GenerateRecurringFeesModal, type RecurringFeeData, type ClassSelection } from "./GenerateRecurringFeesModal";
 import { PaymentModal } from "../feePayment/PaymentModal";
 import { BulkPaymentModal } from "../feePayment/BulkPaymentModal";
+import { CreateAdhocFeeModal } from "./CreateAdhocFeeModal";
+import { SettleStudentFeesModal } from "./SettleStudentFeesModal";
+import { ClassTransferModal } from "./ClassTransferModal";
 
 type AnyStudentFee = StudentFee | PopulatedStudentFee;
 
@@ -60,6 +69,10 @@ export const StudentFeeSection = () => {
   const [feeToPay, setFeeToPay] = useState<AnyStudentFee | null>(null);
   const [selectedFeeIds, setSelectedFeeIds] = useState<Set<string>>(new Set());
   const [isBulkPaymentModalOpen, setIsBulkPaymentModalOpen] = useState(false);
+  const [isAdhocModalOpen, setIsAdhocModalOpen] = useState(false);
+  const [isSettlementModalOpen, setIsSettlementModalOpen] = useState(false);
+  const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
+  const [selectedStudentForAction, setSelectedStudentForAction] = useState<{ id: string; name: string; classId?: string } | null>(null);
 
   const { data: students = [] } = useStudents();
   const { data: classes = [] } = useClasses();
@@ -81,6 +94,9 @@ export const StudentFeeSection = () => {
   const calculateLateFeesMutation = useCalculateLateFees();
   const updateFeeStatusesMutation = useUpdateFeeStatuses();
   const generateRecurringMutation = useGenerateRecurringFees();
+  const createAdhocFeeMutation = useCreateAdhocFee();
+  const settleStudentFeesMutation = useSettleStudentFees();
+  const handleClassTransferMutation = useHandleClassTransfer();
 
   const handleGenerateFee = async (data: GenerateStudentFeeInput) => {
     try {
@@ -219,6 +235,54 @@ export const StudentFeeSection = () => {
     }
   };
 
+  const handleCreateAdhocFee = async (data: CreateAdhocFeeInput) => {
+    try {
+      await createAdhocFeeMutation.mutateAsync(data);
+      setIsAdhocModalOpen(false);
+      toast.success("Ad-hoc fee created successfully");
+    } catch (err: any) {
+      console.error("Error creating ad-hoc fee:", err);
+      const errorMessage = err?.response?.data?.message || err?.message || "Failed to create ad-hoc fee";
+      toast.error(errorMessage);
+    }
+  };
+
+  const handleSettleStudentFees = async (data: StudentFeeSettlementInput) => {
+    if (!selectedStudentForAction) return { cancelledFees: 0, totalCancelledAmount: 0, refundableFees: [], totalRefundableAmount: 0, nonRefundableFees: 0, totalNonRefundableAmount: 0 };
+
+    try {
+      const result = await settleStudentFeesMutation.mutateAsync({
+        studentId: selectedStudentForAction.id,
+        data
+      });
+      toast.success("Student fees settled successfully");
+      return result;
+    } catch (err: any) {
+      console.error("Error settling fees:", err);
+      const errorMessage = err?.response?.data?.message || err?.message || "Failed to settle fees";
+      toast.error(errorMessage);
+      throw err;
+    }
+  };
+
+  const handleClassTransfer = async (data: StudentClassTransferInput) => {
+    if (!selectedStudentForAction) return { cancelledFees: 0, totalCancelledAmount: 0, carriedForwardFees: 0, totalCarriedForwardAmount: 0, adjustedFees: 0, totalAdjustmentAmount: 0, newFeesGenerated: 0, totalNewFeesAmount: 0 };
+
+    try {
+      const result = await handleClassTransferMutation.mutateAsync({
+        studentId: selectedStudentForAction.id,
+        data
+      });
+      toast.success("Class transfer completed successfully");
+      return result;
+    } catch (err: any) {
+      console.error("Error transferring class:", err);
+      const errorMessage = err?.response?.data?.message || err?.message || "Failed to transfer class";
+      toast.error(errorMessage);
+      throw err;
+    }
+  };
+
   const clearFilters = () => {
     setAcademicYear('');
     setSelectedClassId('');
@@ -244,6 +308,12 @@ export const StudentFeeSection = () => {
             className="bg-green-600 text-white px-4 py-2.5 rounded-lg hover:bg-green-700 text-sm font-medium"
           >
             Bulk Generate
+          </button>
+          <button
+            onClick={() => setIsAdhocModalOpen(true)}
+            className="bg-purple-600 text-white px-4 py-2.5 rounded-lg hover:bg-purple-700 text-sm font-medium"
+          >
+            Ad-hoc Fee
           </button>
         </div>
       </div>
@@ -328,6 +398,14 @@ export const StudentFeeSection = () => {
             }}
             onCancel={handleCancelFeeClick}
             onPay={handlePay}
+            onSettleStudent={(studentId: string, studentName: string) => {
+              setSelectedStudentForAction({ id: studentId, name: studentName });
+              setIsSettlementModalOpen(true);
+            }}
+            onClassTransfer={(studentId: string, studentName: string, classId?: string) => {
+              setSelectedStudentForAction({ id: studentId, name: studentName, classId });
+              setIsTransferModalOpen(true);
+            }}
             selectedFees={selectedFeeIds}
             onSelectionChange={setSelectedFeeIds}
           />
@@ -442,6 +520,41 @@ export const StudentFeeSection = () => {
             };
           })}
       />
+
+      <CreateAdhocFeeModal
+        isOpen={isAdhocModalOpen}
+        onClose={() => setIsAdhocModalOpen(false)}
+        onSubmit={handleCreateAdhocFee}
+        isSubmitting={createAdhocFeeMutation.isPending}
+        academicYear={academicYear}
+      />
+
+      {selectedStudentForAction && (
+        <>
+          <SettleStudentFeesModal
+            isOpen={isSettlementModalOpen}
+            onClose={() => {
+              setIsSettlementModalOpen(false);
+              setSelectedStudentForAction(null);
+            }}
+            onSubmit={handleSettleStudentFees}
+            isSubmitting={settleStudentFeesMutation.isPending}
+            studentName={selectedStudentForAction.name}
+          />
+
+          <ClassTransferModal
+            isOpen={isTransferModalOpen}
+            onClose={() => {
+              setIsTransferModalOpen(false);
+              setSelectedStudentForAction(null);
+            }}
+            onSubmit={handleClassTransfer}
+            isSubmitting={handleClassTransferMutation.isPending}
+            studentName={selectedStudentForAction.name}
+            currentClassId={selectedStudentForAction.classId}
+          />
+        </>
+      )}
     </div>
   );
 };

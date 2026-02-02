@@ -1,6 +1,7 @@
 import type { ColumnDef } from '@tanstack/react-table';
 import type { FeeStructure, PopulatedFeeStructure } from '~/types/studentFee';
 import { useMemo } from 'react';
+import { useNavigate } from 'react-router';
 import { ToggleLeft, ToggleRight, Copy, Edit, Trash2 } from 'lucide-react';
 import { formatUserFriendlyDate } from '~/utils/dateUtils';
 import { useClasses } from '~/hooks/useClassQueries';
@@ -8,16 +9,15 @@ import { GenericDataTable } from '~/components/common/table/GenericDataTable';
 import { SortableColumnHeader } from '~/components/common/table/TableHelpers';
 
 interface TableMetaType {
-  onEdit: (structure: FeeStructure | PopulatedFeeStructure) => void;
   onDelete: (id: string) => void;
   onToggleStatus: (id: string) => void;
   onClone: (structure: FeeStructure | PopulatedFeeStructure) => void;
   getClassName: (id: string) => string;
+  navigate: (path: string) => void;
 }
 
 interface FeeStructuresTableProps {
   data: (FeeStructure | PopulatedFeeStructure)[];
-  onEdit: (structure: FeeStructure | PopulatedFeeStructure) => void;
   onDelete: (id: string) => void;
   onToggleStatus: (id: string) => void;
   onClone: (structure: FeeStructure | PopulatedFeeStructure) => void;
@@ -33,12 +33,12 @@ const isPopulatedStructure = (
 
 export function FeeStructuresTable({
   data,
-  onEdit,
   onDelete,
   onToggleStatus,
   onClone
 }: FeeStructuresTableProps) {
   const { data: classes = [] } = useClasses();
+  const navigate = useNavigate();
 
   const getClassName = (id: string) => {
     const matchingClass = classes.find(c => c.id === id);
@@ -138,7 +138,7 @@ export function FeeStructuresTable({
               <Copy className="h-5 w-5" />
             </button>
             <button
-              onClick={() => meta.onEdit(structure)}
+              onClick={() => meta.navigate(`/dashboard/fee/structure/${info.getValue()}/edit`)}
               className="text-blue-600 hover:text-blue-900 cursor-pointer"
               title="Edit"
             >
@@ -167,11 +167,11 @@ export function FeeStructuresTable({
       searchPlaceholder="Search..."
       idField="_id"
       meta={{
-        onEdit,
         onDelete,
         onToggleStatus,
         onClone,
         getClassName,
+        navigate,
       } as TableMetaType}
     />
   );

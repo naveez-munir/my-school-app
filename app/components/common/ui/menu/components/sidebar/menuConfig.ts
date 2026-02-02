@@ -59,10 +59,10 @@ export const MENU_ITEMS: MenuItem[] = [
     icon: 'bookOpen',
     roles: AdminRoles
   },
-  { 
-    name: 'courses', 
-    label: 'Courses', 
-    path: '/dashboard/courses',
+  {
+    name: 'subjects',
+    label: 'Subjects',
+    path: '/dashboard/subjects',
     icon: 'bookOpen',
     roles: AdminRoles
   },

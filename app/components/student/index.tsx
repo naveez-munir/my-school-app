@@ -44,7 +44,7 @@ export function StudentSection() {
   };
 
   return (
-    <div className="space-y-4 sm:space-y-5 lg:space-y-6 p-3 sm:p-4 lg:p-6 xl:p-8">
+    <div className="space-y-4 sm:space-y-5 lg:space-y-6 ">
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
         <div>

@@ -5,7 +5,6 @@ import type { FeeStructure, PopulatedFeeStructure, CreateFeeStructureInput, Clon
 import {
   useFeeStructures,
   useCreateFeeStructure,
-  useUpdateFeeStructure,
   useDeleteFeeStructure,
   useToggleFeeStructureStatus,
   useCloneFeeStructure
@@ -41,19 +40,16 @@ const getBaseStructure = (structure: FeeStructure | PopulatedFeeStructure): FeeS
 export const FeeStructureSection = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCloneModalOpen, setIsCloneModalOpen] = useState(false);
-  const [editingStructure, setEditingStructure] = useState<FeeStructure | null>(null);
   const [cloningStructure, setCloningStructure] = useState<FeeStructure | null>(null);
   const [academicYear, setAcademicYear] = useState<string>(getCurrentAcademicYear());
 
-  // React Query hooks
-  const { 
-    data: structures = [], 
-    isLoading, 
-    error 
+  const {
+    data: structures = [],
+    isLoading,
+    error
   } = useFeeStructures({ academicYear, includeComponents: true, includeClass: true });
-  
+
   const createStructureMutation = useCreateFeeStructure();
-  const updateStructureMutation = useUpdateFeeStructure();
   const deleteStructureMutation = useDeleteFeeStructure();
   const toggleStatusMutation = useToggleFeeStructureStatus();
   const cloneStructureMutation = useCloneFeeStructure();
@@ -80,23 +76,7 @@ export const FeeStructureSection = () => {
     }
   };
 
-  const handleUpdate = async (data: CreateFeeStructureInput) => {
-    if (editingStructure) {
-      try {
-        await updateStructureMutation.mutateAsync({
-          id: editingStructure._id,
-          data
-        });
-        toast.success("Fee structure updated successfully!");
-        setIsModalOpen(false);
-        setEditingStructure(null);
-      } catch (err: any) {
-        const errorMessage = err?.response?.data?.message || err?.message || "Failed to update fee structure";
-        toast.error(errorMessage);
-        console.error("Error updating fee structure:", err);
-      }
-    }
-  };
+
 
   const handleDelete = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this fee structure?')) {
@@ -140,11 +120,6 @@ export const FeeStructureSection = () => {
     }
   };
 
-  const handleEdit = (structure: FeeStructure | PopulatedFeeStructure) => {
-    setEditingStructure(getBaseStructure(structure));
-    setIsModalOpen(true);
-  };
-
   const handleCloneStart = (structure: FeeStructure | PopulatedFeeStructure) => {
     setCloningStructure(getBaseStructure(structure));
     setIsCloneModalOpen(true);
@@ -157,10 +132,7 @@ export const FeeStructureSection = () => {
           Fee Structure Management
         </h2>
         <button
-          onClick={() => {
-            setEditingStructure(null);
-            setIsModalOpen(true);
-          }}
+          onClick={() => setIsModalOpen(true)}
           className="bg-blue-600 text-white text-xs sm:text-sm px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg hover:bg-blue-700"
         >
           Add Fee Structure
@@ -179,7 +151,6 @@ export const FeeStructureSection = () => {
       ) : (
         <FeeStructuresTable
           data={structures}
-          onEdit={handleEdit}
           onDelete={handleDelete}
           onToggleStatus={handleToggleStatus}
           onClone={handleCloneStart}
@@ -188,14 +159,11 @@ export const FeeStructureSection = () => {
 
       <FeeStructureModal
         isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          setEditingStructure(null);
-        }}
-        onSubmit={editingStructure ? handleUpdate : handleCreate}
-        initialData={editingStructure || undefined}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleCreate}
+        initialData={undefined}
         academicYear={academicYear}
-        isSubmitting={createStructureMutation.isPending || updateStructureMutation.isPending}
+        isSubmitting={createStructureMutation.isPending}
       />
 
       <CloneFeeStructureModal

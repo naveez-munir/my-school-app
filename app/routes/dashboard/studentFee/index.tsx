@@ -8,12 +8,12 @@ import { StudentFeeSection } from '~/components/Fee/studentFee/Index';
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Daily diary Management" },
-    { name: "description", content: "Manage school Daily Diary" },
+    { title: "Fee Management" },
+    { name: "description", content: "Manage school fees" },
   ];
 }
 
-export default function DailyDiary() {
+export default function FeeManagement() {
   const {action } = useParams();
   if (action === "category") {
     return <FeeCategorySection />;

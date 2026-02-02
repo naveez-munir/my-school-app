@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { EmploymentStatus, Gender, type CreateTeacherDto, type Teacher } from '~/types/teacher';
 import { BasicInfoForm } from './BasicInfoForm';
@@ -58,6 +58,16 @@ export function TeacherForm({
   } = useForm<CreateTeacherFormData>({
     resolver: zodResolver(createTeacherSchema),
     defaultValues: getInitialFormData(initialData),
+  });
+
+  const educationFieldArray = useFieldArray({
+    control,
+    name: 'educationHistory',
+  });
+
+  const experienceFieldArray = useFieldArray({
+    control,
+    name: 'experience',
   });
 
   const formData = watch();
@@ -142,15 +152,17 @@ export function TeacherForm({
         )}
         {activeTab === 'education' && (
           <EducationForm
-            data={formData.educationHistory!}
-            qualification={formData.qualifications}
-            onUpdate={(value) => handleUpdate('educationHistory', value)}
+            control={control}
+            errors={errors}
+            fieldArray={educationFieldArray}
+            qualifications={formData.qualifications}
           />
         )}
         {activeTab === 'experience' && (
           <ExperienceForm
-            data={formData.experience!}
-            onUpdate={(value) => handleUpdate('experience', value)}
+            control={control}
+            errors={errors}
+            fieldArray={experienceFieldArray}
           />
         )}
         {activeTab === 'documents' && (
@@ -178,7 +190,7 @@ export function TeacherForm({
           disabled={isLoading}
           className="px-3 py-1.5 sm:px-4 sm:py-2 border border-transparent rounded-md shadow-sm text-xs sm:text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
         >
-          {isLoading ? 'Saving...' : initialData ? 'Update Teacher' : 'Create Teacher'}
+          {isLoading ? (initialData ? 'Updating...' : 'Creating...') : initialData ? 'Update Teacher' : 'Create Teacher'}
         </button>
       </div>
     </form>

@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import toast from 'react-hot-toast';
-import { useDiaryEntry, useDeleteDiaryEntry, useAddSubjectTask, useUpdateSubjectTask, useDeleteSubjectTask } from '~/hooks/useDailyDiaryQueries';
+import { useDiaryEntry, useDeleteDiaryEntry, useUpdateDiaryEntry, useAddSubjectTask, useUpdateSubjectTask, useDeleteSubjectTask } from '~/hooks/useDailyDiaryQueries';
 import { useDailyDiaryPermissions } from '~/hooks/useDailyDiaryPermissions';
 import { getUserRole } from '~/utils/auth';
 import { UserRoleEnum } from '~/types/user';
@@ -32,6 +32,7 @@ export function DailyDiaryDetail({ readOnly: propReadOnly, backUrl }: DailyDiary
   const readOnly = propReadOnly || isGuardianOrStudent;
   const { data: diary, isLoading, error } = useDiaryEntry(id || '');
   const deleteDiaryMutation = useDeleteDiaryEntry();
+  const updateDiaryMutation = useUpdateDiaryEntry();
   const addTaskMutation = useAddSubjectTask();
   const updateTaskMutation = useUpdateSubjectTask();
   const deleteTaskMutation = useDeleteSubjectTask();
@@ -51,6 +52,21 @@ export function DailyDiaryDetail({ readOnly: propReadOnly, backUrl }: DailyDiary
 
   const handleDelete = () => {
     setIsDeleteDiaryModalOpen(true);
+  };
+
+  const handlePublish = () => {
+    if (!id) return;
+    updateDiaryMutation.mutate(
+      { id, data: { status: 'PUBLISHED' } },
+      {
+        onSuccess: () => {
+          toast.success('Diary entry published successfully');
+        },
+        onError: (error: any) => {
+          toast.error(error?.message || 'Failed to publish diary entry');
+        }
+      }
+    );
   };
 
   const confirmDeleteDiary = () => {
@@ -166,11 +182,29 @@ export function DailyDiaryDetail({ readOnly: propReadOnly, backUrl }: DailyDiary
             <ChevronLeft className="h-4 w-4 mr-1" />
             Back to Diary List
           </button>
-          <h1 className="text-2xl font-bold text-gray-900">{diary.title}</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold text-gray-900">{diary.title}</h1>
+            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+              diary.status === 'DRAFT'
+                ? 'bg-yellow-100 text-yellow-800'
+                : 'bg-green-100 text-green-800'
+            }`}>
+              {diary.status === 'DRAFT' ? 'Draft' : 'Published'}
+            </span>
+          </div>
         </div>
-        
+
         {!readOnly && (
           <div className="flex space-x-3">
+            {permissions.canEditDiary && diary.status === 'DRAFT' && (
+              <button
+                onClick={handlePublish}
+                disabled={updateDiaryMutation.isPending}
+                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-green-600 hover:bg-green-700 disabled:opacity-50"
+              >
+                {updateDiaryMutation.isPending ? 'Publishing...' : 'Publish'}
+              </button>
+            )}
             {permissions.canEditDiary && (
               <button
                 onClick={handleEdit}

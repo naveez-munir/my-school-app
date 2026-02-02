@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useTeacher, useUpdateTeacher } from '~/hooks/useTeacherQueries';
 import { TeacherForm } from './TeacherForm';
 import type { CreateTeacherDto } from '~/types/teacher';
-import { useNavigate, useParams } from 'react-router';
+import { useParams } from 'react-router';
 import { cleanTeacherData } from '~/utils/cleanFormData';
 import { useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
@@ -12,7 +12,6 @@ import { isAdmin } from '~/utils/auth';
 
 export function EditTeacher() {
   const { id } = useParams();
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<'basic' | 'leave'>('basic');
   const userIsAdmin = isAdmin();
@@ -30,7 +29,6 @@ export function EditTeacher() {
           onSuccess: () => {
             toast.success('Teacher updated successfully');
             queryClient.invalidateQueries({ queryKey: ['classes'] });
-            navigate('/dashboard/teachers');
           },
           onError: (error) => {
             toast.error(getErrorMessage(error));
@@ -45,7 +43,7 @@ export function EditTeacher() {
   }
 
   return (
-    <div className="space-y-6 p-4 sm:p-6 md:p-8">
+    <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Edit Teacher</h1>
         <p className="mt-1 text-sm text-gray-500">

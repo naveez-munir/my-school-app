@@ -26,7 +26,6 @@ export function EditStaff() {
         {
           onSuccess: () => {
             toast.success('Staff member updated successfully');
-            navigate('/dashboard/staff');
           },
           onError: (error) => {
             toast.error(getErrorMessage(error), { duration: 5000 });
@@ -45,7 +44,7 @@ export function EditStaff() {
   }
 
   return (
-    <div className="space-y-6 p-4 sm:p-6 md:p-8">
+    <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Edit Staff Member</h1>
         <p className="mt-1 text-sm text-gray-500">

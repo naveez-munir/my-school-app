@@ -4,6 +4,12 @@ export const getErrorMessage = (error: unknown): string => {
   if (error instanceof AxiosError && error.response?.data) {
     const { data } = error.response;
 
+    // Handle: { message: ["error1", "error2"] }
+    if (data.message && Array.isArray(data.message)) {
+      return data.message[0] || 'An error occurred';
+    }
+
+    // Handle: { message: { message: ["error1", "error2"] } }
     if (data.message && typeof data.message === 'object' && data.message.message && Array.isArray(data.message.message)) {
       return data.message.message[0] || 'An error occurred';
     }
@@ -12,7 +18,8 @@ export const getErrorMessage = (error: unknown): string => {
       return data.message;
     }
 
-    if (data.message.message && typeof data.message.message === 'string') {
+    // Handle: { message: { message: "error string" } }
+    if (data.message?.message && typeof data.message.message === 'string') {
       return data.message.message;
     }
 

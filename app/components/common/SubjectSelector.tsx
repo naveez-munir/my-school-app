@@ -17,9 +17,9 @@ interface SubjectSelectorProps {
 export function SubjectSelector({
   value = '',
   onChange,
-  label = 'Course',
+  label = 'Subject',
   required = false,
-  placeholder = 'Select or enter course',
+  placeholder = 'Select or enter subject',
   className = '',
   classId
 }: SubjectSelectorProps) {

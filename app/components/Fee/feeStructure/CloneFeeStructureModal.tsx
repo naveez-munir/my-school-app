@@ -4,6 +4,7 @@ import { Trash2, Plus } from 'lucide-react';
 import { TextInput } from '~/components/common/form/inputs/TextInput';
 import { ClassSelector } from '~/components/common/ClassSelector';
 import { FeeCategorySelector } from '~/components/common/FeeCategorySelector';
+import { AcademicYearSelector } from '~/components/common/AcademicYearSelector';
 import { FormActions } from '~/components/common/form/FormActions';
 import { useClasses } from '~/hooks/useClassQueries';
 import { useFeeCategories } from '~/hooks/useFeeCategoryQueries';
@@ -149,15 +150,14 @@ export function CloneFeeStructureModal({
         
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <TextInput
+            <AcademicYearSelector
               label="New Academic Year"
               value={formData.newAcademicYear}
               onChange={(value) => setFormData(prev => ({ ...prev, newAcademicYear: value }))}
               required
-              type="number"
               disabled={isSubmitting}
             />
-            
+
             <ClassSelector
               label="New Class (Optional)"
               value={formData.newClassId || ''}

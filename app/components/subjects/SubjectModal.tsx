@@ -50,7 +50,7 @@ export function SubjectModal({
 
       <div className="bg-white rounded-lg p-6 w-full max-w-md border-1 border-gray-200 z-10 relative">
         <h3 className="text-lg font-medium mb-4">
-          {initialData ? 'Edit Course' : 'Add New Course'}
+          {initialData ? 'Edit Subject' : 'Add New Subject'}
         </h3>
 
         <form onSubmit={handleFormSubmitWithValidation}>
@@ -91,7 +91,7 @@ export function SubjectModal({
           <div className="mt-6">
             <FormActions
               mode={initialData ? 'edit' : 'create'}
-              entityName="Course"
+              entityName="Subject"
               onCancel={onClose}
               isLoading={isSubmitting}
               onSubmit={undefined}

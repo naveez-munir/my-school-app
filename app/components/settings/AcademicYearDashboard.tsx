@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import type { AcademicYear, CreateAcademicYearDto, UpdateAcademicYearDto } from '~/types/academicYear';
+import toast from 'react-hot-toast';
+import type { AcademicYear, CreateAcademicYearDto, UpdateAcademicYearDto, UpdateAcademicYearResponse } from '~/types/academicYear';
 import AcademicYearTable from './AcademicYearTable';
 import AcademicYearForm from './AcademicYearForm';
 import { Modal } from '~/components/common/Modal';
@@ -45,6 +46,7 @@ const AcademicYearDashboard: React.FC = () => {
   const confirmDelete = async () => {
     if (academicYearToDelete) {
       await deleteAcademicYearMutation.mutateAsync(academicYearToDelete);
+      toast.success('Academic year deleted successfully');
       setShowDeleteModal(false);
       setAcademicYearToDelete(null);
     }
@@ -58,16 +60,26 @@ const AcademicYearDashboard: React.FC = () => {
   const handleFormSubmit = async (data: CreateAcademicYearDto | UpdateAcademicYearDto) => {
     try {
       if (currentAcademicYear) {
-        await updateAcademicYearMutation.mutateAsync({
+        const response = await updateAcademicYearMutation.mutateAsync({
           id: currentAcademicYear.id,
           data: data as UpdateAcademicYearDto
-        });
+        }) as UpdateAcademicYearResponse;
+
+        toast.success('Academic year updated successfully');
+
+        if (response.previouslyClosed) {
+          toast(`Academic year "${response.previouslyClosed.displayName}" has been closed automatically`, {
+            icon: 'ℹ️',
+            duration: 5000
+          });
+        }
       } else {
         await createAcademicYearMutation.mutateAsync(data as CreateAcademicYearDto);
+        toast.success('Academic year created successfully');
       }
       setShowFormModal(false);
-    } catch (error) {
-      console.error('Error saving academic year:', error);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to save academic year');
     }
   };
 

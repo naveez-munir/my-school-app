@@ -1,4 +1,4 @@
-import { Upload, X, Loader } from 'lucide-react';
+import { Upload, X } from 'lucide-react';
 import { useFileUploadWithPreview } from '~/hooks/useFileUploadWithPreview';
 import type { PhotoUploadProps } from '~/types/student';
 
@@ -6,6 +6,7 @@ export function PhotoUpload({ currentPhoto, onPhotoChange, folder = 'photos' }: 
   const {
     preview,
     isPending,
+    uploadProgress,
     fileInputRef,
     handleFileChange,
     handleRemove
@@ -35,8 +36,14 @@ export function PhotoUpload({ currentPhoto, onPhotoChange, folder = 'photos' }: 
               className="h-32 w-32 rounded-full object-cover"
             />
             {isPending && (
-              <div className="absolute inset-0 bg-black bg-opacity-40 rounded-full flex items-center justify-center">
-                <Loader className="h-8 w-8 text-white animate-spin" />
+              <div className="absolute inset-0 bg-white bg-opacity-70 rounded-full flex flex-col items-center justify-center">
+                <div className="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-blue-600 rounded-full transition-all duration-300"
+                    style={{ width: `${uploadProgress}%` }}
+                  />
+                </div>
+                <span className="text-xs text-gray-600 mt-1">{uploadProgress}%</span>
               </div>
             )}
             <button
@@ -55,11 +62,7 @@ export function PhotoUpload({ currentPhoto, onPhotoChange, folder = 'photos' }: 
               isPending ? 'border-gray-200 cursor-not-allowed' : 'border-gray-300 cursor-pointer hover:border-gray-400'
             } flex items-center justify-center`}
           >
-            {isPending ? (
-              <Loader className="h-8 w-8 text-gray-400 animate-spin" />
-            ) : (
-              <Upload className="h-8 w-8 text-gray-400" />
-            )}
+            <Upload className="h-8 w-8 text-gray-400" />
           </div>
         )}
       </div>

@@ -17,7 +17,7 @@ const getShortLabel = (label: string): string => {
     'Students': 'Students',
     'Teachers': 'Teachers',
     'Classes': 'Classes',
-    'Courses': 'Courses',
+    'Subjects': 'Subjects',
     'Staff': 'Staff',
     'Leave Management': 'Leave',
     'Staff Leave': 'Staff',

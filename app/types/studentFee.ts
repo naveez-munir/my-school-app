@@ -38,6 +38,24 @@ export enum ValueType {
   PERCENTAGE = 'PERCENTAGE'
 }
 
+export enum SettlementType {
+  CANCEL_PENDING = 'CANCEL_PENDING',
+  SETTLE_ALL = 'SETTLE_ALL'
+}
+
+export enum RefundStatus {
+  PENDING = 'PENDING',
+  APPROVED = 'APPROVED',
+  PROCESSED = 'PROCESSED',
+  REJECTED = 'REJECTED'
+}
+
+export enum TransferFeeAction {
+  CANCEL = 'CANCEL',
+  ADJUST = 'ADJUST',
+  CARRY_FORWARD = 'CARRY_FORWARD'
+}
+
 export enum PaymentMode {
   CASH = 'CASH',
   CHEQUE = 'CHEQUE',
@@ -199,7 +217,7 @@ export interface PopulatedFeeDetail extends Omit<FeeDetail, 'feeCategory'> {
 
 export interface StudentFee extends BaseEntity {
   studentId: MongoId;
-  feeStructureId: MongoId;
+  feeStructureId?: MongoId;
   academicYear: string;
   billType: BillType;
   billMonth?: number;
@@ -215,6 +233,8 @@ export interface StudentFee extends BaseEntity {
   dueAmount: number;
   lastPaymentDate?: string;
   remarks?: string;
+  isAdhoc?: boolean;
+  adhocDescription?: string;
 }
 
 export interface PopulatedStudentFee extends Omit<StudentFee, 'studentId' | 'feeStructureId' | 'feeDetails'> {
@@ -439,6 +459,100 @@ export interface ReceiptResult {
     rollNumber?: string;
     [key: string]: any;
   };
+}
+
+export interface CreateAdhocFeeInput {
+  studentId: MongoId;
+  academicYear: string;
+  description: string;
+  amount: number;
+  dueDate: string | Date;
+  feeCategoryId?: MongoId;
+  remarks?: string;
+  createdBy?: MongoId;
+}
+
+export interface StudentFeeSettlementInput {
+  settlementType: SettlementType;
+  effectiveDate?: string | Date;
+  remarks?: string;
+  processedBy?: MongoId;
+}
+
+export interface SettlementSummary {
+  cancelledFees: number;
+  totalCancelledAmount: number;
+  refundableFees: Array<{
+    feeId: string;
+    categoryName: string;
+    paidAmount: number;
+    refundableAmount: number;
+    isRefundable: boolean;
+  }>;
+  totalRefundableAmount: number;
+  nonRefundableFees: number;
+  totalNonRefundableAmount: number;
+}
+
+export interface StudentClassTransferInput {
+  newClassId: MongoId;
+  effectiveDate: string | Date;
+  pendingFeeAction: TransferFeeAction;
+  newAcademicYear?: string;
+  newFeeStructureId?: MongoId;
+  generateNewFees?: boolean;
+  remarks?: string;
+  processedBy?: MongoId;
+}
+
+export interface TransferSummary {
+  cancelledFees: number;
+  totalCancelledAmount: number;
+  carriedForwardFees: number;
+  totalCarriedForwardAmount: number;
+  adjustedFees: number;
+  totalAdjustmentAmount: number;
+  newFeesGenerated: number;
+  totalNewFeesAmount: number;
+}
+
+export interface FeeRefund extends BaseEntity {
+  studentFeeId: MongoId;
+  studentId: MongoId;
+  feeCategoryId?: MongoId;
+  refundAmount: number;
+  refundDate: string;
+  refundMode: PaymentMode;
+  refundReason: string;
+  status: RefundStatus;
+  processedBy?: MongoId;
+  processedDate?: string;
+  transactionReference?: string;
+  remarks?: string;
+}
+
+export interface CreateFeeRefundInput {
+  studentFeeId: MongoId;
+  studentId: MongoId;
+  feeCategoryId?: MongoId;
+  refundAmount: number;
+  refundDate: string | Date;
+  refundMode: PaymentMode;
+  refundReason: string;
+  remarks?: string;
+  createdBy?: MongoId;
+}
+
+export interface ProcessRefundInput {
+  status: RefundStatus;
+  processedBy?: MongoId;
+  transactionReference?: string;
+  remarks?: string;
+}
+
+export interface ListRefundParams {
+  studentId?: MongoId;
+  status?: RefundStatus;
 }
 
 // --------------------

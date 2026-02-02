@@ -340,6 +340,7 @@ export interface DocumentUploaderProps {
   folder?: string;
   label?: string;
   accept?: string;
+  error?: string;
 }
 
 export interface PhotoUploadProps {

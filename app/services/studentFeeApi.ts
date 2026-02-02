@@ -1,12 +1,17 @@
 import api from './apiClient';
-import { 
-  type GenerateStudentFeeInput, 
-  type StudentFee, 
-  type BulkGenerateStudentFeeInput, 
+import {
+  type GenerateStudentFeeInput,
+  type StudentFee,
+  type BulkGenerateStudentFeeInput,
   type ApplyDiscountInput,
   type GetStudentFeesParams,
   type GetPendingFeesParams,
   type PendingFeesResult,
+  type CreateAdhocFeeInput,
+  type StudentFeeSettlementInput,
+  type SettlementSummary,
+  type StudentClassTransferInput,
+  type TransferSummary,
   prepareQueryParams,
   cleanObject
 } from '../types/studentFee';
@@ -111,6 +116,36 @@ export const studentFeeApi = {
   synchronizeDiscounts: async (studentId: string): Promise<{ updated: number }> => {
     const response = await api.post<{ updated: number }>(
       `/student-fees/student/${studentId}/sync-discounts`
+    );
+    return response.data;
+  },
+
+  // Endpoint: POST /student-fees/adhoc
+  createAdhocFee: async (data: CreateAdhocFeeInput): Promise<StudentFee> => {
+    const response = await api.post<StudentFee>('/student-fees/adhoc', cleanObject(data));
+    return response.data;
+  },
+
+  // Endpoint: POST /student-fees/student/:studentId/settle
+  settleStudentFees: async (
+    studentId: string,
+    data: StudentFeeSettlementInput
+  ): Promise<SettlementSummary> => {
+    const response = await api.post<SettlementSummary>(
+      `/student-fees/student/${studentId}/settle`,
+      cleanObject(data)
+    );
+    return response.data;
+  },
+
+  // Endpoint: POST /student-fees/student/:studentId/class-transfer
+  handleClassTransfer: async (
+    studentId: string,
+    data: StudentClassTransferInput
+  ): Promise<TransferSummary> => {
+    const response = await api.post<TransferSummary>(
+      `/student-fees/student/${studentId}/class-transfer`,
+      cleanObject(data)
     );
     return response.data;
   }

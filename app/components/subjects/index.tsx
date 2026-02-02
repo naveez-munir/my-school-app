@@ -51,7 +51,7 @@ export const SubjectSection = () => {
         });
         setIsModalOpen(false);
         setEditingSubject(null);
-        toast.success("Course updated successfully");
+        toast.success("Subject updated successfully");
         queryClient.invalidateQueries({ queryKey: ['subjects'] });
       } catch (err) {
          handleError(err)
@@ -88,7 +88,7 @@ export const SubjectSection = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xs sm:text-sm lg:text-base font-semibold text-gray-700">
-          Course Management
+          Subject Management
         </h2>
         <button
           onClick={() => {
@@ -97,7 +97,7 @@ export const SubjectSection = () => {
           }}
           className="bg-blue-600 text-white text-xs sm:text-sm px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg hover:bg-blue-700"
         >
-          Add Course
+          Add Subject
         </button>
       </div>
 
@@ -131,7 +131,7 @@ export const SubjectSection = () => {
         isOpen={deletePromptOpen}
         onClose={() => setDeletePromptOpen(false)}
         onConfirm={confirmDelete}
-        itemName="course"
+        itemName="subject"
       />
     </div>
   );

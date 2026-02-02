@@ -25,6 +25,7 @@ export function AllocationForm({ allocation, onSuccess, onCancel }: AllocationFo
     isLabSubject: allocation?.isLabSubject || false,
     consecutivePeriods: allocation?.consecutivePeriods || 1,
     status: allocation?.status || 'ACTIVE',
+    autoAssignAllSubjects: false,
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -46,7 +47,7 @@ export function AllocationForm({ allocation, onSuccess, onCancel }: AllocationFo
       newErrors.classId = 'Class is required';
     }
 
-    if (!formData.subjectId) {
+    if (!formData.autoAssignAllSubjects && !formData.subjectId) {
       newErrors.subjectId = 'Subject is required';
     }
 
@@ -90,8 +91,12 @@ export function AllocationForm({ allocation, onSuccess, onCancel }: AllocationFo
       : formData;
 
     mutation.mutate(submitData as any, {
-      onSuccess: () => {
-        toast.success(`Allocation ${action === 'create' ? 'created' : 'updated'} successfully`);
+      onSuccess: (data) => {
+        const isMultiple = Array.isArray(data);
+        const message = isMultiple
+          ? `${data.length} allocations created successfully`
+          : `Allocation ${action === 'create' ? 'created' : 'updated'} successfully`;
+        toast.success(message);
         onSuccess();
       },
       onError: (error: any) => {
@@ -104,22 +109,49 @@ export function AllocationForm({ allocation, onSuccess, onCancel }: AllocationFo
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <ClassSelector
-          label="Class"
-          value={formData.classId}
-          onChange={(value) => handleChange('classId', value)}
-          required
-        />
+      <ClassSelector
+        label="Class"
+        value={formData.classId}
+        onChange={(value) => handleChange('classId', value)}
+        required
+      />
 
+      {!allocation && (
+        <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <label htmlFor="autoAssign" className="text-sm font-medium text-gray-700">
+                Auto-assign to all subjects
+              </label>
+              <p className="text-xs text-gray-600 mt-1">
+                Automatically create allocations for all subjects in this class
+              </p>
+            </div>
+            <input
+              type="checkbox"
+              id="autoAssign"
+              checked={formData.autoAssignAllSubjects}
+              onChange={(e) => {
+                handleChange('autoAssignAllSubjects', e.target.checked);
+                if (e.target.checked) {
+                  handleChange('subjectId', '');
+                }
+              }}
+              className="h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+          </div>
+        </div>
+      )}
+
+      {!formData.autoAssignAllSubjects && (
         <SubjectSelector
           label="Subject"
-          value={formData.subjectId}
+          value={formData.subjectId || ''}
           onChange={(value) => handleChange('subjectId', value)}
           classId={formData.classId}
           required
         />
-      </div>
+      )}
 
       <TeacherSelector
         label="Teacher"

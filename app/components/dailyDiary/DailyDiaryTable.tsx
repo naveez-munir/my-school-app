@@ -62,6 +62,22 @@ export function DailyDiaryTable({
         </div>
       ),
     }),
+    columnHelper.accessor('status', {
+      header: ({ column }) => <SortableColumnHeader column={column} title="Status" />,
+      cell: (info) => {
+        const status = info.getValue();
+        const isDraft = status === 'DRAFT';
+        return (
+          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+            isDraft
+              ? 'bg-yellow-100 text-yellow-800'
+              : 'bg-green-100 text-green-800'
+          }`}>
+            {isDraft ? 'Draft' : 'Published'}
+          </span>
+        );
+      },
+    }),
     columnHelper.accessor('attachments', {
       header: "Files",
       cell: (info) => {

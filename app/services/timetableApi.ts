@@ -61,6 +61,14 @@ export const baseAllocationService = createEntityService<
 export const allocationApi = {
   ...baseAllocationService,
 
+  create: async (data: CreateAllocationDto) => {
+    const response = await api.post<ClassSubjectAllocation | ClassSubjectAllocation[]>(
+      '/timetable/allocations',
+      data
+    );
+    return response.data;
+  },
+
   getByClass: async (classId: string, academicYear?: string) => {
     const response = await api.get<ClassSubjectAllocation[]>(
       `/timetable/allocations/class/${classId}`,

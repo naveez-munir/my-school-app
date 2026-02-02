@@ -2,6 +2,7 @@ interface FeeActionButtonsProps {
   onCalculateLateFees: () => void;
   onUpdateFeeStatuses: () => void;
   onGenerateRecurring: () => void;
+  onCreateAdhocFee?: () => void;
   isCalculating: boolean;
   isUpdating: boolean;
   isGeneratingRecurring: boolean;
@@ -11,6 +12,7 @@ export function FeeActionButtons({
   onCalculateLateFees,
   onUpdateFeeStatuses,
   onGenerateRecurring,
+  onCreateAdhocFee,
   isCalculating,
   isUpdating,
   isGeneratingRecurring

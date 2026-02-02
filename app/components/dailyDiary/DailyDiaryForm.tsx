@@ -6,7 +6,8 @@ import { SubjectTasksForm } from "./form/SubjectTasksForm";
 import type {
   CreateDailyDiaryRequest,
   DailyDiaryResponse,
-  AttachmentRequest
+  AttachmentRequest,
+  DiaryStatus
 } from "~/types/dailyDiary";
 
 // Define a local type that matches the state structure
@@ -69,11 +70,10 @@ export function DailyDiaryForm({
 
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent, status: DiaryStatus = 'DRAFT') => {
     e.preventDefault();
     setError(null);
 
-    // Basic validation
     if (!formData.classId || !formData.date || !formData.title) {
       setError('Please fill in all required fields');
       return;
@@ -81,7 +81,8 @@ export function DailyDiaryForm({
 
     const submitData: CreateDailyDiaryRequest = {
       ...formData,
-      attachments
+      attachments,
+      status,
     };
 
     onSubmit(submitData);
@@ -101,7 +102,7 @@ export function DailyDiaryForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={(e) => handleSubmit(e, 'DRAFT')} className="space-y-6">
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">
           {error}
@@ -138,8 +139,7 @@ export function DailyDiaryForm({
         </div>
       )}
       
-      {/* Form Actions */}
-      <div className="flex justify-end space-x-4">
+      <div className="flex justify-end space-x-3">
         <button
           type="button"
           onClick={handleCancel}
@@ -150,9 +150,17 @@ export function DailyDiaryForm({
         <button
           type="submit"
           disabled={isLoading}
-          className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+          className="px-4 py-2 border border-yellow-500 rounded-md shadow-sm text-sm font-medium text-yellow-700 bg-yellow-50 hover:bg-yellow-100 disabled:opacity-50"
         >
-          {isLoading ? 'Saving...' : initialData ? 'Update Entry' : 'Create Entry'}
+          {isLoading ? 'Saving...' : 'Save as Draft'}
+        </button>
+        <button
+          type="button"
+          disabled={isLoading}
+          onClick={(e) => handleSubmit(e, 'PUBLISHED')}
+          className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 disabled:opacity-50"
+        >
+          {isLoading ? 'Publishing...' : initialData ? 'Update & Publish' : 'Publish'}
         </button>
       </div>
     </form>

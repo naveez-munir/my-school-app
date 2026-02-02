@@ -8,7 +8,8 @@ export function DocumentUploader({
   onDocumentChange,
   folder = 'documents',
   label = 'Upload Document',
-  accept = "image/*,.pdf,.doc,.docx"
+  accept = "image/*,.pdf,.doc,.docx",
+  error
 }: DocumentUploaderProps) {
   const {
     fileUrl: documentUrl,
@@ -130,6 +131,10 @@ export function DocumentUploader({
         disabled={isPending}
         className="hidden"
       />
+
+      {error && (
+        <p className="mt-1 text-sm text-red-600">{error}</p>
+      )}
     </div>
   );
 }

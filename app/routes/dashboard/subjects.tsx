@@ -3,8 +3,8 @@ import { SubjectSection } from "~/components/subjects";
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Course Management" },
-    { name: "description", content: "Manage school courses and curriculum" },
+    { title: "Subject Management" },
+    { name: "description", content: "Manage school subjects and curriculum" },
   ];
 }
 

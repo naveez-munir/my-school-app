@@ -1,111 +1,156 @@
-import { Plus, Trash2 } from 'lucide-react';
-import { DateInput } from '~/components/common/form/inputs/DateInput';
+import { useState } from 'react';
+import { Plus, X } from 'lucide-react';
 import { SelectInput } from '~/components/common/form/inputs/SelectInput';
+import { DocumentTypes, type Document } from '~/types/teacher';
 import { DocumentUploader } from '~/components/student/form/DocumentUploader';
-import { type Document } from '~/types/staff';
-import { DocumentTypes } from '~/types/teacher';
 
 interface DocumentsTabProps {
-  documents: Document[];
-  setDocuments: React.Dispatch<React.SetStateAction<Document[]>>;
-  isSubmitting: boolean;
+  data: Document[];
   staffId?: string;
+  onUpdate: (documents: Document[]) => void;
+}
+
+interface FormErrors {
+  documentType?: string;
+  documentUrl?: string;
 }
 
 export function DocumentsTab({
-  documents,
-  setDocuments,
-  isSubmitting,
-  staffId = ""
+  data = [],
+  staffId = "",
+  onUpdate
 }: DocumentsTabProps) {
-  const handleAddDocument = () => {
-    setDocuments([...documents, {
-      documentType: "",
-      documentUrl: "",
-      uploadDate: new Date()
-    }]);
+  const [newDocument, setNewDocument] = useState<Document>({
+    documentType: "",
+    documentUrl: ""
+  });
+  const [errors, setErrors] = useState<FormErrors>({});
+
+  const validateForm = (): boolean => {
+    const newErrors: FormErrors = {};
+
+    if (!newDocument.documentType) {
+      newErrors.documentType = "Document type is required";
+    }
+    if (!newDocument.documentUrl) {
+      newErrors.documentUrl = "Please upload a document";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
-  const handleChange = (index: number, field: keyof Document, value: any) => {
-    const updated = [...documents];
-    updated[index] = { ...updated[index], [field]: value };
-    setDocuments(updated);
+  const handleAddDocument = () => {
+    if (!validateForm()) return;
+
+    const newDoc = {
+      ...newDocument,
+      uploadDate: new Date()
+    };
+
+    onUpdate([...data, newDoc]);
+
+    setNewDocument({
+      documentType: "",
+      documentUrl: ""
+    });
+    setErrors({});
   };
 
   const handleRemoveDocument = (index: number) => {
-    const updated = [...documents];
-    updated.splice(index, 1);
-    setDocuments(updated);
+    onUpdate(data.filter((_, i) => i !== index));
   };
 
-  const handleDocumentUrlChange = (index: number, url: string) => {
-    handleChange(index, 'documentUrl', url);
+  const handleDocumentTypeChange = (value: string) => {
+    setNewDocument(prev => ({ ...prev, documentType: value }));
+  };
+
+  const handleDocumentUrlChange = (url: string) => {
+    setNewDocument(prev => ({ ...prev, documentUrl: url }));
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h4 className="text-md font-medium">Documents</h4>
-        <button
-          type="button"
-          onClick={handleAddDocument}
-          className="flex items-center bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
-          disabled={isSubmitting}
-        >
-          <Plus className="h-4 w-4 mr-1" /> Add Document
-        </button>
-      </div>
-      
-      {documents.length === 0 ? (
-        <div className="bg-gray-50 p-4 text-center text-gray-500 rounded-md">
-          No documents added.
-        </div>
-      ) : (
-        documents.map((doc, index) => (
-          <div key={index} className="bg-gray-50 p-4 rounded-md mb-4 border border-gray-200">
-            <div className="flex justify-between items-center mb-3">
-              <h5 className="font-medium">Document #{index + 1}</h5>
-              <button
-                type="button"
-                onClick={() => handleRemoveDocument(index)}
-                className="text-red-600 hover:text-red-800"
-                disabled={isSubmitting}
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
-            </div>
-            
+    <div className="space-y-8">
+      <div>
+        <h3 className="text-lg font-medium text-gray-900">Staff Documents</h3>
+        <p className="mt-1 text-sm text-gray-600">
+          Upload important documents such as CNIC, degree certificates, experience letters, etc.
+        </p>
+
+        {data.length > 0 && (
+          <div className="mt-4 space-y-4">
+            {data.map((doc, index) => (
+              <div key={index} className="relative bg-gray-50 p-4 rounded-lg">
+                <button
+                  type="button"
+                  onClick={() => handleRemoveDocument(index)}
+                  className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+
+                <div className="mb-2">
+                  <span className="font-medium text-gray-800">{doc.documentType}</span>
+                  {doc.uploadDate && (
+                    <span className="text-sm text-gray-500 ml-2">
+                      Uploaded: {typeof doc.uploadDate === 'string'
+                        ? new Date(doc.uploadDate).toLocaleDateString()
+                        : doc.uploadDate.toLocaleDateString()}
+                    </span>
+                  )}
+                </div>
+
+                <DocumentUploader
+                  currentDocumentUrl={doc.documentUrl}
+                  documentType={doc.documentType}
+                  onDocumentChange={(url) => {
+                    const updatedDocs = [...data];
+                    updatedDocs[index] = { ...updatedDocs[index], documentUrl: url };
+                    onUpdate(updatedDocs);
+                  }}
+                  folder={`staff/${staffId}/documents`}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="mt-6 border rounded-md p-4 bg-gray-50">
+          <h4 className="font-medium text-gray-800 mb-4">Add New Document</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <SelectInput
               label="Document Type"
-              value={doc.documentType as DocumentTypes}
+              value={newDocument.documentType as DocumentTypes}
               options={DocumentTypes}
-              onChange={(value) => handleChange(index, 'documentType', value)}
+              onChange={handleDocumentTypeChange}
               placeholder="Select document type"
+              error={errors.documentType}
               required
-              disabled={isSubmitting}
             />
-            
-            <div className="mt-4">
-              <DocumentUploader
-                currentDocumentUrl={doc.documentUrl}
-                documentType={doc.documentType || "Document"}
-                onDocumentChange={(url) => handleDocumentUrlChange(index, url)}
-                folder={`staff/${staffId}/documents`}
-                label="Upload Document"
-              />
-            </div>
-            
-            <div className="mt-4">
-              <DateInput
-                label="Upload Date"
-                value={doc.uploadDate ? new Date(doc.uploadDate).toISOString().split('T')[0] : ''}
-                onChange={(value) => handleChange(index, 'uploadDate', new Date(value))}
-                disabled={isSubmitting || true}
-              />
-            </div>
           </div>
-        ))
-      )}
+
+          <DocumentUploader
+            currentDocumentUrl={newDocument.documentUrl}
+            documentType={newDocument.documentType || "Document"}
+            onDocumentChange={handleDocumentUrlChange}
+            folder={`staff/${staffId}/documents`}
+            label="Upload Document"
+            error={errors.documentUrl}
+          />
+
+          <div className="mt-4">
+            <button
+              type="button"
+              onClick={handleAddDocument}
+              disabled={!newDocument.documentType || !newDocument.documentUrl}
+              className="flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed"
+            >
+              <Plus className="h-5 w-5 mr-2" />
+              Add Document
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

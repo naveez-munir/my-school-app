@@ -14,13 +14,23 @@ interface FormFieldProps<TFieldValues extends FieldValues> {
   }) => React.ReactElement;
 }
 
+function getNestedError(errors: FieldErrors<any>, path: string): string | undefined {
+  const parts = path.split('.');
+  let current: any = errors;
+  for (const part of parts) {
+    if (current === undefined || current === null) return undefined;
+    current = current[part];
+  }
+  return current?.message as string | undefined;
+}
+
 export function FormField<TFieldValues extends FieldValues>({
   name,
   control,
   errors,
   render,
 }: FormFieldProps<TFieldValues>) {
-  const error = errors[name]?.message as string | undefined;
+  const error = getNestedError(errors, name);
 
   return (
     <div>
@@ -29,8 +39,6 @@ export function FormField<TFieldValues extends FieldValues>({
         control={control}
         render={({ field }) => {
           const inputElement = render(field);
-
-          // Clone the element and inject the error prop using React.cloneElement
           return React.cloneElement(inputElement, {
             ...inputElement.props,
             error,

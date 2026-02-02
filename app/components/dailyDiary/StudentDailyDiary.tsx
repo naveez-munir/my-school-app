@@ -16,6 +16,7 @@ export function StudentDailyDiaryDashboard({ studentId: propStudentId }: Student
   const { id } = useParams();
   const navigate = useNavigate();
   const studentId = propStudentId || id || '';
+  const [page, setPage] = useState<number>(1);
   const [dateRange, setDateRange] = useState<DiaryQueryParams>({
     startDate: '',
     endDate: ''
@@ -30,13 +31,18 @@ export function StudentDailyDiaryDashboard({ studentId: propStudentId }: Student
   const queryParams: DiaryQueryParams = {
     ...(dateRange.startDate && { startDate: dateRange.startDate }),
     ...(dateRange.endDate && { endDate: dateRange.endDate }),
+    page,
+    limit: 10,
   };
 
   const {
-    data: diaryEntries = [],
+    data: response,
     isLoading: isLoadingDiary,
     error
   } = useDiaryEntriesForStudent(student?._id || '', queryParams);
+
+  const diaryEntries = response?.data || [];
+  const meta = response?.meta;
 
   const handleView = (diary: DailyDiaryResponse) => {
     const diaryId = (diary as any)._id || diary.id;
@@ -76,12 +82,12 @@ export function StudentDailyDiaryDashboard({ studentId: propStudentId }: Student
             <DateInput
               label="Start Date"
               value={dateRange.startDate || ''}
-              onChange={(value) => setDateRange(prev => ({ ...prev, startDate: value }))}
+              onChange={(value) => { setDateRange(prev => ({ ...prev, startDate: value })); setPage(1); }}
             />
             <DateInput
               label="End Date"
               value={dateRange.endDate || ''}
-              onChange={(value) => setDateRange(prev => ({ ...prev, endDate: value }))}
+              onChange={(value) => { setDateRange(prev => ({ ...prev, endDate: value })); setPage(1); }}
             />
           </div>
         </div>
@@ -96,11 +102,37 @@ export function StudentDailyDiaryDashboard({ studentId: propStudentId }: Student
             {(error as Error).message || "An error occurred while loading diary entries"}
           </div>
         ) : (
-          <StudentDiaryTableWrapper
-            data={diaryEntries}
-            globalFilter={globalFilter}
-            onView={handleView}
-          />
+          <>
+            <StudentDiaryTableWrapper
+              data={diaryEntries}
+              globalFilter={globalFilter}
+              onView={handleView}
+            />
+
+            {meta && meta.totalPages > 1 && (
+              <div className="px-4 py-3 flex items-center justify-between border-t">
+                <div className="text-sm text-gray-700">
+                  Page {meta.currentPage} of {meta.totalPages}
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setPage(page - 1)}
+                    disabled={!meta.hasPreviousPage}
+                    className="px-3 py-1 border text-gray-500 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                  >
+                    Previous
+                  </button>
+                  <button
+                    onClick={() => setPage(page + 1)}
+                    disabled={!meta.hasNextPage}
+                    className="px-3 py-1 border text-gray-500 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

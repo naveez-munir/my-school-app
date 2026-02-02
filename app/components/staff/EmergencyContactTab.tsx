@@ -1,9 +1,16 @@
 import { TextInput } from '~/components/common/form/inputs/TextInput';
-import { type EmergencyContact } from '~/types/staff';
+
+// Use a more flexible type that accepts both null and undefined for optional fields
+interface EmergencyContactFormData {
+  name?: string | null;
+  relationship?: string | null;
+  phone?: string | null;
+  address?: string | null;
+}
 
 interface EmergencyContactTabProps {
-  emergencyContact: EmergencyContact;
-  setEmergencyContact: React.Dispatch<React.SetStateAction<EmergencyContact>>;
+  emergencyContact: EmergencyContactFormData;
+  setEmergencyContact: (value: EmergencyContactFormData) => void;
   isSubmitting: boolean;
 }
 
@@ -12,8 +19,8 @@ export function EmergencyContactTab({
   setEmergencyContact,
   isSubmitting
 }: EmergencyContactTabProps) {
-  const handleChange = (field: keyof EmergencyContact, value: string) => {
-    setEmergencyContact(prev => ({ ...prev, [field]: value }));
+  const handleChange = (field: keyof EmergencyContactFormData, value: string) => {
+    setEmergencyContact({ ...emergencyContact, [field]: value });
   };
 
   return (

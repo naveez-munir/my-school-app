@@ -60,13 +60,14 @@ export interface ClassSubjectAllocation {
 
 export interface CreateAllocationDto {
   classId: string;
-  subjectId: string;
+  subjectId?: string;
   teacherId: string;
   academicYear: string;
   periodsPerWeek: number;
   isLabSubject?: boolean;
   consecutivePeriods?: number;
   status?: AllocationStatus;
+  autoAssignAllSubjects?: boolean;
 }
 
 export interface UpdateAllocationDto {

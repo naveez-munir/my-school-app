@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   type CreateStaffRequest,
@@ -8,7 +8,7 @@ import {
   EmploymentStatus,
   UserRole
 } from '~/types/staff';
-import { Gender } from '~/types/teacher';
+import { Gender, BloodGroup } from '~/types/teacher';
 import { FormActions } from '~/components/common/form/FormActions';
 import { TabNavigation } from './TabNavigation';
 import { PersonalInfoTab } from './PersonalInfoTab';
@@ -52,7 +52,7 @@ export function StaffForm({
 
       // Optional fields
       email: staff?.email || null,
-      bloodGroup: staff?.bloodGroup || null,
+      bloodGroup: (staff?.bloodGroup as BloodGroup) || null,
       photoUrl: staff?.photoUrl || null,
       phone: staff?.phone || null,
       address: staff?.address || null,
@@ -60,7 +60,11 @@ export function StaffForm({
       jobDescription: staff?.jobDescription || null,
       reportingTo: staff?.reportingTo || null,
       educationHistory: staff?.educationHistory || [],
-      experience: staff?.experience || [],
+      experience: staff?.experience?.map(exp => ({
+        ...exp,
+        fromDate: new Date(exp.fromDate).toISOString().split('T')[0],
+        toDate: exp.toDate ? new Date(exp.toDate).toISOString().split('T')[0] : null,
+      })) || [],
       documents: staff?.documents || [],
       emergencyContact: staff?.emergencyContact || null
     };
@@ -79,6 +83,16 @@ export function StaffForm({
 
   const formData = watch();
 
+  const educationFieldArray = useFieldArray({
+    control,
+    name: 'educationHistory',
+  });
+
+  const experienceFieldArray = useFieldArray({
+    control,
+    name: 'experience',
+  });
+
   // Map form fields to their respective tabs
   const tabFieldMapping: Record<string, (keyof CreateStaffFormData)[]> = {
     personal: ['cniNumber', 'firstName', 'lastName', 'gender', 'email', 'phone', 'address', 'bloodGroup', 'photoUrl', 'joiningDate', 'leavingDate'],
@@ -89,7 +103,7 @@ export function StaffForm({
   };
 
   // Use reusable hook for error navigation
-  const { createErrorHandler } = useFormTabNavigation({
+  const { createErrorHandler } = useFormTabNavigation<CreateStaffFormData>({
     tabFieldMapping,
     activeTab,
     setActiveTab,
@@ -104,15 +118,39 @@ export function StaffForm({
 
   const onFormSubmit = (validatedData: CreateStaffFormData) => {
     // Convert form data to CreateStaffRequest format
+    // Handle nullable fields by converting null to undefined
     const submissionData: CreateStaffRequest = {
       ...validatedData,
+      email: validatedData.email ?? undefined,
+      bloodGroup: validatedData.bloodGroup ?? undefined,
+      photoUrl: validatedData.photoUrl ?? undefined,
+      phone: validatedData.phone ?? undefined,
+      address: validatedData.address ?? undefined,
+      department: validatedData.department ?? undefined,
+      jobDescription: validatedData.jobDescription ?? undefined,
+      reportingTo: validatedData.reportingTo ?? undefined,
       joiningDate: new Date(validatedData.joiningDate),
       leavingDate: validatedData.leavingDate ? new Date(validatedData.leavingDate) : undefined,
+      educationHistory: validatedData.educationHistory?.map(edu => ({
+        degree: edu.degree,
+        institution: edu.institution,
+        year: edu.year,
+        certificateUrl: edu.certificateUrl ?? undefined,
+      })),
       experience: validatedData.experience?.map(exp => ({
-        ...exp,
+        institution: exp.institution,
+        position: exp.position,
         fromDate: new Date(exp.fromDate),
         toDate: exp.toDate ? new Date(exp.toDate) : undefined,
+        description: exp.description ?? undefined,
+        experienceLatterUrl: exp.experienceLatterUrl ?? undefined,
       })),
+      emergencyContact: validatedData.emergencyContact ? {
+        name: validatedData.emergencyContact.name ?? undefined,
+        relationship: validatedData.emergencyContact.relationship ?? undefined,
+        phone: validatedData.emergencyContact.phone ?? undefined,
+        address: validatedData.emergencyContact.address ?? undefined,
+      } : undefined,
     };
     onSubmit(submissionData);
   };
@@ -200,19 +238,20 @@ export function StaffForm({
 
       {activeTab === 'education' && (
         <EducationExperienceTab
-          educationHistory={formData.educationHistory || []}
-          setEducationHistory={(value) => setValue('educationHistory', value, { shouldValidate: true })}
-          experience={formData.experience || []}
-          setExperience={(value) => setValue('experience', value, { shouldValidate: true })}
+          control={control}
+          errors={errors}
+          educationFieldArray={educationFieldArray}
+          experienceFieldArray={experienceFieldArray}
           isSubmitting={isLoading}
+          staffId={initialData?.id}
         />
       )}
 
       {activeTab === 'documents' && (
         <DocumentsTab
-          documents={formData.documents || []}
-          setDocuments={(value) => setValue('documents', value, { shouldValidate: true })}
-          isSubmitting={isLoading}
+          data={formData.documents || []}
+          staffId={initialData?.id}
+          onUpdate={(value) => handleUpdate('documents', value)}
         />
       )}
 

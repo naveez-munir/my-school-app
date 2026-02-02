@@ -10,6 +10,7 @@ interface SelectInputProps<T extends Record<string, string>> {
   placeholder?: string;
   required?: boolean;
   disabled?: boolean;
+  error?: string;
 }
 
 export function SelectInput<T extends Record<string, string>>({
@@ -20,6 +21,7 @@ export function SelectInput<T extends Record<string, string>>({
   placeholder,
   required = false,
   disabled = false,
+  error,
 }: SelectInputProps<T>) {
   // Determine the current value, coalescing undefined to null
   const currentValue = value ?? null;
@@ -53,7 +55,7 @@ export function SelectInput<T extends Record<string, string>>({
             {Object.entries(options).map(([key, label]) => (
               <ListboxOption
                 key={key}
-                value={label}
+                value={key}
                 className={({ focus }: { focus: boolean }) => `relative cursor-default select-none py-1.5 sm:py-2 pl-2.5 sm:pl-3 pr-8 sm:pr-9 ${
                   focus ? 'bg-blue-100 text-blue-900' : 'text-gray-900'
                 }`}
@@ -81,6 +83,9 @@ export function SelectInput<T extends Record<string, string>>({
           </ListboxOptions>
         </div>
       </Listbox>
+      {error && (
+        <p className="mt-1 text-sm text-red-600">{error}</p>
+      )}
     </div>
   );
 }

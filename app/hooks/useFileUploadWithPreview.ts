@@ -17,6 +17,7 @@ export interface UseFileUploadWithPreviewReturn {
   fileUrl: string | undefined;
   preview: string | undefined;
   isPending: boolean;
+  uploadProgress: number;
   fileInputRef: React.RefObject<HTMLInputElement | null>;
   handleFileChange: (e: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
   handleRemove: () => void;
@@ -35,8 +36,9 @@ export function useFileUploadWithPreview({
 }: UseFileUploadWithPreviewOptions = {}): UseFileUploadWithPreviewReturn {
   const [fileUrl, setFileUrl] = useState<string | undefined>(initialUrl);
   const [preview, setPreview] = useState<string | undefined>(initialUrl);
+  const objectUrlRef = useRef<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { uploadFileAsync, isPending } = useFileUpload();
+  const { uploadFileAsync, isPending, uploadProgress } = useFileUpload();
 
   // Sync with initial URL changes
   useEffect(() => {
@@ -44,38 +46,64 @@ export function useFileUploadWithPreview({
     setPreview(initialUrl);
   }, [initialUrl]);
 
+  // Cleanup object URL on unmount
+  useEffect(() => {
+    return () => {
+      if (objectUrlRef.current) {
+        URL.revokeObjectURL(objectUrlRef.current);
+      }
+    };
+  }, []);
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Generate preview for images if enabled
+    // Cleanup previous object URL
+    if (objectUrlRef.current) {
+      URL.revokeObjectURL(objectUrlRef.current);
+      objectUrlRef.current = null;
+    }
+
+    // Generate instant preview for images using URL.createObjectURL (synchronous)
     if (enablePreview && file.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      const objectUrl = URL.createObjectURL(file);
+      objectUrlRef.current = objectUrl;
+      setPreview(objectUrl);
     }
 
     try {
       const toastId = toast.loading(uploadingMessage);
-      const result = await uploadFileAsync({ file, folder });
+
+      // Pass oldUrl (fileUrl) to backend so it can delete the old file after successful upload
+      const result = await uploadFileAsync({
+        file,
+        folder,
+        oldUrl: fileUrl
+      });
 
       setFileUrl(result.url);
-      if (!enablePreview) {
-        setPreview(result.url);
+      // Update preview to actual URL and cleanup object URL
+      setPreview(result.url);
+      if (objectUrlRef.current) {
+        URL.revokeObjectURL(objectUrlRef.current);
+        objectUrlRef.current = null;
       }
-      
+
       onUploadSuccess?.(result.url);
       toast.success(successMessage, { id: toastId });
     } catch (error) {
       console.error('Error uploading file:', error);
       toast.error(errorMessage, { duration: 4000 });
-      
-      // Revert to initial state on error
+
+      // Cleanup object URL and revert to initial state on error
+      if (objectUrlRef.current) {
+        URL.revokeObjectURL(objectUrlRef.current);
+        objectUrlRef.current = null;
+      }
       setFileUrl(initialUrl);
       setPreview(initialUrl);
-      
+
       onUploadError?.(error);
     }
   };
@@ -92,6 +120,7 @@ export function useFileUploadWithPreview({
     fileUrl,
     preview,
     isPending,
+    uploadProgress,
     fileInputRef,
     handleFileChange,
     handleRemove,

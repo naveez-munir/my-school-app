@@ -24,7 +24,7 @@ export function createSubjectColumns(): ColumnDef<Subject, any>[] {
   
   return [
     columnHelper.accessor('subjectName', {
-      header: ({ column }) => <SortableColumnHeader column={column} title="Course Name" />,
+      header: ({ column }) => <SortableColumnHeader column={column} title="Subject Name" />,
       cell: (info) => (
         <div className="text-sm font-medium text-gray-900">
           {info.getValue()}
@@ -32,7 +32,7 @@ export function createSubjectColumns(): ColumnDef<Subject, any>[] {
       ),
     }),
     columnHelper.accessor('subjectCode', {
-      header: ({ column }) => <SortableColumnHeader column={column} title="Course Code" />,
+      header: ({ column }) => <SortableColumnHeader column={column} title="Subject Code" />,
       cell: (info) => (
         <div className="text-sm text-gray-500">
           {info.getValue()}
@@ -64,8 +64,8 @@ export function SubjectsTable({
       columns={columns}
       onEdit={onEdit}
       onDelete={onDelete}
-      emptyStateMessage="No courses found."
-      searchPlaceholder="Search courses..."
+      emptyStateMessage="No subjects found."
+      searchPlaceholder="Search subjects..."
       idField="_id"
     />
   );

@@ -39,29 +39,47 @@ export function cleanFormData<T>(data: T): any {
   return result;
 }
 
-export function cleanTeacherData(data: CreateTeacherDto): CreateTeacherDto {
-  const cleanedData = { ...data };
+function removeEmptyStrings<T extends Record<string, any>>(obj: T): T {
+  const result = { ...obj };
+  Object.keys(result).forEach(key => {
+    if (result[key] === '') {
+      delete result[key];
+    }
+  });
+  return result;
+}
 
-  if (cleanedData.classTeacherOf === '') {
-    delete cleanedData.classTeacherOf;
-  }
+export function cleanTeacherData(data: CreateTeacherDto): CreateTeacherDto {
+  const cleanedData = { ...data } as any;
+
+  Object.keys(cleanedData).forEach(key => {
+    if (cleanedData[key] === '' || cleanedData[key] === null || cleanedData[key] === undefined) {
+      delete cleanedData[key];
+    }
+  });
 
   if (cleanedData.educationHistory && cleanedData.educationHistory.length > 0) {
-    // @ts-ignore
-    cleanedData.educationHistory = cleanedData.educationHistory.map(({ _id, ...rest }) => rest);
+    cleanedData.educationHistory = cleanedData.educationHistory.map((item: any) => {
+      const { _id, ...rest } = item;
+      return removeEmptyStrings(rest);
+    });
   }
 
   if (cleanedData.experience && cleanedData.experience.length > 0) {
-    // @ts-ignore
-    cleanedData.experience = cleanedData.experience.map(({ _id, ...rest }) => rest);
+    cleanedData.experience = cleanedData.experience.map((item: any) => {
+      const { _id, ...rest } = item;
+      return removeEmptyStrings(rest);
+    });
   }
 
   if (cleanedData.documents && cleanedData.documents.length > 0) {
-    // @ts-ignore
-    cleanedData.documents = cleanedData.documents.map(({ _id, ...rest }) => rest);
+    cleanedData.documents = cleanedData.documents.map((item: any) => {
+      const { _id, ...rest } = item;
+      return removeEmptyStrings(rest);
+    });
   }
 
-  return cleanedData;
+  return cleanedData as CreateTeacherDto;
 }
 
 type StaffDataType = CreateStaffRequest | UpdateStaffRequest;
@@ -78,25 +96,25 @@ export function cleanStaffData(data: StaffDataType): StaffDataType {
   if (cleanedData.educationHistory && cleanedData.educationHistory.length > 0) {
     cleanedData.educationHistory = cleanedData.educationHistory.map((item: any) => {
       const { _id, ...rest } = item;
-      return rest;
+      return removeEmptyStrings(rest);
     });
   }
 
   if (cleanedData.experience && cleanedData.experience.length > 0) {
     cleanedData.experience = cleanedData.experience.map((item: any) => {
       const { _id, ...rest } = item;
-      return rest;
+      return removeEmptyStrings(rest);
     });
   }
   if (cleanedData.documents && cleanedData.documents.length > 0) {
     cleanedData.documents = cleanedData.documents.map((item: any) => {
       const { _id, ...rest } = item;
-      return rest;
+      return removeEmptyStrings(rest);
     });
   }
   if (cleanedData.emergencyContact ) {
     const { _id, ...rest } = cleanedData.emergencyContact;
-    cleanedData.emergencyContact = rest;
+    cleanedData.emergencyContact = removeEmptyStrings(rest);
   }
 
   return cleanedData as StaffDataType;
