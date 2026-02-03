@@ -30,7 +30,7 @@ interface LoginResponse {
 }
 
 const loginUser = async (userData: LoginFormData): Promise<LoginResponse> => {
-  const response = await fetch('http://localhost:3000/auth/login', {
+  const response = await fetch('https://myschool-api.totaltravelsolutiongroup.com/auth/login', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
