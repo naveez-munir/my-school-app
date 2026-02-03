@@ -1,9 +1,7 @@
 import { Modal } from '~/components/common/Modal';
-import type { StudentFee, PopulatedStudentFee, FeeDetail, PopulatedFeeDetail } from '~/types/studentFee';
-import { formatCurrency, getFeeStatusDisplayName, getMonthName } from '~/types/studentFee';
+import type { AnyStudentFee, FeeDetail, PopulatedFeeDetail } from '~/types/studentFee';
+import { formatCurrency, getFeeStatusDisplayName, getMonthName, getStudentDisplayName, getStudentRollNumber, getStudentClassName } from '~/types/studentFee';
 import { formatUserFriendlyDate } from '~/utils/dateUtils';
-
-type AnyStudentFee = StudentFee | PopulatedStudentFee;
 
 interface ViewFeeDetailsModalProps {
   isOpen: boolean;
@@ -13,32 +11,6 @@ interface ViewFeeDetailsModalProps {
 
 export function ViewFeeDetailsModal({ isOpen, onClose, fee }: ViewFeeDetailsModalProps) {
   if (!isOpen || !fee) return null;
-
-  const getStudentName = () => {
-    const student = fee.studentId;
-    if (typeof student === 'object' && student !== null) {
-      return `${student.firstName} ${student.lastName}`;
-    }
-    return `Student ID: ${student}`;
-  };
-
-  const getStudentRollNumber = () => {
-    const student = fee.studentId;
-    if (typeof student === 'object' && student !== null) {
-      return student.rollNumber || 'N/A';
-    }
-    return 'N/A';
-  };
-
-  const getClassName = () => {
-    const student = fee.studentId;
-    if (typeof student === 'object' && student !== null && student.class) {
-      if (typeof student.class === 'object' && student.class !== null) {
-        return student.class.className;
-      }
-    }
-    return 'N/A';
-  };
 
   const getPeriodDisplay = () => {
     if (fee.billType === 'MONTHLY' && fee.billMonth) {
@@ -64,13 +36,13 @@ export function ViewFeeDetailsModal({ isOpen, onClose, fee }: ViewFeeDetailsModa
           <h4 className="font-medium text-blue-700 mb-2">Student Information</h4>
           <div className="grid grid-cols-2 gap-2 text-sm">
             <div>
-              <span className="font-medium">Name:</span> {getStudentName()}
+              <span className="font-medium">Name:</span> {getStudentDisplayName(fee)}
             </div>
             <div>
-              <span className="font-medium">Roll Number:</span> {getStudentRollNumber()}
+              <span className="font-medium">Roll Number:</span> {getStudentRollNumber(fee) || 'N/A'}
             </div>
             <div>
-              <span className="font-medium">Class:</span> {getClassName()}
+              <span className="font-medium">Class:</span> {getStudentClassName(fee) || 'N/A'}
             </div>
             <div>
               <span className="font-medium">Academic Year:</span> {fee.academicYear}
