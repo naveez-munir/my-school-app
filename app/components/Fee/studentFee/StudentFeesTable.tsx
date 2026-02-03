@@ -1,13 +1,10 @@
 import { createColumnHelper } from '@tanstack/react-table';
-import type { StudentFee, PopulatedStudentFee, FeeStatus } from '~/types/studentFee';
+import type { AnyStudentFee, FeeStatus } from '~/types/studentFee';
 import { useMemo, useState } from 'react';
 import { ChevronDown, ChevronUp, Tag, XCircle, Eye, DollarSign, CheckSquare, Square, MoreVertical, UserX, ArrowRightLeft } from 'lucide-react';
-import { formatCurrency, getFeeStatusDisplayName, getFeeStatusClassName } from '~/types/studentFee';
+import { formatCurrency, getFeeStatusDisplayName, getFeeStatusClassName, getStudentDisplayName, getStudentRollNumber, getStudentClassName, getStudentIdValue, getStudentClassId } from '~/types/studentFee';
 import { formatUserFriendlyDate } from '~/utils/dateUtils';
 import { GenericDataTable } from '~/components/common/table/GenericDataTable';
-
-// Use a type alias for fees that can be either populated or not
-type AnyStudentFee = StudentFee | PopulatedStudentFee;
 
 interface TableMetaType {
   onViewDetails: (fee: AnyStudentFee) => void;
@@ -156,29 +153,6 @@ export function StudentFeesTable({
   readOnly = false,
   hideStudentColumn = false,
 }: StudentFeesTableProps) {
-  const getStudentName = (studentId: any): string => {
-    if (typeof studentId === 'object' && studentId !== null) {
-      return `${studentId.firstName} ${studentId.lastName}`;
-    }
-    return `Student ID: ${studentId}`;
-  };
-
-  const getStudentRollNumber = (studentId: any): string | null => {
-    if (typeof studentId === 'object' && studentId !== null) {
-      return studentId.rollNumber || null;
-    }
-    return null;
-  };
-
-  const getClassName = (studentId: any): string | null => {
-    if (typeof studentId === 'object' && studentId !== null && studentId.class) {
-      if (typeof studentId.class === 'object' && studentId.class !== null) {
-        return studentId.class.className;
-      }
-    }
-    return null;
-  };
-  
   const columns = useMemo(() => {
     const handleSelectFee = (feeId: string) => {
       if (!onSelectionChange) return;
@@ -239,24 +213,24 @@ export function StudentFeesTable({
     ...(!hideStudentColumn ? [columnHelper.accessor('studentId', {
       header: 'Student',
       cell: (info) => {
-        const student = info.getValue();
-        const studentName = getStudentName(student);
-        const rollNumber = getStudentRollNumber(student);
-        const className = getClassName(student);
+        const fee = info.row.original;
+        const name = getStudentDisplayName(fee);
+        const rollNumber = getStudentRollNumber(fee);
+        const cls = getStudentClassName(fee);
 
         return (
           <div>
             <div className="text-sm font-medium text-gray-900">
-              {studentName}
+              {name}
             </div>
             {rollNumber && (
               <div className="text-xs text-gray-500">
                 Roll #: {rollNumber}
               </div>
             )}
-            {className && (
+            {cls && (
               <div className="text-xs text-gray-500">
-                Class: {className}
+                Class: {cls}
               </div>
             )}
           </div>
@@ -373,14 +347,10 @@ export function StudentFeesTable({
       cell: (info) => {
         const fee = info.row.original;
         const meta = info.table.options.meta as TableMetaType;
-        const isReadOnly = meta.readOnly;
+        const isReadOnly = meta.readOnly ?? false;
         const canApplyDiscount = !isReadOnly && fee.status !== 'PAID' && fee.status !== 'CANCELLED';
         const canCancel = !isReadOnly && fee.status !== 'CANCELLED' && fee.status !== 'PAID';
         const canPay = !isReadOnly && fee.dueAmount > 0 && fee.status !== 'CANCELLED';
-
-        const studentId = typeof fee.studentId === 'object' ? fee.studentId._id : fee.studentId;
-        const studentName = getStudentName(fee.studentId);
-        const classId = typeof fee.classId === 'object' ? fee.classId._id : fee.classId;
 
         return (
           <ActionsCell
@@ -390,9 +360,9 @@ export function StudentFeesTable({
             canApplyDiscount={canApplyDiscount}
             canCancel={canCancel}
             canPay={canPay}
-            studentId={studentId}
-            studentName={studentName}
-            classId={classId}
+            studentId={getStudentIdValue(fee)}
+            studentName={getStudentDisplayName(fee)}
+            classId={getStudentClassId(fee)}
           />
         );
       },
