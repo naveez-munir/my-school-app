@@ -28,11 +28,18 @@ export function SubjectSelector({
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
 
   const filteredSubjects = useMemo(() => {
-    if (!classId || !classData?.classSubjects) {
-      return subjects;
+    let result = subjects;
+
+    if (classId && classData?.classGradeLevel) {
+      result = result.filter(s => !s.gradeLevel || s.gradeLevel === classData.classGradeLevel);
     }
-    const classSubjectIds = classData.classSubjects.map(s => s._id);
-    return subjects.filter(s => classSubjectIds.includes(s._id));
+
+    if (classId && classData?.classSubjects) {
+      const classSubjectIds = classData.classSubjects.map(s => s._id);
+      result = result.filter(s => classSubjectIds.includes(s._id));
+    }
+
+    return result;
   }, [classId, classData, subjects]);
 
   const loading = loadingSubjects || (classId ? loadingClass : false);
