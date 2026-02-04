@@ -8,9 +8,7 @@ import { ViewFeeDetailsModal } from '~/components/Fee/studentFee/ViewFeeDetailsM
 import LoadingSpinner from '~/components/common/ui/loader/loading';
 import { InfoCard } from '~/components/student/tabs/InfoCard';
 import { formatCurrency } from '~/types/studentFee';
-import type { StudentFee, PopulatedStudentFee } from '~/types/studentFee';
-
-type AnyStudentFee = StudentFee | PopulatedStudentFee;
+import type { AnyStudentFee } from '~/types/studentFee';
 
 interface GuardianFeeSectionProps {
   studentId: string;
