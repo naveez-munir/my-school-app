@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { Subject } from '~/types/subject';
@@ -38,8 +39,12 @@ export function ClassForm({
 
   const formData = watch();
 
-  // Get selected subjects as full objects for MultiSelect
-  const selectedSubjects = subjects.filter(subject =>
+  const filteredSubjects = useMemo(() => {
+    if (!formData.classGradeLevel) return subjects;
+    return subjects.filter(s => !s.gradeLevel || s.gradeLevel === formData.classGradeLevel);
+  }, [subjects, formData.classGradeLevel]);
+
+  const selectedSubjects = filteredSubjects.filter(subject =>
     formData.classSubjects?.includes(subject._id)
   );
 
@@ -113,7 +118,7 @@ export function ClassForm({
           errors={errors}
           render={(field) => (
             <MultiSelect<Subject>
-              items={subjects}
+              items={filteredSubjects}
               value={selectedSubjects}
               onChange={(selected) => {
                 const subjectIds = selected.map(s => s._id);
