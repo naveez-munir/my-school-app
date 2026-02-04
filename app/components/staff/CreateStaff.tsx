@@ -1,6 +1,6 @@
 import { useCreateStaff } from '~/hooks/useStaffQueries';
 import { StaffForm } from './StaffForm';
-import type { CreateStaffRequest } from '~/types/staff';
+import type { CreateStaffRequest, UpdateStaffRequest } from '~/types/staff';
 import { useNavigate } from 'react-router';
 import toast from 'react-hot-toast';
 import { getErrorMessage } from '~/utils/error';
@@ -10,7 +10,7 @@ export function CreateStaff() {
   const navigate = useNavigate();
   const createStaffMutation = useCreateStaff();
 
-  const handleSubmit = (data: CreateStaffRequest) => {
+  const handleSubmit = (data: CreateStaffRequest | UpdateStaffRequest) => {
     const cleanedData = cleanStaffData(data);
 
     createStaffMutation.mutate(
@@ -32,7 +32,7 @@ export function CreateStaff() {
   };
 
   return (
-    <div className="space-y-6 p-4 sm:p-6 md:p-8">
+    <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Add New Staff Member</h1>
         <p className="mt-1 text-sm text-gray-500">
