@@ -1,13 +1,14 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useStaff, useUpdateStaff } from '~/hooks/useStaffQueries';
 import { StaffForm } from './StaffForm';
-import type { UpdateStaffRequest } from '~/types/staff';
+import type { CreateStaffRequest, UpdateStaffRequest } from '~/types/staff';
 import { useNavigate, useParams } from 'react-router';
 import { cleanStaffData } from '~/utils/cleanFormData';
 import toast from 'react-hot-toast';
 import { getErrorMessage } from '~/utils/error';
 import { LeaveBalanceTab } from '~/components/leave/LeaveBalanceTab';
 import { isAdmin } from '~/utils/auth';
+import { PhotoUpload } from '~/components/student/form/PhotoUpload';
 
 export function EditStaff() {
   const { id } = useParams();
@@ -18,7 +19,7 @@ export function EditStaff() {
   const { data: currentStaff, isLoading: fetchLoading } = useStaff(id || '');
   const updateStaffMutation = useUpdateStaff();
 
-  const handleSubmit = (data: UpdateStaffRequest) => {
+  const handleSubmit = (data: CreateStaffRequest | UpdateStaffRequest) => {
     if (id) {
       const cleanedData = cleanStaffData(data);
       updateStaffMutation.mutate(
@@ -39,6 +40,12 @@ export function EditStaff() {
     navigate('/dashboard/staff');
   };
 
+  const [photoUrl, setPhotoUrl] = useState<string>(currentStaff?.photoUrl || '');
+
+  const handlePhotoChange = useCallback((url: string) => {
+    setPhotoUrl(url);
+  }, []);
+
   if (fetchLoading || !currentStaff) {
     return <div>Loading...</div>;
   }
@@ -56,19 +63,11 @@ export function EditStaff() {
         <div className="p-6 sm:p-8 bg-gradient-to-r from-blue-50 to-indigo-50 border-b">
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
             <div className="flex-shrink-0">
-              {currentStaff.photoUrl ? (
-                <img 
-                  src={currentStaff.photoUrl} 
-                  alt={`${currentStaff.firstName} ${currentStaff.lastName}`}
-                  className="h-24 w-24 object-cover rounded-full border-4 border-white shadow"
-                />
-              ) : (
-                <div className="h-24 w-24 rounded-full bg-gray-200 flex items-center justify-center border-4 border-white shadow">
-                  <span className="text-2xl font-medium text-gray-600">
-                    {currentStaff.firstName?.[0]}{currentStaff.lastName?.[0]}
-                  </span>
-                </div>
-              )}
+              <PhotoUpload
+                currentPhoto={photoUrl}
+                onPhotoChange={handlePhotoChange}
+                folder={`staff/${id}/profile`}
+              />
             </div>
 
             <div className="flex-1 text-center sm:text-left">
@@ -157,6 +156,7 @@ export function EditStaff() {
               onSubmit={handleSubmit}
               isLoading={updateStaffMutation.isPending}
               onCancel={handleCancel}
+              photoUrl={photoUrl}
             />
           ) : (
             <LeaveBalanceTab
