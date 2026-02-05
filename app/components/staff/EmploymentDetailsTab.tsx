@@ -10,17 +10,9 @@ interface EmploymentDetailsTabProps {
   control: Control<CreateStaffFormData>;
   errors: FieldErrors<CreateStaffFormData>;
   isSubmitting: boolean;
-  handleAddQualification: () => void;
-  handleUpdateQualification: (index: number, value: string) => void;
-  handleRemoveQualification: (index: number) => void;
-  handleAddSkill: () => void;
-  handleUpdateSkill: (index: number, value: string) => void;
-  handleRemoveSkill: (index: number) => void;
   handleAddResponsibility: () => void;
   handleUpdateResponsibility: (index: number, value: string) => void;
   handleRemoveResponsibility: (index: number) => void;
-  qualifications: string[];
-  skills: string[];
   responsibilities: string[];
 }
 
@@ -28,17 +20,9 @@ export function EmploymentDetailsTab({
   control,
   errors,
   isSubmitting,
-  handleAddQualification,
-  handleUpdateQualification,
-  handleRemoveQualification,
-  handleAddSkill,
-  handleUpdateSkill,
-  handleRemoveSkill,
   handleAddResponsibility,
   handleUpdateResponsibility,
   handleRemoveResponsibility,
-  qualifications,
-  skills,
   responsibilities
 }: EmploymentDetailsTabProps) {
   const departmentOptions = {
