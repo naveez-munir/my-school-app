@@ -1,15 +1,15 @@
-import { useState, memo } from "react";
+import { useState, memo, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router";
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
-import { useStudent } from "~/hooks/useStudentQueries";
-import { Mail, Phone, User } from "lucide-react";
+import { useStudent, useUpdatePersonalInfo } from "~/hooks/useStudentQueries";
+import { Mail, Phone } from "lucide-react";
+import { PhotoUpload } from "~/components/student/form/PhotoUpload";
 
 import { StudentOverview } from './tabs/StudentOverview';
 import { StudentPersonalInfo } from './tabs/StudentPersonalInfo';
 import { StudentGuardianInfo } from './tabs/StudentGuardianInfo';
 import { StudentAcademicInfo } from './tabs/StudentAcademicInfo';
 import { StudentDocuments } from './tabs/StudentDocuments';
-import { StudentStatus } from './tabs/StudentStatus';
 import type { Student } from "~/types/student";
 import { getUserId, isAdmin } from "~/utils/auth";
 
@@ -22,15 +22,13 @@ const MemoizedPersonalInfo = memo(StudentPersonalInfo);
 const MemoizedGuardianInfo = memo(StudentGuardianInfo);
 const MemoizedAcademicInfo = memo(StudentAcademicInfo);
 const MemoizedDocuments = memo(StudentDocuments);
-const MemoizedStatus = memo(StudentStatus);
 
 const TABS = [
   { name: 'Overview', key: 'overview' },
   { name: 'Personal Info', key: 'personal' },
   { name: 'Guardian', key: 'guardian' },
   { name: 'Academic', key: 'academic' },
-  { name: 'Documents', key: 'documents' },
-  { name: 'Status', key: 'status' }
+  { name: 'Documents', key: 'documents' }
 ];
 
 const TAB_COMPONENTS = [
@@ -38,23 +36,8 @@ const TAB_COMPONENTS = [
   { Component: MemoizedPersonalInfo, key: 'personal' },
   { Component: MemoizedGuardianInfo, key: 'guardian' },
   { Component: MemoizedAcademicInfo, key: 'academic' },
-  { Component: MemoizedDocuments, key: 'documents' },
-  { Component: MemoizedStatus, key: 'status' }
+  { Component: MemoizedDocuments, key: 'documents' }
 ];
-
-const StudentAvatar = ({ student }: { student: Student }) => (
-  student.photoUrl ? (
-    <img
-      src={student.photoUrl}
-      alt={`${student.firstName} ${student.lastName}`}
-      className="h-16 w-16 sm:h-20 sm:w-20 md:h-24 md:w-24 rounded-full object-cover border-4 border-white shadow"
-    />
-  ) : (
-    <div className="h-16 w-16 sm:h-20 sm:w-20 md:h-24 md:w-24 rounded-full bg-blue-100 flex items-center justify-center border-4 border-white shadow">
-      <User className="h-7 w-7 sm:h-8 sm:w-8 md:h-10 md:w-10 text-blue-600" />
-    </div>
-  )
-);
 
 export function StudentDetailPage({stId} : {stId?:string}) {
   const userId = getUserId();
@@ -63,6 +46,15 @@ export function StudentDetailPage({stId} : {stId?:string}) {
   const studentId =  stId ? stId : id ? id : userId
   const { data: student, isLoading } = useStudent(studentId || '');
   const [tabIndex, setTabIndex] = useState(0);
+  const updatePersonalInfo = useUpdatePersonalInfo();
+  const [photoUrl, setPhotoUrl] = useState<string>(student?.photoUrl || '');
+
+  const handlePhotoChange = useCallback((url: string) => {
+    setPhotoUrl(url);
+    if (studentId) {
+      updatePersonalInfo.mutate({ id: studentId, data: { photoUrl: url || undefined } });
+    }
+  }, [studentId, updatePersonalInfo]);
   
   if (isLoading) {
     return (
@@ -92,7 +84,11 @@ export function StudentDetailPage({stId} : {stId?:string}) {
         <div className="p-3 sm:p-6 lg:p-8 bg-gradient-to-r from-blue-50 to-indigo-50 border-b">
           <div className="flex flex-row items-start gap-3 sm:gap-6">
             <div className="flex-shrink-0">
-              <StudentAvatar student={student} />
+              <PhotoUpload
+                currentPhoto={photoUrl}
+                onPhotoChange={handlePhotoChange}
+                folder={`students/${studentId}/profile`}
+              />
             </div>
 
             <div className="flex-1 min-w-0">
