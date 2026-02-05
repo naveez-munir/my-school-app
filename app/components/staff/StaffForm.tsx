@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -24,15 +24,21 @@ interface StaffFormProps {
   onSubmit: (data: CreateStaffRequest | UpdateStaffRequest) => void;
   isLoading: boolean;
   onCancel: () => void;
+  photoUrl?: string;
 }
 
 export function StaffForm({
   initialData,
   onSubmit,
   isLoading,
-  onCancel
+  onCancel,
+  photoUrl
 }: StaffFormProps) {
   const [activeTab, setActiveTab] = useState('personal');
+  const [hasUniquenessErrors, setHasUniquenessErrors] = useState(false);
+  const handleUniquenessChange = useCallback((hasErrors: boolean) => {
+    setHasUniquenessErrors(hasErrors);
+  }, []);
 
   // Helper function to prepare initial form data
   const getInitialFormData = (staff?: StaffDetailResponse): CreateStaffFormData => {
@@ -83,6 +89,12 @@ export function StaffForm({
 
   const formData = watch();
 
+  useEffect(() => {
+    if (photoUrl !== undefined) {
+      setValue('photoUrl', photoUrl || null, { shouldValidate: true });
+    }
+  }, [photoUrl, setValue]);
+
   const educationFieldArray = useFieldArray({
     control,
     name: 'educationHistory',
@@ -117,8 +129,7 @@ export function StaffForm({
   });
 
   const onFormSubmit = (validatedData: CreateStaffFormData) => {
-    // Convert form data to CreateStaffRequest format
-    // Handle nullable fields by converting null to undefined
+    if (hasUniquenessErrors) return;
     const submissionData: CreateStaffRequest = {
       ...validatedData,
       email: validatedData.email ?? undefined,
@@ -176,10 +187,9 @@ export function StaffForm({
         <PersonalInfoTab
           control={control}
           errors={errors}
-          photoUrl={formData.photoUrl || ''}
           isSubmitting={isLoading}
-          onPhotoChange={(url) => setValue('photoUrl', url, { shouldValidate: true })}
           staffId={initialData?.id}
+          onUniquenessChange={handleUniquenessChange}
         />
       )}
 
@@ -188,34 +198,6 @@ export function StaffForm({
           control={control}
           errors={errors}
           isSubmitting={isLoading}
-          handleAddQualification={() => {
-            const current = formData.qualifications || [];
-            setValue('qualifications', [...current, ''], { shouldValidate: true });
-          }}
-          handleUpdateQualification={(index: number, value: string) => {
-            const current = formData.qualifications || [];
-            const updated = [...current];
-            updated[index] = value;
-            setValue('qualifications', updated, { shouldValidate: true });
-          }}
-          handleRemoveQualification={(index: number) => {
-            const current = formData.qualifications || [];
-            setValue('qualifications', current.filter((_, i) => i !== index), { shouldValidate: true });
-          }}
-          handleAddSkill={() => {
-            const current = formData.skills || [];
-            setValue('skills', [...current, ''], { shouldValidate: true });
-          }}
-          handleUpdateSkill={(index: number, value: string) => {
-            const current = formData.skills || [];
-            const updated = [...current];
-            updated[index] = value;
-            setValue('skills', updated, { shouldValidate: true });
-          }}
-          handleRemoveSkill={(index: number) => {
-            const current = formData.skills || [];
-            setValue('skills', current.filter((_, i) => i !== index), { shouldValidate: true });
-          }}
           handleAddResponsibility={() => {
             const current = formData.responsibilities || [];
             setValue('responsibilities', [...current, ''], { shouldValidate: true });
@@ -230,8 +212,6 @@ export function StaffForm({
             const current = formData.responsibilities || [];
             setValue('responsibilities', current.filter((_, i) => i !== index), { shouldValidate: true });
           }}
-          qualifications={formData.qualifications || []}
-          skills={formData.skills || []}
           responsibilities={formData.responsibilities || []}
         />
       )}
