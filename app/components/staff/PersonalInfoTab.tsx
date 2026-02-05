@@ -1,43 +1,53 @@
+import { useEffect, useMemo } from 'react';
+import { useWatch } from 'react-hook-form';
 import type { Control, FieldErrors } from 'react-hook-form';
 import { TextInput } from '~/components/common/form/inputs/TextInput';
 import { SelectInput } from '~/components/common/form/inputs/SelectInput';
 import { BloodGroup, Gender } from '~/types/teacher';
-import { PhotoUpload } from '~/components/student/form/PhotoUpload';
 import { FormField } from '~/components/common/form/FormField';
 import type { CreateStaffFormData } from '~/utils/validation/staffValidation';
+import { useUniquenessValidator } from '~/hooks/useUniquenessValidator';
 
 interface PersonalInfoTabProps {
   control: Control<CreateStaffFormData>;
   errors: FieldErrors<CreateStaffFormData>;
-  photoUrl?: string;
   isSubmitting: boolean;
-  onPhotoChange: (url: string) => void;
   staffId?: string;
+  onUniquenessChange?: (hasErrors: boolean) => void;
 }
 
 export function PersonalInfoTab({
   control,
   errors,
-  photoUrl,
   isSubmitting,
-  onPhotoChange,
-  staffId = ""
+  staffId = "",
+  onUniquenessChange
 }: PersonalInfoTabProps) {
+  const { checkCnic, checkEmail, checkPhone } = useUniquenessValidator(
+    staffId ? { excludeId: staffId, excludeType: 'staff' } : undefined
+  );
+
+  const watchedCni = useWatch({ control, name: 'cniNumber' });
+  const watchedEmail = useWatch({ control, name: 'email' });
+  const watchedPhone = useWatch({ control, name: 'phone' });
+
+  const uniquenessErrors = useMemo(() => {
+    return {
+      cniNumber: watchedCni ? checkCnic(watchedCni, 'staff').message : '',
+      email: watchedEmail ? checkEmail(watchedEmail, 'staff').message : '',
+      phone: watchedPhone ? checkPhone(watchedPhone, 'staff').message : '',
+    };
+  }, [watchedCni, watchedEmail, watchedPhone, checkCnic, checkEmail, checkPhone]);
+
+  const hasUniquenessErrors = !!(uniquenessErrors.cniNumber || uniquenessErrors.email || uniquenessErrors.phone);
+
+  useEffect(() => {
+    onUniquenessChange?.(hasUniquenessErrors);
+  }, [hasUniquenessErrors, onUniquenessChange]);
 
   return (
     <div className="space-y-6">
-      <div className="mb-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-2">Staff Member Photo</h3>
-        <div className="flex justify-center">
-          <PhotoUpload
-            currentPhoto={photoUrl || ''}
-            onPhotoChange={onPhotoChange}
-            folder={`staff/${staffId}/profile`}
-          />
-        </div>
-      </div>
-
-      <div className="border-t pt-4">
+      <div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             name="firstName"
@@ -73,21 +83,26 @@ export function PersonalInfoTab({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-          <FormField
-            name="cniNumber"
-            control={control}
-            errors={errors}
-            render={(field) => (
-              <TextInput
-                label="CNI Number"
-                value={field.value}
-                onChange={field.onChange}
-                required
-                disabled={isSubmitting}
-                placeholder="12345-1234567-1"
-              />
+          <div>
+            <FormField
+              name="cniNumber"
+              control={control}
+              errors={errors}
+              render={(field) => (
+                <TextInput
+                  label="CNI Number"
+                  value={field.value}
+                  onChange={field.onChange}
+                  required
+                  disabled={isSubmitting}
+                  placeholder="12345-1234567-1"
+                />
+              )}
+            />
+            {uniquenessErrors.cniNumber && (
+              <p className="mt-1 text-sm text-red-600">{uniquenessErrors.cniNumber}</p>
             )}
-          />
+          </div>
 
           <FormField
             name="gender"
@@ -108,36 +123,46 @@ export function PersonalInfoTab({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-          <FormField
-            name="email"
-            control={control}
-            errors={errors}
-            render={(field) => (
-              <TextInput
-                label="Email"
-                type="email"
-                value={field.value || ''}
-                onChange={field.onChange}
-                disabled={isSubmitting}
-                placeholder="email@example.com"
-              />
+          <div>
+            <FormField
+              name="email"
+              control={control}
+              errors={errors}
+              render={(field) => (
+                <TextInput
+                  label="Email"
+                  type="email"
+                  value={field.value || ''}
+                  onChange={field.onChange}
+                  disabled={isSubmitting}
+                  placeholder="email@example.com"
+                />
+              )}
+            />
+            {uniquenessErrors.email && (
+              <p className="mt-1 text-sm text-red-600">{uniquenessErrors.email}</p>
             )}
-          />
+          </div>
 
-          <FormField
-            name="phone"
-            control={control}
-            errors={errors}
-            render={(field) => (
-              <TextInput
-                label="Phone"
-                value={field.value || ''}
-                onChange={field.onChange}
-                disabled={isSubmitting}
-                placeholder="+1234567890"
-              />
+          <div>
+            <FormField
+              name="phone"
+              control={control}
+              errors={errors}
+              render={(field) => (
+                <TextInput
+                  label="Phone"
+                  value={field.value || ''}
+                  onChange={field.onChange}
+                  disabled={isSubmitting}
+                  placeholder="+1234567890"
+                />
+              )}
+            />
+            {uniquenessErrors.phone && (
+              <p className="mt-1 text-sm text-red-600">{uniquenessErrors.phone}</p>
             )}
-          />
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
