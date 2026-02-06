@@ -3,7 +3,7 @@ import { QuickInfoCard } from './QuickInfoCard';
 import { DetailSection } from './DetailSection';
 import { DocumentsCard } from './DocumentsCard';
 import { formatUserFriendlyDate } from '~/utils/dateUtils';
-import { Phone, Mail, MapPin, BookOpen, Users } from 'lucide-react';
+import { Phone, Mail, MapPin, BookOpen, Users, AlertCircle, Calendar, FileText } from 'lucide-react';
 
 export function StudentOverview({ student }: StudentDataProps) {
 
@@ -64,6 +64,19 @@ export function StudentOverview({ student }: StudentDataProps) {
               { label: "Relationship", value: student.guardian.relationship, icon: Users },
               { label: "Phone Number", value: student.guardian.phone, icon: Phone },
               { label: "Email Address", value: student.guardian.email, icon: Mail }
+            ]}
+          />
+
+          <DetailSection
+            title="Status & Exit Information"
+            editPath="/edit/status"
+            studentId={student._id}
+            columns={3}
+            fields={[
+              { label: "Current Status", value: student.status, icon: AlertCircle },
+              { label: "Exit Status", value: student.exitStatus, fallback: "None", icon: AlertCircle },
+              { label: "Exit Date", value: student.exitDate ? formatUserFriendlyDate(student.exitDate) : null, fallback: "N/A", icon: Calendar },
+              ...(student.exitRemarks ? [{ label: "Exit Remarks", value: student.exitRemarks, icon: FileText }] : [])
             ]}
           />
         </div>
