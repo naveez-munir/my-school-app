@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router';
 import type { StudentDataProps } from '~/types/student';
 import { StudentSectionHeader } from './StudentSectionHeader';
 import { formatUserFriendlyDate } from '~/utils/dateUtils';
-import { Image, FileText, Calendar, ExternalLink } from 'lucide-react';
+import { FileText, ExternalLink } from 'lucide-react';
 
 export function StudentDocuments({student} : StudentDataProps) {
   const navigate = useNavigate();
@@ -16,29 +16,6 @@ export function StudentDocuments({student} : StudentDataProps) {
       />
 
       <div className="p-6 space-y-8">
-        {/* Student Photo Section */}
-        <div>
-          <h4 className="text-sm font-semibold text-gray-900 mb-4">Student Photo</h4>
-          {student.photoUrl ? (
-            <div className="flex flex-col items-center md:items-start">
-              <img
-                src={student.photoUrl}
-                alt={`${student.firstName} ${student.lastName}`}
-                className="h-40 w-40 object-cover rounded-lg border border-gray-300"
-              />
-              <p className="mt-2 text-sm text-gray-600">
-                Student ID Photo
-              </p>
-            </div>
-          ) : (
-            <div className="bg-gray-50 rounded-lg p-6 text-center border border-gray-200">
-              <Image className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-              <p className="text-gray-600 font-medium">No photo uploaded</p>
-            </div>
-          )}
-        </div>
-
-        {/* Uploaded Documents Section */}
         <div>
           <h4 className="text-sm font-semibold text-gray-900 mb-4">Uploaded Documents</h4>
 
