@@ -1,5 +1,5 @@
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useEffect, useMemo } from "react";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { DateInput } from "~/components/common/form/inputs/DateInput";
 import { SelectInput } from "~/components/common/form/inputs/SelectInput";
@@ -11,6 +11,7 @@ import { FormStepActions } from "~/components/common/form/FormStepActions";
 import { Gender, BloodGroup } from "~/types/student";
 import type { BasicInfoStepProps, CreateStudentDto } from "~/types/student";
 import { basicInfoSchema, type BasicInfoFormData } from "~/utils/validation/studentValidation";
+import { useUniquenessValidator } from "~/hooks/useUniquenessValidator";
 
 export function BasicInfoStep({
   data,
@@ -43,11 +44,28 @@ export function BasicInfoStep({
     defaultValues: getInitialFormData(data),
   });
 
+  const { checkCnic, checkEmail, checkPhone } = useUniquenessValidator();
+
+  const watchedCni = useWatch({ control, name: "cniNumber" });
+  const watchedEmail = useWatch({ control, name: "email" });
+  const watchedPhone = useWatch({ control, name: "phone" });
+
+  const uniquenessErrors = useMemo(() => {
+    return {
+      cniNumber: watchedCni ? checkCnic(watchedCni, 'student').message : '',
+      email: watchedEmail ? checkEmail(watchedEmail, 'student').message : '',
+      phone: watchedPhone ? checkPhone(watchedPhone, 'student').message : '',
+    };
+  }, [watchedCni, watchedEmail, watchedPhone, checkCnic, checkEmail, checkPhone]);
+
+  const hasUniquenessErrors = !!(uniquenessErrors.cniNumber || uniquenessErrors.email || uniquenessErrors.phone);
+
   useEffect(() => {
     reset(getInitialFormData(data));
   }, [data, reset]);
 
   const onSubmit = (validatedData: BasicInfoFormData) => {
+    if (hasUniquenessErrors) return;
     onComplete(validatedData);
   };
 
@@ -82,20 +100,25 @@ export function BasicInfoStep({
           )}
         />
 
-        <FormField
-          name="cniNumber"
-          control={control}
-          errors={errors}
-          render={(field) => (
-            <TextInput
-              label="CNI Number"
-              value={field.value}
-              onChange={field.onChange}
-              placeholder="12345-1234567-1"
-              required
-            />
+        <div>
+          <FormField
+            name="cniNumber"
+            control={control}
+            errors={errors}
+            render={(field) => (
+              <TextInput
+                label="CNI Number"
+                value={field.value}
+                onChange={field.onChange}
+                placeholder="12345-1234567-1"
+                required
+              />
+            )}
+          />
+          {uniquenessErrors.cniNumber && (
+            <p className="mt-1 text-sm text-red-600">{uniquenessErrors.cniNumber}</p>
           )}
-        />
+        </div>
 
         <FormField
           name="dateOfBirth"
@@ -142,34 +165,44 @@ export function BasicInfoStep({
           )}
         />
 
-        <FormField
-          name="phone"
-          control={control}
-          errors={errors}
-          render={(field) => (
-            <TextInput
-              label="Phone"
-              value={field.value || ""}
-              onChange={field.onChange}
-              type="tel"
-              placeholder="03XXXXXXXXX"
-            />
+        <div>
+          <FormField
+            name="phone"
+            control={control}
+            errors={errors}
+            render={(field) => (
+              <TextInput
+                label="Phone"
+                value={field.value || ""}
+                onChange={field.onChange}
+                type="tel"
+                placeholder="03XXXXXXXXX"
+              />
+            )}
+          />
+          {uniquenessErrors.phone && (
+            <p className="mt-1 text-sm text-red-600">{uniquenessErrors.phone}</p>
           )}
-        />
+        </div>
 
-        <FormField
-          name="email"
-          control={control}
-          errors={errors}
-          render={(field) => (
-            <TextInput
-              label="Email"
-              value={field.value || ""}
-              onChange={field.onChange}
-              type="email"
-            />
+        <div>
+          <FormField
+            name="email"
+            control={control}
+            errors={errors}
+            render={(field) => (
+              <TextInput
+                label="Email"
+                value={field.value || ""}
+                onChange={field.onChange}
+                type="email"
+              />
+            )}
+          />
+          {uniquenessErrors.email && (
+            <p className="mt-1 text-sm text-red-600">{uniquenessErrors.email}</p>
           )}
-        />
+        </div>
 
         <div className="md:col-span-2">
           <FormField
@@ -222,6 +255,7 @@ export function BasicInfoStep({
         backLabel="Back"
         nextLabel="Next"
         isFirstStep={false}
+        isDisabled={hasUniquenessErrors}
       />
     </form>
   );
