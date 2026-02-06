@@ -7,6 +7,7 @@ import { guardianSchema, type GuardianFormData } from "~/utils/validation/studen
 import { TextInput } from "~/components/common/form/inputs/TextInput";
 import { SelectInput } from "~/components/common/form/inputs/SelectInput";
 import { FormStepActions } from "~/components/common/form/FormStepActions";
+import { useUniquenessValidator } from "~/hooks/useUniquenessValidator";
 
 export function GuardianInfoStep({
   data,
@@ -33,10 +34,11 @@ export function GuardianInfoStep({
     defaultValues: getInitialFormData(),
   });
 
-  const guardianCni = useWatch({
-    control,
-    name: "cniNumber",
-  });
+  const { checkCnic, checkEmail, checkPhone } = useUniquenessValidator();
+
+  const guardianCni = useWatch({ control, name: "cniNumber" });
+  const guardianEmail = useWatch({ control, name: "email" });
+  const guardianPhone = useWatch({ control, name: "phone" });
 
   const cniMismatchError = useMemo(() => {
     if (guardianCni && data.cniNumber && guardianCni === data.cniNumber) {
@@ -45,14 +47,22 @@ export function GuardianInfoStep({
     return null;
   }, [guardianCni, data.cniNumber]);
 
+  const uniquenessErrors = useMemo(() => {
+    return {
+      cniNumber: guardianCni ? checkCnic(guardianCni, 'guardian').message : '',
+      email: guardianEmail ? checkEmail(guardianEmail, 'guardian').message : '',
+      phone: guardianPhone ? checkPhone(guardianPhone, 'guardian').message : '',
+    };
+  }, [guardianCni, guardianEmail, guardianPhone, checkCnic, checkEmail, checkPhone]);
+
+  const hasUniquenessErrors = !!(cniMismatchError || uniquenessErrors.cniNumber || uniquenessErrors.email || uniquenessErrors.phone);
+
   useEffect(() => {
     reset(getInitialFormData());
   }, [data, reset]);
 
   const onSubmit = (validatedData: GuardianFormData) => {
-    if (cniMismatchError) {
-      return;
-    }
+    if (hasUniquenessErrors) return;
     onComplete({ guardian: validatedData });
   };
 
@@ -94,7 +104,10 @@ export function GuardianInfoStep({
           {cniMismatchError && (
             <p className="mt-1 text-sm text-red-600">{cniMismatchError}</p>
           )}
-          {!cniMismatchError && errors.cniNumber && (
+          {!cniMismatchError && uniquenessErrors.cniNumber && (
+            <p className="mt-1 text-sm text-red-600">{uniquenessErrors.cniNumber}</p>
+          )}
+          {!cniMismatchError && !uniquenessErrors.cniNumber && errors.cniNumber && (
             <p className="mt-1 text-sm text-red-600">{errors.cniNumber.message}</p>
           )}
         </div>
@@ -134,7 +147,10 @@ export function GuardianInfoStep({
               />
             )}
           />
-          {errors.phone && (
+          {uniquenessErrors.phone && (
+            <p className="mt-1 text-sm text-red-600">{uniquenessErrors.phone}</p>
+          )}
+          {!uniquenessErrors.phone && errors.phone && (
             <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p>
           )}
         </div>
@@ -152,7 +168,10 @@ export function GuardianInfoStep({
               />
             )}
           />
-          {errors.email && (
+          {uniquenessErrors.email && (
+            <p className="mt-1 text-sm text-red-600">{uniquenessErrors.email}</p>
+          )}
+          {!uniquenessErrors.email && errors.email && (
             <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
           )}
         </div>
@@ -162,7 +181,7 @@ export function GuardianInfoStep({
         onBack={onBack}
         backLabel="Previous"
         nextLabel="Next"
-        isDisabled={!!cniMismatchError}
+        isDisabled={hasUniquenessErrors}
         isFirstStep={false}
       />
     </form>
