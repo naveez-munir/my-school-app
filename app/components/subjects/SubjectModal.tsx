@@ -5,6 +5,7 @@ import type { SubjectDto, SubjectModalProps } from '~/types/subject';
 import { TextInput } from '../common/form/inputs/TextInput';
 import { FormActions } from '../common/form/FormActions';
 import { FormField } from '../common/form/FormField';
+import { GradeSelector } from '../common/GradeSelector';
 import { createSubjectSchema, type CreateSubjectFormData } from '~/utils/validation/subjectValidation';
 
 export function SubjectModal({
@@ -18,7 +19,8 @@ export function SubjectModal({
     resolver: zodResolver(createSubjectSchema),
     defaultValues: {
       subjectName: initialData?.subjectName || '',
-      subjectCode: initialData?.subjectCode || ''
+      subjectCode: initialData?.subjectCode || '',
+      gradeLevel: initialData?.gradeLevel || ''
     }
   });
 
@@ -26,12 +28,14 @@ export function SubjectModal({
     if (initialData) {
       reset({
         subjectName: initialData.subjectName,
-        subjectCode: initialData.subjectCode
+        subjectCode: initialData.subjectCode,
+        gradeLevel: initialData.gradeLevel || ''
       });
     } else {
       reset({
         subjectName: '',
-        subjectCode: ''
+        subjectCode: '',
+        gradeLevel: ''
       });
     }
   }, [initialData, isOpen, reset]);
@@ -82,6 +86,19 @@ export function SubjectModal({
                   onChange={field.onChange}
                   required
                   placeholder="Enter subject code (e.g., MATH-101, ENG-01)"
+                  disabled={isSubmitting}
+                />
+              )}
+            />
+
+            <FormField
+              name="gradeLevel"
+              control={control}
+              errors={errors}
+              render={(field) => (
+                <GradeSelector
+                  value={field.value || ''}
+                  onChange={field.onChange}
                   disabled={isSubmitting}
                 />
               )}
