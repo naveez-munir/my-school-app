@@ -1,3 +1,5 @@
+import { useEffect, useMemo } from 'react';
+import { useWatch } from 'react-hook-form';
 import type { Control, FieldErrors } from 'react-hook-form';
 import { EmploymentStatus, Gender, BloodGroup } from '~/types/teacher';
 import { TextInput } from '../common/form/inputs/TextInput';
@@ -7,32 +9,61 @@ import { DateInput } from '../common/form/inputs/DateInput';
 import { FormField } from '../common/form/FormField';
 import { useParams } from 'react-router';
 import type { CreateTeacherFormData } from '~/utils/validation/teacherValidation';
+import { useUniquenessValidator } from '~/hooks/useUniquenessValidator';
 
 interface BasicInfoFormProps {
   control: Control<CreateTeacherFormData>;
   errors: FieldErrors<CreateTeacherFormData>;
   assignedClassName?: string;
+  onUniquenessChange?: (hasErrors: boolean) => void;
 }
 
-export function BasicInfoForm({ control, errors, assignedClassName }: BasicInfoFormProps) {
+export function BasicInfoForm({ control, errors, assignedClassName, onUniquenessChange }: BasicInfoFormProps) {
   const { id } = useParams();
+  const { checkCnic, checkEmail, checkPhone } = useUniquenessValidator(
+    id ? { excludeId: id, excludeType: 'teacher' } : undefined
+  );
+
+  const watchedCni = useWatch({ control, name: 'cniNumber' });
+  const watchedEmail = useWatch({ control, name: 'email' });
+  const watchedPhone = useWatch({ control, name: 'phone' });
+
+  const uniquenessErrors = useMemo(() => {
+    return {
+      cniNumber: watchedCni ? checkCnic(watchedCni, 'teacher').message : '',
+      email: watchedEmail ? checkEmail(watchedEmail, 'teacher').message : '',
+      phone: watchedPhone ? checkPhone(watchedPhone, 'teacher').message : '',
+    };
+  }, [watchedCni, watchedEmail, watchedPhone, checkCnic, checkEmail, checkPhone]);
+
+  const hasUniquenessErrors = !!(uniquenessErrors.cniNumber || uniquenessErrors.email || uniquenessErrors.phone);
+
+  useEffect(() => {
+    onUniquenessChange?.(hasUniquenessErrors);
+  }, [hasUniquenessErrors, onUniquenessChange]);
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {/* Basic Information Fields */}
-      <FormField
-        name="cniNumber"
-        control={control}
-        errors={errors}
-        render={(field) => (
-          <TextInput
-            label='CNI Number'
-            required
-            value={field.value}
-            onChange={field.onChange}
-            placeholder="12345-1234567-1"
-          />
+      <div>
+        <FormField
+          name="cniNumber"
+          control={control}
+          errors={errors}
+          render={(field) => (
+            <TextInput
+              label='CNI Number'
+              required
+              value={field.value}
+              onChange={field.onChange}
+              placeholder="12345-1234567-1"
+            />
+          )}
+        />
+        {uniquenessErrors.cniNumber && (
+          <p className="mt-1 text-sm text-red-600">{uniquenessErrors.cniNumber}</p>
         )}
-      />
+      </div>
 
       <FormField
         name="gender"
@@ -78,34 +109,44 @@ export function BasicInfoForm({ control, errors, assignedClassName }: BasicInfoF
         )}
       />
 
-      <FormField
-        name="email"
-        control={control}
-        errors={errors}
-        render={(field) => (
-          <TextInput
-            label='Email'
-            value={field.value || ''}
-            onChange={field.onChange}
-            type='email'
-          />
+      <div>
+        <FormField
+          name="email"
+          control={control}
+          errors={errors}
+          render={(field) => (
+            <TextInput
+              label='Email'
+              value={field.value || ''}
+              onChange={field.onChange}
+              type='email'
+            />
+          )}
+        />
+        {uniquenessErrors.email && (
+          <p className="mt-1 text-sm text-red-600">{uniquenessErrors.email}</p>
         )}
-      />
+      </div>
 
-      <FormField
-        name="phone"
-        control={control}
-        errors={errors}
-        render={(field) => (
-          <TextInput
-            label='Phone'
-            value={field.value || ''}
-            onChange={field.onChange}
-            type='tel'
-            placeholder="03XXXXXXXXX"
-          />
+      <div>
+        <FormField
+          name="phone"
+          control={control}
+          errors={errors}
+          render={(field) => (
+            <TextInput
+              label='Phone'
+              value={field.value || ''}
+              onChange={field.onChange}
+              type='tel'
+              placeholder="03XXXXXXXXX"
+            />
+          )}
+        />
+        {uniquenessErrors.phone && (
+          <p className="mt-1 text-sm text-red-600">{uniquenessErrors.phone}</p>
         )}
-      />
+      </div>
 
       <FormField
         name="bloodGroup"
