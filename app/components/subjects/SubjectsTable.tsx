@@ -39,6 +39,14 @@ export function createSubjectColumns(): ColumnDef<Subject, any>[] {
         </div>
       ),
     }),
+    columnHelper.accessor('gradeLevel', {
+      header: ({ column }) => <SortableColumnHeader column={column} title="Grade Level" />,
+      cell: (info) => (
+        <div className="text-sm text-gray-500">
+          {info.getValue() || '-'}
+        </div>
+      ),
+    }),
     columnHelper.accessor('createdAt', {
       header: ({ column }) => <SortableColumnHeader column={column} title="Created Date" />,
       cell: (info) => (
