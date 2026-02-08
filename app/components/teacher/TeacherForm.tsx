@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { EmploymentStatus, Gender, type CreateTeacherDto, type Teacher } from '~/types/teacher';
@@ -13,14 +13,20 @@ interface TeacherFormProps {
   initialData?: Teacher;
   onSubmit: (data: CreateTeacherDto) => void;
   isLoading: boolean;
+  photoUrl?: string;
 }
 
 export function TeacherForm({
   initialData,
   onSubmit,
-  isLoading
+  isLoading,
+  photoUrl
 }: TeacherFormProps) {
   const [activeTab, setActiveTab] = useState<'basic' | 'education' | 'experience' | 'documents'>('basic');
+  const [hasUniquenessErrors, setHasUniquenessErrors] = useState(false);
+  const handleUniquenessChange = useCallback((hasErrors: boolean) => {
+    setHasUniquenessErrors(hasErrors);
+  }, []);
 
   // Helper function to prepare initial form data
   const getInitialFormData = (teacher?: Teacher): CreateTeacherFormData => {
@@ -72,7 +78,12 @@ export function TeacherForm({
 
   const formData = watch();
 
-  // Map form fields to their respective tabs
+  useEffect(() => {
+    if (photoUrl !== undefined) {
+      setValue('photoUrl', photoUrl || null, { shouldValidate: true });
+    }
+  }, [photoUrl, setValue]);
+
   const tabFieldMapping: Record<string, (keyof CreateTeacherFormData)[]> = {
     basic: ['cniNumber', 'firstName', 'lastName', 'gender', 'employmentStatus', 'joiningDate', 'leavingDate', 'email', 'phone', 'address', 'bloodGroup', 'subjects', 'qualifications', 'classTeacherOf'],
     education: ['educationHistory'],
@@ -94,7 +105,7 @@ export function TeacherForm({
   });
 
   const onFormSubmit = (validatedData: CreateTeacherFormData) => {
-    // Convert form data to CreateTeacherDto format
+    if (hasUniquenessErrors) return;
     const submissionData: CreateTeacherDto = {
       ...validatedData,
       joiningDate: new Date(validatedData.joiningDate),
@@ -148,6 +159,7 @@ export function TeacherForm({
             control={control}
             errors={errors}
             assignedClassName={initialData?.classTeacherOf?.className}
+            onUniquenessChange={handleUniquenessChange}
           />
         )}
         {activeTab === 'education' && (
@@ -168,10 +180,8 @@ export function TeacherForm({
         {activeTab === 'documents' && (
           <DocumentsForm
             data={formData.documents!}
-            photoUrl={formData.photoUrl || undefined}
             teacherId={initialData?._id || ''}
             onUpdate={(value) => handleUpdate('documents', value)}
-            onPhotoChange={(url) => handleUpdate('photoUrl', url)}
           />
         )}
       </div>
