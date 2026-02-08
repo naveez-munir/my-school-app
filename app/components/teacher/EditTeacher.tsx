@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useTeacher, useUpdateTeacher } from '~/hooks/useTeacherQueries';
 import { TeacherForm } from './TeacherForm';
 import type { CreateTeacherDto } from '~/types/teacher';
@@ -9,6 +9,7 @@ import toast from 'react-hot-toast';
 import { getErrorMessage } from '~/utils/error';
 import { LeaveBalanceTab } from '~/components/leave/LeaveBalanceTab';
 import { isAdmin } from '~/utils/auth';
+import { PhotoUpload } from '~/components/student/form/PhotoUpload';
 
 export function EditTeacher() {
   const { id } = useParams();
@@ -19,6 +20,11 @@ export function EditTeacher() {
   // React Query hooks
   const { data: currentTeacher, isLoading: fetchLoading } = useTeacher(id || '');
   const updateTeacherMutation = useUpdateTeacher();
+  const [photoUrl, setPhotoUrl] = useState<string>(currentTeacher?.photoUrl || '');
+
+  const handlePhotoChange = useCallback((url: string) => {
+    setPhotoUrl(url);
+  }, []);
 
   const handleSubmit = (data: CreateTeacherDto) => {
     if (id) {
@@ -55,19 +61,11 @@ export function EditTeacher() {
         <div className="p-6 sm:p-8 bg-gradient-to-r from-blue-50 to-indigo-50 border-b">
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
             <div className="flex-shrink-0">
-              {currentTeacher.photoUrl ? (
-                <img 
-                  src={currentTeacher.photoUrl} 
-                  alt={`${currentTeacher.firstName} ${currentTeacher.lastName}`}
-                  className="h-24 w-24 object-cover rounded-full border-4 border-white shadow"
-                />
-              ) : (
-                <div className="h-24 w-24 rounded-full bg-gray-200 flex items-center justify-center border-4 border-white shadow">
-                  <span className="text-2xl font-medium text-gray-600">
-                    {currentTeacher.firstName?.[0]}{currentTeacher.lastName?.[0]}
-                  </span>
-                </div>
-              )}
+              <PhotoUpload
+                currentPhoto={photoUrl}
+                onPhotoChange={handlePhotoChange}
+                folder={`teachers/${id}/profile`}
+              />
             </div>
 
             <div className="flex-1 text-center sm:text-left">
@@ -149,6 +147,7 @@ export function EditTeacher() {
               initialData={currentTeacher}
               onSubmit={handleSubmit}
               isLoading={updateTeacherMutation.isPending}
+              photoUrl={photoUrl}
             />
           ) : (
             <LeaveBalanceTab
