@@ -2,23 +2,18 @@ import { useState } from 'react';
 import { Plus, X } from 'lucide-react';
 import { SelectInput } from '../common/form/inputs/SelectInput';
 import { DocumentTypes, type Document } from '~/types/teacher';
-import { PhotoUpload } from '../student/form/PhotoUpload';
 import { DocumentUploader } from '../student/form/DocumentUploader';
 
 interface DocumentsFormProps {
   data: Document[];
-  photoUrl?: string;
   teacherId?: string;
   onUpdate: (documents: Document[]) => void;
-  onPhotoChange?: (url: string) => void;
 }
 
-export function DocumentsForm({ 
-  data = [], 
-  photoUrl = "",
+export function DocumentsForm({
+  data = [],
   teacherId = "",
-  onUpdate,
-  onPhotoChange
+  onUpdate
 }: DocumentsFormProps) {
   const [newDocument, setNewDocument] = useState<Document>({
     documentType: "",
@@ -53,30 +48,8 @@ export function DocumentsForm({
     setNewDocument(prev => ({ ...prev, documentUrl: url }));
   };
 
-  const handlePhotoUpdate = (url: string) => {
-    if (onPhotoChange) {
-      onPhotoChange(url);
-    }
-  };
-
   return (
     <div className="space-y-8">
-      {onPhotoChange && (
-        <div className="mb-8">
-          <h3 className="text-lg font-medium text-gray-900">Teacher Photo</h3>
-          <p className="mt-1 text-sm text-gray-600">
-            Upload a clear, professional photo of the teacher.
-          </p>
-          <div className="mt-4">
-            <PhotoUpload
-              currentPhoto={photoUrl}
-              onPhotoChange={handlePhotoUpdate}
-              folder={`teachers/${teacherId}/profile`}
-            />
-          </div>
-        </div>
-      )}
-
       <div>
         <h3 className="text-lg font-medium text-gray-900">Teacher Documents</h3>
         <p className="mt-1 text-sm text-gray-600">
