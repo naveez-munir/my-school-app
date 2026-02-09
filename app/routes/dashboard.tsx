@@ -3,12 +3,19 @@ import { Outlet, useNavigate } from 'react-router';
 import { getUserRole, getAuthData } from '~/utils/auth';
 import Sidebar from '~/components/common/ui/menu/components/sidebar/Sidebar';
 import { Header } from '~/components/common/ui/Header';
+import { useStudents } from '~/hooks/useStudentQueries';
+import { useTeachers } from '~/hooks/useTeacherQueries';
+import { useStaffList } from '~/hooks/useStaffQueries';
 
 export default function DashboardLayout() {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(true);
   const navigate = useNavigate();
+
+  useStudents();
+  useTeachers();
+  useStaffList();
 
   useEffect(() => {
     const authData = getAuthData();
