@@ -1,7 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { studentFeeApi } from '../services/studentFeeApi';
 import {
-  type StudentFee,
   type PopulatedStudentFee,
   type GenerateStudentFeeInput,
   type BulkGenerateStudentFeeInput,
@@ -11,13 +10,10 @@ import {
   type PendingFeesResult,
   type CreateAdhocFeeInput,
   type StudentFeeSettlementInput,
-  type SettlementSummary,
   type StudentClassTransferInput,
-  type TransferSummary,
-  FeeStatus
+  FeeStatus,
+  getStudentIdValue
 } from '../types/studentFee';
-
-type AnyStudentFee = StudentFee | PopulatedStudentFee;
 
 const studentFeeKeys = {
   all: ['studentFees'] as const,
@@ -39,7 +35,7 @@ export const useStudentFee = (id: string) => {
 
 // Get fees by student with optional filtering
 export const useStudentFees = (studentId: string, params?: GetStudentFeesParams) => {
-  return useQuery<AnyStudentFee[]>({
+  return useQuery<PopulatedStudentFee[]>({
     queryKey: studentFeeKeys.byStudent(studentId, params),
     queryFn: () => studentFeeApi.getByStudent(studentId, params),
     enabled: !!studentId
@@ -59,12 +55,12 @@ export const useGenerateStudentFee = () => {
 
   return useMutation({
     mutationFn: (data: GenerateStudentFeeInput) => studentFeeApi.generateFee(data),
-    onSuccess: (newFee: AnyStudentFee) => {
+    onSuccess: (newFee: PopulatedStudentFee) => {
       queryClient.invalidateQueries({
         queryKey: studentFeeKeys.lists()
       });
       queryClient.invalidateQueries({
-        queryKey: studentFeeKeys.byStudent(newFee.studentId.toString())
+        queryKey: studentFeeKeys.byStudent(getStudentIdValue(newFee))
       });
       queryClient.invalidateQueries({
         queryKey: ['studentFees', 'pending']
@@ -92,13 +88,13 @@ export const useBulkGenerateStudentFees = () => {
 
       const fees = result.fees || result;
       if (Array.isArray(fees)) {
-        fees.forEach((fee: AnyStudentFee) => {
+        fees.forEach((fee: PopulatedStudentFee) => {
           queryClient.setQueryData(
             studentFeeKeys.detail(fee._id),
             fee
           );
           queryClient.invalidateQueries({
-            queryKey: studentFeeKeys.byStudent(fee.studentId.toString())
+            queryKey: studentFeeKeys.byStudent(getStudentIdValue(fee))
           });
         });
       }
@@ -113,12 +109,12 @@ export const useApplyDiscount = () => {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: ApplyDiscountInput }) =>
       studentFeeApi.applyDiscount(id, data),
-    onSuccess: (updatedFee: AnyStudentFee) => {
+    onSuccess: (updatedFee: PopulatedStudentFee) => {
       queryClient.invalidateQueries({
         queryKey: studentFeeKeys.lists()
       });
       queryClient.invalidateQueries({
-        queryKey: studentFeeKeys.byStudent(updatedFee.studentId.toString())
+        queryKey: studentFeeKeys.byStudent(getStudentIdValue(updatedFee))
       });
       queryClient.invalidateQueries({
         queryKey: ['studentFees', 'pending']
@@ -138,12 +134,12 @@ export const useCancelFee = () => {
   return useMutation({
     mutationFn: ({ id, reason }: { id: string; reason: string }) =>
       studentFeeApi.cancelFee(id, reason),
-    onSuccess: (updatedFee: AnyStudentFee) => {
+    onSuccess: (updatedFee: PopulatedStudentFee) => {
       queryClient.invalidateQueries({
         queryKey: studentFeeKeys.lists()
       });
       queryClient.invalidateQueries({
-        queryKey: studentFeeKeys.byStudent(updatedFee.studentId.toString())
+        queryKey: studentFeeKeys.byStudent(getStudentIdValue(updatedFee))
       });
       queryClient.invalidateQueries({
         queryKey: ['studentFees', 'pending']
@@ -236,12 +232,12 @@ export const useCreateAdhocFee = () => {
 
   return useMutation({
     mutationFn: (data: CreateAdhocFeeInput) => studentFeeApi.createAdhocFee(data),
-    onSuccess: (newFee: AnyStudentFee) => {
+    onSuccess: (newFee: PopulatedStudentFee) => {
       queryClient.invalidateQueries({
         queryKey: studentFeeKeys.lists()
       });
       queryClient.invalidateQueries({
-        queryKey: studentFeeKeys.byStudent(newFee.studentId.toString())
+        queryKey: studentFeeKeys.byStudent(getStudentIdValue(newFee))
       });
       queryClient.invalidateQueries({
         queryKey: ['studentFees', 'pending']
