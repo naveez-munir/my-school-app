@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { getAuthData } from '~/utils/auth';
 
-export const createApiClient = (baseURL: string = 'http://localhost:3000') => {
+export const createApiClient = (baseURL: string = 'https://myschool-api.totaltravelsolutiongroup.com') => {
   const api = axios.create({
     baseURL,
     headers: {
