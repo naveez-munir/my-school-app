@@ -188,6 +188,12 @@ export interface StudentResponse {
   className: string;
   guardianName: string;
   photoUrl: string;
+  cnic?: string;
+  email?: string;
+  phone?: string;
+  guardianCnic?: string;
+  guardianPhone?: string;
+  guardianEmail?: string;
   status: boolean;
   rollNumber: string;
 }
