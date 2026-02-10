@@ -245,9 +245,11 @@ export interface PopulatedStudentFee extends Omit<StudentFee, 'studentId' | 'fee
     rollNumber?: string;
     class?: MongoId | { _id: MongoId; className: string };
   };
-  feeStructureId: FeeStructure;
+  feeStructureId?: FeeStructure | MongoId;
   feeDetails: PopulatedFeeDetail[];
 }
+
+export type AnyStudentFee = StudentFee | PopulatedStudentFee;
 
 export interface GenerateStudentFeeInput {
   studentId: MongoId;
@@ -287,7 +289,7 @@ export interface GetPendingFeesParams {
 }
 
 export interface PendingFeesResult {
-  fees: StudentFee[];
+  fees: PopulatedStudentFee[];
   summary: {
     totalPending: number;
     totalOverdue: number;
@@ -553,6 +555,58 @@ export interface ProcessRefundInput {
 export interface ListRefundParams {
   studentId?: MongoId;
   status?: RefundStatus;
+}
+
+// --------------------
+// Type Guards & Accessors
+// --------------------
+
+export function isPopulatedStudentFee(fee: AnyStudentFee): fee is PopulatedStudentFee {
+  return typeof fee.studentId === 'object' && fee.studentId !== null;
+}
+
+export function getStudentIdValue(fee: AnyStudentFee): MongoId {
+  if (isPopulatedStudentFee(fee)) {
+    return fee.studentId._id;
+  }
+  return fee.studentId;
+}
+
+export function getStudentDisplayName(fee: AnyStudentFee): string {
+  if (isPopulatedStudentFee(fee)) {
+    return `${fee.studentId.firstName} ${fee.studentId.lastName}`;
+  }
+  return `Student ID: ${fee.studentId}`;
+}
+
+export function getStudentRollNumber(fee: AnyStudentFee): string | null {
+  if (isPopulatedStudentFee(fee)) {
+    return fee.studentId.rollNumber || null;
+  }
+  return null;
+}
+
+export function getStudentClassName(fee: AnyStudentFee): string | null {
+  if (isPopulatedStudentFee(fee)) {
+    const cls = fee.studentId.class;
+    if (typeof cls === 'object' && cls !== null) {
+      return cls.className;
+    }
+  }
+  return null;
+}
+
+export function getStudentClassId(fee: AnyStudentFee): MongoId | undefined {
+  if (isPopulatedStudentFee(fee)) {
+    const cls = fee.studentId.class;
+    if (typeof cls === 'object' && cls !== null) {
+      return cls._id;
+    }
+    if (typeof cls === 'string') {
+      return cls;
+    }
+  }
+  return undefined;
 }
 
 // --------------------
