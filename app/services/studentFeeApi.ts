@@ -1,7 +1,7 @@
 import api from './apiClient';
 import {
   type GenerateStudentFeeInput,
-  type StudentFee,
+  type PopulatedStudentFee,
   type BulkGenerateStudentFeeInput,
   type ApplyDiscountInput,
   type GetStudentFeesParams,
@@ -18,28 +18,28 @@ import {
 
 export const studentFeeApi = {
   // Endpoint: GET /student-fees/:id
-  getById: async (id: string): Promise<StudentFee> => {
-    const response = await api.get<StudentFee>(`/student-fees/${id}`);
+  getById: async (id: string): Promise<PopulatedStudentFee> => {
+    const response = await api.get<PopulatedStudentFee>(`/student-fees/${id}`);
     return response.data;
   },
-  
+
   // Endpoint: POST /student-fees/generate
-  generateFee: async (data: GenerateStudentFeeInput): Promise<StudentFee> => {
-    const response = await api.post<StudentFee>('/student-fees/generate', data);
+  generateFee: async (data: GenerateStudentFeeInput): Promise<PopulatedStudentFee> => {
+    const response = await api.post<PopulatedStudentFee>('/student-fees/generate', data);
     return response.data;
   },
-  
+
   // Endpoint: POST /student-fees/bulk-generate
-  bulkGenerateFees: async (data: BulkGenerateStudentFeeInput): Promise<StudentFee[]> => {
-    const response = await api.post<StudentFee[]>('/student-fees/bulk-generate', data);
+  bulkGenerateFees: async (data: BulkGenerateStudentFeeInput): Promise<PopulatedStudentFee[]> => {
+    const response = await api.post<PopulatedStudentFee[]>('/student-fees/bulk-generate', data);
     return response.data;
   },
-  
+
   // Endpoint: GET /student-fees/student/:studentId
-  getByStudent: async (studentId: string, params?: GetStudentFeesParams): Promise<StudentFee[]> => {
+  getByStudent: async (studentId: string, params?: GetStudentFeesParams): Promise<PopulatedStudentFee[]> => {
     const queryParams = params ? prepareQueryParams(params) : undefined;
-    const response = await api.get<StudentFee[]>(
-      `/student-fees/student/${studentId}`, 
+    const response = await api.get<PopulatedStudentFee[]>(
+      `/student-fees/student/${studentId}`,
       { params: queryParams }
     );
     return response.data;
@@ -56,24 +56,24 @@ export const studentFeeApi = {
   },
   
   // Endpoint: GET /student-fees/overdue
-  getOverdueFees: async (params?: GetPendingFeesParams): Promise<StudentFee[]> => {
+  getOverdueFees: async (params?: GetPendingFeesParams): Promise<PopulatedStudentFee[]> => {
     const queryParams = params ? prepareQueryParams(params) : undefined;
-    const response = await api.get<StudentFee[]>(
-      '/student-fees/overdue', 
+    const response = await api.get<PopulatedStudentFee[]>(
+      '/student-fees/overdue',
       { params: queryParams }
     );
     return response.data;
   },
-  
+
   // Endpoint: PATCH /student-fees/:id/discount
-  applyDiscount: async (id: string, data: ApplyDiscountInput): Promise<StudentFee> => {
-    const response = await api.patch<StudentFee>(`/student-fees/${id}/discount`, data);
+  applyDiscount: async (id: string, data: ApplyDiscountInput): Promise<PopulatedStudentFee> => {
+    const response = await api.patch<PopulatedStudentFee>(`/student-fees/${id}/discount`, data);
     return response.data;
   },
-  
+
   // Endpoint: PATCH /student-fees/:id/cancel
-  cancelFee: async (id: string, reason: string): Promise<StudentFee> => {
-    const response = await api.patch<StudentFee>(`/student-fees/${id}/cancel`, { reason });
+  cancelFee: async (id: string, reason: string): Promise<PopulatedStudentFee> => {
+    const response = await api.patch<PopulatedStudentFee>(`/student-fees/${id}/cancel`, { reason });
     return response.data;
   },
   
@@ -121,8 +121,8 @@ export const studentFeeApi = {
   },
 
   // Endpoint: POST /student-fees/adhoc
-  createAdhocFee: async (data: CreateAdhocFeeInput): Promise<StudentFee> => {
-    const response = await api.post<StudentFee>('/student-fees/adhoc', cleanObject(data));
+  createAdhocFee: async (data: CreateAdhocFeeInput): Promise<PopulatedStudentFee> => {
+    const response = await api.post<PopulatedStudentFee>('/student-fees/adhoc', cleanObject(data));
     return response.data;
   },
 
