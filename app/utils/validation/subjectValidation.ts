@@ -57,6 +57,7 @@ const subjectCodeValidator = z
 const subjectBaseSchema = z.object({
   subjectName: subjectNameValidator,
   subjectCode: subjectCodeValidator,
+  gradeLevel: z.string().trim().optional().or(z.literal('')),
 });
 
 // ============================================================================
