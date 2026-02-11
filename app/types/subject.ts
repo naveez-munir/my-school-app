@@ -2,6 +2,7 @@ export interface Subject {
   _id: string;
   subjectName: string;
   subjectCode: string;
+  gradeLevel?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -9,6 +10,7 @@ export interface Subject {
 export interface SubjectDto {
   subjectName: string;
   subjectCode: string;
+  gradeLevel?: string;
 }
 export type CreateSubjectDto = SubjectDto;
 export type UpdateSubjectDto = Partial<SubjectDto>;
